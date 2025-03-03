@@ -7,20 +7,20 @@ require("dotenv").config();
 // Initialize Express
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 // Connect to Database
 connectDB();
 
+//import routes
 app.use("/api/suppliers", require("./routes/suppliers"));
 app.use("/api/products", require("./routes/products"));
 app.use("/api/orders", require("./routes/orders"));
+app.use("/api/users", require('./routes/Users_route') )
 
 
-// Sample API route
-app.get("/", (req, res) => {
-  res.send("Hello from Express API!");
-});
+
 
 // Start server
 const PORT = process.env.PORT || 5000;

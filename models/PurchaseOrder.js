@@ -2,17 +2,20 @@
 const {Schema, model}=require('mongoose')
 const timestamps=require('timestamp')
 const PurchaseOrderSchema = new Schema({
-  orderNumber: { type: String, required: true, unique: true },
+  orderNumber: { type: String, unique: true, default: () => `PO-${Date.now()}` },
   products: [
     {
-      product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+      product: { type: String, ref: "Product", required: true },
       quantity: { type: Number, required: true }
     }
   ],
-  supplier: { type: Schema.Types.ObjectId, ref: "Supplier", required: true },
-  orderedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  supplier: { type: String, ref: "Supplier", required: false },
+  orderedBy: { type: String,  required: true },
   status: { type: String, enum: ["pending", "approved", "delivered", "canceled"], default: "pending" }
 }, { timestamps: true });
 PurchaseOrderSchema.plugin(timestamps);
+PurchaseOrderSchema.statics.countOrders = async function () {
+  return await this.countDocuments();
+};
 
 module.exports= model("PurchaseOrder", PurchaseOrderSchema);

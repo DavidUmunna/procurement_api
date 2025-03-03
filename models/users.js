@@ -1,5 +1,6 @@
 
 const {Schema, model}=require('mongoose')
+const timestamp=require('timestamp')
 
 const UserSchema = new Schema({
   name: { type: String, required: true },
@@ -7,5 +8,7 @@ const UserSchema = new Schema({
   password: { type: String, required: true },
   role: { type: String, enum: ["admin", "procurement_officer"], default: "procurement_officer" },
 }, { timestamps: true });
+
+
 
 module.exports=model("User", UserSchema);

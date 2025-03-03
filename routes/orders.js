@@ -5,7 +5,7 @@ const Supplier = require("../models/Supplier");
 
 const router = Router();
 
-// 🛒 Get all purchase orders
+// Get all purchase orders
 router.get("/", async (req, res) => {
   try {
     const orders = await PurchaseOrder.find()
@@ -18,38 +18,41 @@ router.get("/", async (req, res) => {
   }
 });
 
-// 📦 Create a new purchase order
-router.post("/PurchaseOrder", async (req, res) => {
+// Create a new purchase order
+router.post("/", async (req, res) => {
   try {
-    const { supplier, products } = req.body;
-
+    const { supplier, products, orderedBy,orderNumber } = req.body;
+    //const count=await PurchaseOrder.countDocuments();
+  
     // Validate supplier existence
-    const existingSupplier = await Supplier.findById(supplier);
+    /*const existingSupplier = await Supplier.findById(supplier);
     if (!existingSupplier) {
       return res.status(404).json({ message: "Supplier not found" });
-    }
+    }*/
 
     // Validate products existence
-    for (let item of products) {
+    /*for (let item of products) {
       const product = await Product.findById(item.product);
       if (!product) {
         return res.status(404).json({ message: `Product not found: ${item.product}` });
       }
-    }
+    }*/
 
     const newOrder = new PurchaseOrder({
+      orderNumber,
       supplier,
       products,
+      orderedBy
     });
 
     await newOrder.save();
-    res.status(201).json(newOrder);
+    res.status(201).json({newOrder});
   } catch (error) {
     res.status(400).json({ message: "Error creating purchase order", error });
   }
 });
 
-// 📝 Update order status
+// Update order status
 router.put("/:id", async (req, res) => {
   try {
     const { status } = req.body;
@@ -75,7 +78,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// ❌ Delete an order
+// Delete an order
 router.delete("/:id", async (req, res) => {
   try {
     const deletedOrder = await PurchaseOrder.findByIdAndDelete(req.params.id);
