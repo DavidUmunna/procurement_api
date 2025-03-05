@@ -6,7 +6,7 @@ const ProductSchema = new Schema({
   category: { type: String, required: true },
   price: { type: Number, required: true },
   stock: { type: Number, required: true, default: 0 },
-  supplier: { type: Schema.Types.ObjectId, ref: "Supplier", required: true }
+  supplier: { type: String, ref: "Supplier", required: true }
 }, { timestamps: true });
 
 module.exports = model("Product", ProductSchema);

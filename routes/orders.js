@@ -1,4 +1,5 @@
 const { Router } = require("express");
+const mongoose = require("mongoose");
 const PurchaseOrder = require("../models/PurchaseOrder");
 const Product = require("../models/Product");
 const Supplier = require("../models/Supplier");
@@ -10,7 +11,7 @@ router.get("/", async (req, res) => {
   try {
     const orders = await PurchaseOrder.find()
       .populate("supplier", "name email phone")
-      .populate("products.product", "name price");
+      .populate("products", "Name quantity price");
 
     res.json(orders);
   } catch (error) {
@@ -20,18 +21,26 @@ router.get("/", async (req, res) => {
 
 // Create a new purchase order
 router.post("/", async (req, res) => {
-  try {
-    const { supplier, products, orderedBy,orderNumber } = req.body;
-    //const count=await PurchaseOrder.countDocuments();
-  
+  try {const { supplier, products, orderedBy } = req.body;
+        
+        //const {name, quantity}=products
+
     // Validate supplier existence
-    /*const existingSupplier = await Supplier.findById(supplier);
+    /*if (!mongoose.Types.ObjectId.isValid(supplier)) {
+      return res.status(400).json({ message: "Invalid supplier ID format" });
+    }
+
+    const existingSupplier = await Supplier.findById(supplier);
     if (!existingSupplier) {
       return res.status(404).json({ message: "Supplier not found" });
     }*/
 
     // Validate products existence
     /*for (let item of products) {
+      if (!mongoose.Types.ObjectId.isValid(item.product)) {
+        return res.status(400).json({ message: `Invalid product ID format: ${item.product}` });
+      }
+
       const product = await Product.findById(item.product);
       if (!product) {
         return res.status(404).json({ message: `Product not found: ${item.product}` });
@@ -39,14 +48,14 @@ router.post("/", async (req, res) => {
     }*/
 
     const newOrder = new PurchaseOrder({
-      orderNumber,
+      
       supplier,
       products,
       orderedBy
     });
 
     await newOrder.save();
-    res.status(201).json({newOrder});
+    res.status(201).json({ newOrder });
   } catch (error) {
     res.status(400).json({ message: "Error creating purchase order", error });
   }
@@ -88,6 +97,16 @@ router.delete("/:id", async (req, res) => {
     res.json({ message: "Order deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error deleting order", error });
+  }
+});
+
+// Delete all orders
+router.delete("/", async (req, res) => {
+  try {
+    await PurchaseOrder.deleteMany({});
+    res.json({ message: "All orders deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting all orders", error });
   }
 });
 
