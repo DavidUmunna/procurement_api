@@ -9,6 +9,13 @@ const UserSchema = new Schema({
   role: { type: String, enum: ["admin", "procurement_officer"], default: "procurement_officer" },
 }, { timestamps: true });
 
+UserSchema.plugin(timestamp);
+UserSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
 
 
 module.exports=model("User", UserSchema);

@@ -5,10 +5,9 @@ const PurchaseOrder = require("../models/PurchaseOrder");
 
 const router = Router();
 
-router.post('/signin', (req, res) => {
+router.post('/', (req, res) => {
     const { username, password } = req.body;
 
-    // Dummy authentication (replace with database check)
     if (username === 'admin' && password === 'password') {
         return res.json({ success: true, message: 'Login successful' });
     } else {
