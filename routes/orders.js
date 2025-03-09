@@ -22,6 +22,7 @@ router.get("/", async (req, res) => {
 // Create a new purchase order
 router.post("/", async (req, res) => {
   try {const { supplier, products, orderedBy } = req.body;
+        console.log(req.body)
         
         //const {name, quantity}=products
 
@@ -53,13 +54,15 @@ router.post("/", async (req, res) => {
       products,
       orderedBy
     });
+    console.log(newOrder)
 
     await newOrder.save();
-    res.status(201).json({ newOrder });
+    res.status(200).json({ newOrder });
   } catch (error) {
     res.status(400).json({ message: "Error creating purchase order", error });
   }
 });
+
 
 // Update order status
 router.put("/:id", async (req, res) => {
