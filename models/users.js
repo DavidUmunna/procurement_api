@@ -7,7 +7,7 @@ const UserSchema = new Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ["admin", "procurement_officer","normal_user"], default: "procurement_officer" },
+  role: { type: String, enum: ["admin", "procurement_officer","normal_user"], default: "staff" },
 }, { timestamps: true });
 
 UserSchema.plugin(timestamp);
