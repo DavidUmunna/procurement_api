@@ -1,8 +1,7 @@
 const { Router } = require("express");
 const mongoose = require("mongoose");
 const PurchaseOrder = require("../models/PurchaseOrder");
-const Product = require("../models/Product");
-const Supplier = require("../models/Supplier");
+
 
 const router = Router();
 
@@ -68,7 +67,7 @@ router.post("/", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     const { status } = req.body;
-    const validStatuses = ["Pending", "Completed", "Cancelled"];
+    const validStatuses = ["Pending", "Completed", "Rejected","Approved"];
 
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: "Invalid status value" });
