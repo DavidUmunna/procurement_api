@@ -16,7 +16,7 @@ router.post('/',async (req,res)=>{
     try{
         const {name, email, password, role}= req.body;
         
-        const new_user=new User({name,email, password, role,imageUrl});
+        const new_user=new User({name,email, password, role});
         console.log(new_user)
         await new_user.save()
         res.status(201).json(new_user)
