@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
-const PurchaseOrder = require('./models/PurchaseOrder'); // Ensure you require the PurchaseOrder model
+const PurchaseOrder = require('./models/PurchaseOrder'); 
+const signin=require("./models/sign_in")// Ensure you require the PurchaseOrder model
 
 // MongoDB connection URI
-const mongoURI = "mongodb://localhost:27017/procurement";
+const mongoURI = "mongodb://127.0.0.1:27017/procurement";
 
 // Connect to MongoDB
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -10,8 +11,8 @@ mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
     console.log("Connected to MongoDB");
 
     try {
-      await PurchaseOrder.deleteMany({});
-      console.log("All orders deleted successfully");
+      await signin.deleteMany({});
+      console.log("All users deleted successfully");
     } catch (error) {
       console.error("Error deleting all orders", error);
     }
