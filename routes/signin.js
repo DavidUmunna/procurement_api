@@ -4,18 +4,14 @@ const PurchaseOrder = require("../models/PurchaseOrder");
 const users=require("../models/users_")
 const bcrypt=require("bcrypt")
 const signin=require("../models/sign_in")
+const jwt=require("jsonwebtoken")
+require("dotenv").config({ path: __dirname + "/.env" });
+
 
 
 
 const router = Router();
-router.get("/", async (req, res) => {
-  try {
-    const user_data = await users.findOne({email})//.select("-password")
-    res.json(user_data);
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
-  }
-});
+
 
 
 router.post('/', async (req, res) => {
@@ -44,36 +40,39 @@ router.post('/', async (req, res) => {
         }
 
         // Store login session
-        const new_log_in = new signin({ email, password });
-        await new_log_in.save();
-
-        // Return user data
+        const token = jwt.sign({ username: users.username }, process.env.JWT_SECRET ||"pedro1234", { expiresIn: "1h" });
         return res.json({
-            success: true,
-            message: 'Login successful',
+            success:true, 
+            message: "Login successful",
+            token,
             name: user_data.name,
             email: user_data.email,
             role: user_data.role,
             imageurl: user_data.imageurl
-        });
+         });
+        
+        // Return user data
+       
+        
 
     } catch (err) {
         console.error(err);
         return res.status(500).json({ success: false, message: 'Server error' });
     }
 });
-
-router.delete("/:id", async (req, res) => {
-  try {
-    const deletedOrder = await signin.findByIdAndDelete(req.params.id);
-    if (!deleteduser) {
-      return res.status(404).json({ message: "User not signed in" });
+router.post("/logout", async (req, res) => {
+    try {
+        const token = req.header("Authorization")?.split(" ")[1];
+        if (token) {
+            blacklistedTokens.push(token);
+        }
+        res.json({ message: "Logout successful" });
+    } catch (error) {
+        res.status(500).json({ error: "Server error during logout" });
+        console.error(error)
     }
-    res.json({ message: "User deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ message: "Error deleting order", error });
-  }
 });
+
 
 router.delete("/", async (req, res) => {
   try {
