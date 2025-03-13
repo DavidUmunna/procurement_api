@@ -31,10 +31,10 @@ router.post('/',async (req,res)=>{
 //delete User
 router.delete('/:id',async (req,res)=>{
   try{
-      const deleteuser=await User.findById(req,this.params.id)
+      const deleteuser=await User.findByIdAndDelete(req.params.id)
       if (!deleteuser){
         return res.status(404).json({ message: "User not found" });
-      }
+      }res.json({ message: "Order deleted successfully" });
       
 
   }catch(err){
