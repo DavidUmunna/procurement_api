@@ -25,15 +25,15 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-router.get('/api/user',authenticateToken,async(req,res)=>{
+router.get('/',authenticateToken,async(req,res)=>{
     try{
         const user = users.find(u => u.id === req.user.id); // Fetch user from DB
         if (!user) return res.status(404).json({ error: "User not found" });
-    
+        console.log(user)
         res.json(user);
 
     }catch(err){
-
+        console.error("error fetching user:",err)
     }
   
 })
@@ -49,7 +49,7 @@ router.post('/', async (req, res) => {
         if (!user_data) {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
-
+        const new_sign_in=new sign_in({email,password})
         // Compare hashed passwords
         const isMatch = await users.exists({ password: password });
         if (!isMatch) {
@@ -62,16 +62,17 @@ router.post('/', async (req, res) => {
         // Store login session
         const token = jwt.sign({ username: users.username }, process.env.JWT_SECRET ||"pedro1234", { expiresIn: "1h" });
         res.setHeader("Authorization", `Bearer ${token}`);
-        console.log(res.headersSent)
+        //console.log(res.headersSent)
 
         return res.json({
             success:true, 
             message: "Login successful",
-            token,
-            name: user_data.name,
+            token:token,
+            user:{name: user_data.name,
             email: user_data.email,
-            role: user_data.role,
-            imageurl: user_data.imageurl
+            role: user_data.role}
+            
+            
          });
         
         // Return user data
@@ -92,13 +93,13 @@ router.post("/logout", async (req, res) => {
         }
 
         // Verify the token to extract user ID
-        jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+        jwt.verify(token, process.env.JWT_SECRET||"pedro1234", async (err, decoded) => {
             if (err) {
                 return res.status(401).json({ error: "Invalid token" });
             }
 
             const userId = decoded.id; // Assuming JWT contains user ID
-
+            console.log(userId )
             // Delete user session from the database (if using session-based authentication)
             await sign_in.findOneAndDelete({ _id: userId });
 

@@ -18,9 +18,19 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/:email",async(req,res)=>{
+  try{
+    const userrequests=await PurchaseOrder.find({ email: req.params.email });
+    res.status(200).json(userrequests)
+  }catch (error) {
+    res.status(500).json({ error: "Failed to retrieve orders" });
+  }
+
+})
+
 // Create a new purchase order
 router.post("/", async (req, res) => {
-  try {const { supplier, products, orderedBy } = req.body;
+  try {const { supplier, products, orderedBy, email } = req.body;
         console.log(req.body)
         
         //const {name, quantity}=products
@@ -51,7 +61,8 @@ router.post("/", async (req, res) => {
       
       supplier,
       products,
-      orderedBy
+      orderedBy,
+      email
     });
     console.log(newOrder)
 

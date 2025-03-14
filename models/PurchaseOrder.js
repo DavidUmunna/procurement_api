@@ -14,7 +14,7 @@ const PurchaseOrderSchema = new Schema({
       price:{type:Number,required:true},
       
     }
-  ],email: { type: String},
+  ],email: { type: String ,unique:true},
 
   supplier: { type: String,  required: false },
   orderedBy: { type: String, required: true },
