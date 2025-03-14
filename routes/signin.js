@@ -4,16 +4,39 @@ const PurchaseOrder = require("../models/PurchaseOrder");
 const users=require("../models/users_")
 const bcrypt=require("bcrypt")
 const signin=require("../models/sign_in")
-const jwt=require("jsonwebtoken")
+const jwt=require("jsonwebtoken");
+const sign_in = require("../models/sign_in");
 require("dotenv").config({ path: __dirname + "/.env" });
 
 
 
 
 const router = Router();
+const authenticateToken = (req, res, next) => {
+    const token = req.header("Authorization")?.split(" ")[1]; // Extract Bearer token
 
+    if (!token) return res.status(401).json({ error: "Access Denied" });
 
+    jwt.verify(token, process.env.JWT_SECRET||"pedro1234", (err, user) => {
+        if (err) return res.status(403).json({ error: "Invalid Token" });
 
+        req.user = user; // Attach user data to request
+        next();
+    });
+};
+
+router.get('/api/user',authenticateToken,async(req,res)=>{
+    try{
+        const user = users.find(u => u.id === req.user.id); // Fetch user from DB
+        if (!user) return res.status(404).json({ error: "User not found" });
+    
+        res.json(user);
+
+    }catch(err){
+
+    }
+  
+})
 router.post('/', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -33,14 +56,14 @@ router.post('/', async (req, res) => {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
 
-        // Check if user is already logged in
-        const login_exists = await signin.exists({ email });
-        if (login_exists) {
-            return res.status(401).json({ success: false, message: 'User already logged in' });
-        }
+      
+        
 
         // Store login session
         const token = jwt.sign({ username: users.username }, process.env.JWT_SECRET ||"pedro1234", { expiresIn: "1h" });
+        res.setHeader("Authorization", `Bearer ${token}`);
+        console.log(res.headersSent)
+
         return res.json({
             success:true, 
             message: "Login successful",
@@ -63,13 +86,30 @@ router.post('/', async (req, res) => {
 router.post("/logout", async (req, res) => {
     try {
         const token = req.header("Authorization")?.split(" ")[1];
-        if (token) {
-            blacklistedTokens.push(token);
+
+        if (!token) {
+            return res.status(400).json({ error: "No token provided" });
         }
-        res.json({ message: "Logout successful" });
+
+        // Verify the token to extract user ID
+        jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+            if (err) {
+                return res.status(401).json({ error: "Invalid token" });
+            }
+
+            const userId = decoded.id; // Assuming JWT contains user ID
+
+            // Delete user session from the database (if using session-based authentication)
+            await sign_in.findOneAndDelete({ _id: userId });
+
+            // Blacklist the token (temporary storage, better to use Redis)
+            blacklistedTokens.push(token);
+
+            res.json({ message: "Logout successful" });
+        });
     } catch (error) {
+        console.error("Logout Error:", error);
         res.status(500).json({ error: "Server error during logout" });
-        console.error(error)
     }
 });
 
