@@ -18,15 +18,28 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/:email",async(req,res)=>{
-  try{
-    const userrequests=await PurchaseOrder.find({ email: req.params.email });
-    res.status(200).json(userrequests)
-  }catch (error) {
+router.get("/:email", async (req, res) => {
+  try {
+    const { email } = req.params;
+    
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    // Fetch user orders
+    const userRequests = await PurchaseOrder.find({ email });
+
+    if (!userRequests.length) {
+      return res.status(404).json({ message: "No orders found for this email" });
+    }
+
+    res.status(200).json(userRequests);
+  } catch (error) {
+    console.error("Error fetching user orders:", error);
     res.status(500).json({ error: "Failed to retrieve orders" });
   }
+});
 
-})
 
 // Create a new purchase order
 router.post("/", async (req, res) => {
@@ -35,27 +48,7 @@ router.post("/", async (req, res) => {
         
         //const {name, quantity}=products
 
-    // Validate supplier existence
-    /*if (!mongoose.Types.ObjectId.isValid(supplier)) {
-      return res.status(400).json({ message: "Invalid supplier ID format" });
-    }
-
-    const existingSupplier = await Supplier.findById(supplier);
-    if (!existingSupplier) {
-      return res.status(404).json({ message: "Supplier not found" });
-    }*/
-
-    // Validate products existence
-    /*for (let item of products) {
-      if (!mongoose.Types.ObjectId.isValid(item.product)) {
-        return res.status(400).json({ message: `Invalid product ID format: ${item.product}` });
-      }
-
-      const product = await Product.findById(item.product);
-      if (!product) {
-        return res.status(404).json({ message: `Product not found: ${item.product}` });
-      }
-    }*/
+ 
 
     const newOrder = new PurchaseOrder({
       
