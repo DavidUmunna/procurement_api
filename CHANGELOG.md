@@ -18,3 +18,6 @@ userdataa ttracking almost fully inplemented
 
 -stop app from rendering everytime refresh is clicked
 
+##[16/03/25]
+-implementation of no app rendering when refreshed 
+

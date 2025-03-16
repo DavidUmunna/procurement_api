@@ -7,17 +7,20 @@ const signin=require("../models/sign_in")
 const jwt=require("jsonwebtoken");
 const sign_in = require("../models/sign_in");
 require("dotenv").config({ path: __dirname + "/.env" });
+const cookieparser=require('cookie-parser')
 
 
 
 
 const router = Router();
+
+router.use(cookieparser())
 const authenticateToken = (req, res, next) => {
-    const token = req.header("Authorization")?.split(" ")[1]; // Extract Bearer token
+    const token = req.cookies.authToken; 
 
     if (!token) return res.status(401).json({ error: "Access Denied" });
 
-    jwt.verify(token, process.env.JWT_SECRET||"pedro1234", (err, user) => {
+    jwt.verify(token, process.env.JWT_SECRET || "pedro1234", (err, user) => {
         if (err) return res.status(403).json({ error: "Invalid Token" });
 
         req.user = user; // Attach user data to request
@@ -27,6 +30,7 @@ const authenticateToken = (req, res, next) => {
 
 router.get('/',authenticateToken,async(req,res)=>{
     try{
+        const token = req.cookies.authToken;
         const user = users.find(u => u.id === req.user.id); // Fetch user from DB
         if (!user) return res.status(404).json({ error: "User not found" });
         console.log(user)
@@ -60,9 +64,21 @@ router.post('/', async (req, res) => {
         
 
         // Store login session
-        const token = jwt.sign({ username: users.username }, process.env.JWT_SECRET ||"pedro1234", { expiresIn: "1h" });
-        res.setHeader("Authorization", `Bearer ${token}`);
+        const token = jwt.sign(
+            { id: user_data._id, email: user_data.email, role: user_data.role}, 
+            process.env.JWT_SECRET || "pedro1234", 
+            { expiresIn: "1h" }
+        );
+    
         //console.log(res.headersSent)
+        res.cookie("authToken",token,{
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 60 * 60 * 1000, // 1 hour
+            sameSite: "Lax",
+        },
+        
+        )
 
         return res.json({
             success:true, 
@@ -86,33 +102,14 @@ router.post('/', async (req, res) => {
 });
 router.post("/logout", async (req, res) => {
     try {
-        const token = req.header("Authorization")?.split(" ")[1];
-
-        if (!token) {
-            return res.status(400).json({ error: "No token provided" });
-        }
-
-        // Verify the token to extract user ID
-        jwt.verify(token, process.env.JWT_SECRET||"pedro1234", async (err, decoded) => {
-            if (err) {
-                return res.status(401).json({ error: "Invalid token" });
-            }
-
-            const userId = decoded.id; // Assuming JWT contains user ID
-            console.log(userId )
-            // Delete user session from the database (if using session-based authentication)
-            await sign_in.findOneAndDelete({ _id: userId });
-
-            // Blacklist the token (temporary storage, better to use Redis)
-            blacklistedTokens.push(token);
-
-            res.json({ message: "Logout successful" });
-        });
+        res.clearCookie("authToken"); // ✅ Ensure cookie name matches login route
+        return res.json({ message: "Logout successful" });
     } catch (error) {
         console.error("Logout Error:", error);
         res.status(500).json({ error: "Server error during logout" });
     }
 });
+
 
 
 router.delete("/", async (req, res) => {
