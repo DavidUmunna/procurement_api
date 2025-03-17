@@ -10,7 +10,7 @@ router.get("/", async (req, res) => {
   try {
     const orders = await PurchaseOrder.find()
       .populate("supplier", "name email phone")
-      .populate("products", "Name quantity price");
+      
 
     res.json(orders);
   } catch (error) {
@@ -43,7 +43,7 @@ router.get("/:email", async (req, res) => {
 
 // Create a new purchase order
 router.post("/", async (req, res) => {
-  try {const { supplier, products, orderedBy, email } = req.body;
+  try {const { supplier, orderedBy, email,urgency, file, remarks } = req.body;
         console.log(req.body)
         
         //const {name, quantity}=products
@@ -53,9 +53,11 @@ router.post("/", async (req, res) => {
     const newOrder = new PurchaseOrder({
       
       supplier,
-      products,
       orderedBy,
-      email
+      email,
+      urgency,
+      file,
+      remarks
     });
     console.log(newOrder)
 
