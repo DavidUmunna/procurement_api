@@ -43,13 +43,21 @@ const exporttoExcel=async()=>{
     orderedBy: item.orderedBy || "N/A",
     urgency:item.urgency || "N/A",
     remark:item.remarks || "N/A"
-  }));
+    
+    }));
+    const productData=orders.flatMap(order=>
+      order.products.map(item=>({
+        name:item.name||"N/A",
+        quantity:item.quantity||"N/A",
+        price:item.price||"N/A"
+      }))
+    )
     
     const wb=XLSX.utils.book_new()
     const ws=XLSX.utils.json_to_sheet(formattedData)
-    //const ws1=XLSX.utils.json_to_sheet(productData)
+    const ws1=XLSX.utils.json_to_sheet(productData)
     XLSX.utils.book_append_sheet(wb,ws,"orders")
-    //XLSX.utils.book_append_sheet(wb,ws1,"productdata")
+    XLSX.utils.book_append_sheet(wb,ws1,"productdata")
     XLSX.writeFile(wb,"orders.xlsx")
 
    
