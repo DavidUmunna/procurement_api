@@ -23,6 +23,8 @@ const connectDB = async () => {
     process.exit(1); // Exit process with failure
   }
 };
+
+
 const breaker=new circuitBreaker(connectDB,options)
 breaker.fallback(() => ({ message: "Service is down. Please try again later." }))
 
@@ -38,20 +40,16 @@ const exporttoExcel=async()=>{
       email: item.email || "N/A",
       
     status: item.status || "N/A",
-    orderedBy: item.orderedBy || "N/A"
+    orderedBy: item.orderedBy || "N/A",
+    urgency:item.urgency || "N/A",
+    remark:item.remarks || "N/A"
   }));
-    const productData=orders.flatMap(item=>item.products
-      .map(product=>({
-        Name:product.Name || "N/A",
-        quantity:product.quantity || "N/A",
-        price:product.price || "N/A"
-      }))
-    )
+    
     const wb=XLSX.utils.book_new()
     const ws=XLSX.utils.json_to_sheet(formattedData)
-    const ws1=XLSX.utils.json_to_sheet(productData)
+    //const ws1=XLSX.utils.json_to_sheet(productData)
     XLSX.utils.book_append_sheet(wb,ws,"orders")
-    XLSX.utils.book_append_sheet(wb,ws1,"productdata")
+    //XLSX.utils.book_append_sheet(wb,ws1,"productdata")
     XLSX.writeFile(wb,"orders.xlsx")
 
    

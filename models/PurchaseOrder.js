@@ -5,20 +5,17 @@ const  {user} = require('./users_');
 const PurchaseOrderSchema = new Schema({
   orderNumber: { type: String, unique: true, default: () => `PO-${Date.now()}` },
 
-  products: [
-    {
-      
-        Name: { type: String, required: true }
-      ,
-      quantity: { type: Number, required: true },
-      price:{type:Number,required:true},
-      
-    }
-  ],email: { type: String ,unique:true},
+  email: { type: String ,unique:true},
 
   supplier: { type: String,  required: false },
   orderedBy: { type: String, required: true },
-  status: { type: String, enum: ["Pending", "approved", "delivered", "canceled"], default: "Pending" }
+  status: { type: String, enum: ["Pending", "Approved", "Copmpleted", "Rejected"], default: "Pending" },
+  urgency:{type:String, enum:["VeryUrgent","Urgent","NotUrgent"],default:"NotUrgent"},
+  file: {
+    data: Buffer,
+    contentType: String,
+  },
+  remarks:{type:String,required:true}
 }, { timestamps: true });
 
 PurchaseOrderSchema.plugin(timestamps);
