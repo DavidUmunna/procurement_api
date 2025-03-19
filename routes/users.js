@@ -66,7 +66,47 @@ router.put('/:email',async(req,res)=>{
     res.status(400).json({ message: "Error updating User", error });
   }
 })
+router.get("/:email", async (req, res) => {
+  try {
+      const { email } = req.params; // Get email from URL params
+      const user = await User.findOne({ email });
 
+      if (user) {
+          return res.status(200).json({ message: "User is valid", user });
+      } else {
+          return res.status(404).json({ message: "User not found" });
+      }
+  } catch (error) {
+      console.error("Error fetching user:", error);
+      return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+router.put("/:email", async (req, res) => {
+  const {  email,newPassword } = req.body;
+
+  if ( !newPassword) {
+    return res.status(400).json({ message: "Email and new password are required" });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    
+
+    user.password = newPassword;
+    await user.save();
+
+    res.status(200).json({ message: "Password updated successfully" });
+
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
 //delete User
 router.delete('/:id',async (req,res)=>{
   try{
