@@ -49,23 +49,7 @@ router.post('/',async (req,res)=>{
       console.error(error)
     }
 })
-router.put('/:email',async(req,res)=>{
-  try{
-    const {password,email}=req.body
 
-
-    const updatedpassword=await users_.findOneAndUpdate(
-      {email,password},
-      {new:true}
-
-    )
-    if (!updatedpassword) {
-      return res.status(404).json({ message: "User not found" });
-    }
-  }catch{
-    res.status(400).json({ message: "Error updating User", error });
-  }
-})
 router.get("/:email", async (req, res) => {
   try {
       const { email } = req.params; // Get email from URL params

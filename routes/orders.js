@@ -1,7 +1,11 @@
 const { Router } = require("express");
 const mongoose = require("mongoose");
 const PurchaseOrder = require("../models/PurchaseOrder");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 
+const uploadDir = path.join(__dirname, "../uploads");
 
 const router = Router();
 
@@ -44,24 +48,55 @@ router.get("/:email", async (req, res) => {
 
 // Create a new purchase order
 router.post("/", async (req, res) => {
-  try {const { supplier, orderedBy,products, email,urgency, file, remarks } = req.body;
+  try {const { supplier, orderedBy,products , email,urgency, file, remarks } = req.body;
         console.log(req.body)
         
         //const {name, quantity}=products
+        if (!Array.isArray(products)) {
+          return res.status(400).json({ error: "Products must be an array" });
+        }
+        
 
- 
+        // Ensure products is an array and destructure its fields
+        const productDetails = products.map(product => ({
+          name: product.name,
+          quantity: product.quantity,
+          price: product.price
+        }));
 
     const newOrder = new PurchaseOrder({
       
       supplier,
       orderedBy,
       email,
-      products,
+      products:productDetails,
       urgency,
       file,
       remarks
     });
     console.log(newOrder)
+    if (!req.file || req.file.length === 0) {
+      return res.status(400).json({ error: "No files uploaded" });
+    }
+    const storage = multer.diskStorage({
+        destination: (req, file, cb) => {
+          cb(null, "../uploads/"); // Save files in "uploads" folder
+        },
+        filename: (req, file, cb) => {
+          cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
+        },
+      });
+    
+    const upload = multer({ storage });
+  
+    const fileUrls = req.file.map((file) => ({
+      filename: file.filename,
+      url: `/uploads/${file.filename}`,
+    }));
+
+
+    
+    res.json({ message: "Files uploaded successfully", files: fileUrls });
 
     await newOrder.save();
     res.status(200).json({ newOrder });

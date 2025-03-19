@@ -1,7 +1,9 @@
 const express=require('express')
 const cors=require('cors')
+const path = require("path");
 const connectDB =require("./db") ;
 const cookieparser=require('cookie-parser')
+const uploadRoutes = require("./routes/fileupload");
 
 require("dotenv").config();
 const allowedOrigins = ["http://localhost:3000", "http://localhost:3001"];
@@ -20,6 +22,10 @@ app.use(cors(
         },credentials:true,
     }
 ));
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+
 app.use(cookieparser())
 // Connect to Database
 connectDB();
@@ -31,6 +37,7 @@ app.use("/api/orders", require("./routes/orders"));
 app.use("/api/users", require('./routes/users') )
 app.use("/api/signin",require("./routes/signin"))
 app.use("/api/check-auth",require("./routes/check-auth"))
+app.use("/api", uploadRoutes);
 
 
 
