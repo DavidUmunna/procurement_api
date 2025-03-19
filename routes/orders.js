@@ -9,6 +9,18 @@ const uploadDir = path.join(__dirname, "../uploads");
 
 const router = Router();
 
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, "../uploads"));
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+const upload = multer({ storage });
+
+
 // Get all purchase orders
 router.get("/", async (req, res) => {
   try {
@@ -47,64 +59,44 @@ router.get("/:email", async (req, res) => {
 
 
 // Create a new purchase order
-router.post("/", async (req, res) => {
-  try {const { supplier, orderedBy,products , email,urgency, file, remarks } = req.body;
-        console.log(req.body)
-        
-        //const {name, quantity}=products
-        if (!Array.isArray(products)) {
-          return res.status(400).json({ error: "Products must be an array" });
-        }
-        
+router.post("/", upload.array("files"), async (req, res) => {
+  try {
+    const { supplier, orderedBy, products, email, urgency, remarks } = req.body;
+    console.log(req.body);
 
-        // Ensure products is an array and destructure its fields
-        const productDetails = products.map(product => ({
-          name: product.name,
-          quantity: product.quantity,
-          price: product.price
-        }));
+    // Ensure products is an array and destructure its fields
+    if (!Array.isArray(products)) {
+      return res.status(400).json({ error: "Products must be an array" });
+    }
+
+    const productDetails = products.map(product => ({
+      name: product.name,
+      quantity: product.quantity,
+      price: product.price
+    }));
+
+    const fileUrls = req.files.map(file => ({
+      filename: file.filename,
+      url: `/uploads/${file.filename}`
+    }));
 
     const newOrder = new PurchaseOrder({
-      
       supplier,
       orderedBy,
       email,
-      products:productDetails,
+      products: productDetails,
       urgency,
-      file,
+      files: fileUrls,
       remarks
     });
-    console.log(newOrder)
-    if (!req.file || req.file.length === 0) {
-      return res.status(400).json({ error: "No files uploaded" });
-    }
-    const storage = multer.diskStorage({
-        destination: (req, file, cb) => {
-          cb(null, "../uploads/"); // Save files in "uploads" folder
-        },
-        filename: (req, file, cb) => {
-          cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
-        },
-      });
-    
-    const upload = multer({ storage });
-  
-    const fileUrls = req.file.map((file) => ({
-      filename: file.filename,
-      url: `/uploads/${file.filename}`,
-    }));
-
-
-    
-    res.json({ message: "Files uploaded successfully", files: fileUrls });
 
     await newOrder.save();
     res.status(200).json({ newOrder });
   } catch (error) {
+    console.error("Error creating purchase order:", error);
     res.status(400).json({ message: "Error creating purchase order", error });
   }
 });
-
 
 // Update order status
 router.put("/:id", async (req, res) => {
