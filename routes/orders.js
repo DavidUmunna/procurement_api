@@ -10,15 +10,7 @@ const uploadDir = path.join(__dirname, "../uploads");
 const router = Router();
 
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "../uploads"));
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
-const upload = multer({ storage });
+
 
 
 // Get all purchase orders
@@ -59,9 +51,10 @@ router.get("/:email", async (req, res) => {
 
 
 // Create a new purchase order
-router.post("/", upload.array("files"), async (req, res) => {
+router.post("/",  async (req, res) => {
   try {
-    const { supplier, orderedBy, products, email, urgency, remarks } = req.body;
+    const { supplier, orderedBy, products,email, urgency, remarks } = req.body;
+    
     console.log(req.body);
 
     // Ensure products is an array and destructure its fields
@@ -69,26 +62,22 @@ router.post("/", upload.array("files"), async (req, res) => {
       return res.status(400).json({ error: "Products must be an array" });
     }
 
-    const productDetails = products.map(product => ({
-      name: product.name,
-      quantity: product.quantity,
-      price: product.price
-    }));
+    
 
-    const fileUrls = req.files.map(file => ({
-      filename: file.filename,
-      url: `/uploads/${file.filename}`
-    }));
+   
 
     const newOrder = new PurchaseOrder({
       supplier,
       orderedBy,
       email,
-      products: productDetails,
+      products,
       urgency,
-      files: fileUrls,
+      
       remarks
+      
+
     });
+    console.log(newOrder)
 
     await newOrder.save();
     res.status(200).json({ newOrder });

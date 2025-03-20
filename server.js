@@ -37,7 +37,7 @@ app.use("/api/orders", require("./routes/orders"));
 app.use("/api/users", require('./routes/users') )
 app.use("/api/signin",require("./routes/signin"))
 app.use("/api/check-auth",require("./routes/check-auth"))
-app.use("/api", uploadRoutes);
+app.use("/api/fileupload", uploadRoutes);
 
 
 

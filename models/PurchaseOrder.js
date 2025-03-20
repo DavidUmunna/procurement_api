@@ -6,12 +6,13 @@ const PurchaseOrderSchema = new Schema({
   orderNumber: { type: String, unique: true, default: () => `PO-${Date.now()}` },
 
   email: { type: String ,unique:true},
-  products:[{product:{
-      name:{ type: String,  required: false },
-      quantity:{ type: Number,  required: true },
-      price:{ type: Number,  required: true }
-
-  }}],
+  products: [
+    {
+      name: { type: String, required: true },
+      quantity: { type: Number, required: true },
+      price: { type: Number, required: true },
+    },
+  ],
   supplier: { type: String,  required: false },
   orderedBy: { type: String, required: true },
   status: { type: String, enum: ["Pending", "Approved", "Copmpleted", "Rejected"], default: "Pending" },

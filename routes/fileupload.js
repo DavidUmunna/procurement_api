@@ -25,7 +25,7 @@ const storage = multer.diskStorage({
   const upload = multer({ storage });
 
 
-  router.post("/upload", upload.array("files", 5), (req, res) => {
+  router.post("/", upload.array("files", 5), (req, res) => {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: "No files uploaded" });
     }
@@ -37,5 +37,22 @@ const storage = multer.diskStorage({
     
     res.json({ message: "Files uploaded successfully", files: fileUrls });
   });
-  
+
+
+  app.get("/download/:filename", async (req, res) => {
+    try {
+        const file = await File.findOne({ storedName: req.params.filename });
+
+        if (!file) return res.status(404).json({ error: "File not found" });
+
+        const filePath = path.join(__dirname, "uploads", file.storedName);
+        
+        // Check if file exists before sending
+        if (!fs.existsSync(filePath)) return res.status(404).json({ error: "File missing from server" });
+
+        res.download(filePath, file.originalName);
+    } catch (error) {
+        res.status(500).json({ error: "Server error" });
+    }
+});
   module.exports = router;
