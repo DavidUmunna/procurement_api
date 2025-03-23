@@ -5,7 +5,7 @@ const  {user} = require('./users_');
 const PurchaseOrderSchema = new Schema({
   orderNumber: { type: String, unique: true, default: () => `PO-${Date.now()}` },
 
-  email: { type: String ,unique:true},
+  email: { type: String, required:false},
   products: [
     {
       name: { type: String, required: true },

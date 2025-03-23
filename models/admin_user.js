@@ -5,7 +5,7 @@ const timestamp=require('timestamp')
 
 const UserSchema = new Schema({
   name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
+  email: { type: String, required: true },
   password: { type: String, required: true,select:true },
   role: { type: String, enum: ["admin", "procurement_officer","staff"], default: "staff" },
 

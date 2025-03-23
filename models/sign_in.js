@@ -5,7 +5,7 @@ const timestamp=require('timestamp')
 
 const SigninSchema = new Schema({
   
-  email: { type: String, required: true, unique: true },
+  email: { type: String, required: true },
   password: { type: String, required: true,select:true },
 
 }, { timestamps: true });

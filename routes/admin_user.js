@@ -27,9 +27,7 @@ router.post('/',async (req,res)=>{
       console.error(error)
     }
 })
-const express = require("express");
-const bcrypt = require("bcryptjs");
-const User = require("../models/User"); // Adjust the path based on your project structure
+// Adjust the path based on your project structure
 
 
 router.get("/:email",async(req,res)=>{
