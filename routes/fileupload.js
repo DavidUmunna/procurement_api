@@ -75,45 +75,57 @@ const storage = multer.diskStorage({
 
     
 
-router.get("/:email", async (req, res) => {
-  try {
-    const { email} = req.params;
-    console.log("Requested email:", email);
-
-    // Find the document that contains the file
-    const fileDoc = await file_.findOne({ "files.email": email });
-    if (!fileDoc) return res.status(404).json({ error: "File not found in DB" });
-    console.log("filedoc",fileDoc)
-    const allFiles = fileDoc.flatMap(doc => doc.files);
-    // Extract the specific file object from the files array
-    const userfiles = allFiles.filter(file=>file.email===email)
-    if (!userfiles) return res.status(404).json({ error: "File not found in document" });
-
-    console.log("Extracted File Object:", userfiles);
-    // console.log(path)
-    // Construct the correct file path using storedName
-    const filePath = `C:/Users/David/Desktop/gmc_projects/procurement_app/uploads/${file.filename}`;
-    console.log("File Path:", filePath);
-
-    // Check if the file exists before sending
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ error: "File missing from server" });
-    }
-    userfiles.foreach(file=>{
-       if (fs.existsSync(filePath)) {
-      res.setHeader('Content-Type', 'application/octet-stream'); // For binary
-      res.setHeader('Content-Disposition', `attachment; filename=${file.filename}`);
-      
-      const fileStream = fs.createReadStream(filePath);
-      fileStream.pipe(res);}
+    router.get("/:email", async (req, res) => {
+      try {
+        const { email } = req.params;
+        console.log("Requested email:", email);
+    
+        // Find the document that contains the file
+        const fileDoc = await file_.findOne({ "files.email": email });
+        if (!fileDoc) return res.status(404).json({ error: "File not found in DB" });
+        console.log("filedoc", fileDoc);
+    
+        // Extract the specific file object from the files array
+        const userFiles = fileDoc.files.filter(file => file.email === email);
+        if (!userFiles || userFiles.length === 0) return res.status(404).json({ error: "File not found in document" });
+    
+        console.log("Extracted File Object:", userFiles);
+    
+        // Construct the correct file path using storedName
+        userFiles.forEach(file => {
+          const filePath = path.join(uploadDir, file.filename);
+          console.log("File Path:", filePath);
+    
+          // Check if the file exists before sending
+          if (fs.existsSync(filePath)) {
+            res.setHeader('Content-Type', 'application/octet-stream'); // For binary
+            res.setHeader('Content-Disposition', `attachment; filename=${file.filename}`);
+    
+            const fileStream = fs.createReadStream(filePath);
+            fileStream.pipe(res);
+          } else {
+            res.status(404).json({ error: "File missing from server" });
+          }
+        });
+      } catch (error) {
+        console.error("Server error:", error);
+        res.status(500).json({ error: "Server error" });
+      }
+    });
+    router.get("/download/:filename",async(req,res)=>{
+      try{
+        const filename = req.params.filename;
+        const filePath =path.join(uploadDir, filename);
+        res.download(filePath, (err) => {
+            if (err) {
+                res.status(500).json({ message: "File not found or error downloading" });
+            }
+        });
+      }catch(err){
+            console.error("an error occured",err)
+            res.status(500)
+      }
     })
-    // Download the file with the original filename
-   
-  } catch (error) {
-    console.error("Server error:", error);
-    res.status(500).json({ error: "Server error" });
-  }
-});
 
     
   module.exports = router;

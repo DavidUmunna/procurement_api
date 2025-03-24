@@ -4,6 +4,7 @@ const PurchaseOrder = require("../models/PurchaseOrder");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const file=require("./fileupload")
 
 const uploadDir = path.join(__dirname, "../uploads");
 
@@ -53,7 +54,7 @@ router.get("/:email", async (req, res) => {
 // Create a new purchase order
 router.post("/",  async (req, res) => {
   try {
-    const { supplier, orderedBy, products,email, urgency, remarks } = req.body;
+    const { supplier, orderedBy, products,email,filename, urgency, remarks } = req.body;
     
     console.log(req.body);
 
@@ -72,7 +73,7 @@ router.post("/",  async (req, res) => {
       email,
       products,
       urgency,
-      
+      filename,
       remarks
       
 

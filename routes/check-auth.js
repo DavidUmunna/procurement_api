@@ -11,7 +11,7 @@ router.get("/", (req, res) => {
 
     try {
         
-        res.json({ authenticated: true });
+        res.json({ authenticated: false});
     } catch (error) {
         res.clearCookie("authToken"); // Clear expired/invalid token
         return res.status(401).json({ authenticated: false, message: "Invalid or expired token" });
