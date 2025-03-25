@@ -3,7 +3,7 @@ const {Schema, model}=require('mongoose')
 const timestamp=require('timestamp')
 
 
-const UserSchema = new Schema({
+const AdminUserSchema = new Schema({
   name: { type: String, required: true },
   email: { type: String, required: true },
   password: { type: String, required: true,select:true },
@@ -11,9 +11,9 @@ const UserSchema = new Schema({
 
 }, { timestamps: true });
 
-UserSchema.plugin(timestamp);
+AdminUserSchema.plugin(timestamp);
 
 
 
 
-module.exports=model("user", UserSchema);
+module.exports=model("Admin", AdminUserSchema);
