@@ -44,7 +44,7 @@ router.get('/',authenticateToken,async(req,res)=>{
 router.post('/', async (req, res) => {
     try {
         const { username, password } = req.body;
-        const email = username; // Alias, but unnecessary
+        const email = username; 
 
         // Find user once (avoiding redundant queries)
         const user_data = await users.findOne({ email });
@@ -53,7 +53,7 @@ router.post('/', async (req, res) => {
         if (!user_data) {
             return res.status(401).json({ success: false, message: 'Invalid credentials' });
         }
-        const new_sign_in=new sign_in({email,password})
+        //const new_sign_in=new sign_in({email,password})
         // Compare hashed passwords
         const isMatch = await users.exists({ password: password });
         if (!isMatch) {

@@ -7,25 +7,28 @@ const router = Router();
 
 // Login route
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+ 
 
   try {
-    const user = await AdminUser.findOne({ email });
-    if (!user) {
+
+     const { username, password } = req.body;
+     const email=username
+    const user_data = await AdminUser.findOne({ email });
+    if (!user_data) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
-      console.log(user.password)
-    const isMatch = await user.exists({password:password});
+      
+    const isMatch = await AdminUser.exists({password:password});
     
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res.status(401).json({success:false, message: "Invalid email or password" });
     }
 
-    if (user.role !== "admin") {
-      return res.status(403).json({ message: "Access denied. Admins only." });
+    if (user_data.role !== "admin") {
+      return res.status(403).json({success:false, message: "Access denied. Admins only." });
     }
 
-    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ userId: user_data._id,email: user_data.email, role: user_data.role }, process.env.JWT_SECRET|| "pedro1234", {
       expiresIn: "1h"
     });
 
