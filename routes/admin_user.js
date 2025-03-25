@@ -6,7 +6,7 @@ const AdminUser = require('../models/users_');
 const router = Router();
 
 // Login route
-router.post('/admin', async (req, res) => {
+router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -15,7 +15,7 @@ router.post('/admin', async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
       console.log(user.password)
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await user.exists({password:password});
     
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid email or password" });
