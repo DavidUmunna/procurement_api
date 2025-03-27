@@ -5,7 +5,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const file=require("./fileupload")
-
+const auth=require("./check-auth")
 const uploadDir = path.join(__dirname, "../uploads");
 
 const router = Router();
@@ -15,35 +15,52 @@ const router = Router();
 
 
 // Get all purchase orders
-router.get("/", async (req, res) => {
+router.get("/", auth,async (req, res) => {
   try {
+    console.log(req.user)
+    const isAdmin= req.user.role==="admin"
     const orders = await PurchaseOrder.find()
       .populate("supplier", "name email phone")
       .populate("products", "name quantity price")
       
-
-    res.json(orders);
+    const response=(orders.map((order=>{
+      const plainOrder=order.toObject()
+      if(!isAdmin){
+        delete  plainOrder.Approvals
+      }
+      return plainOrder
+    })))
+    res.json(response);
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    console.error(error)
+    //res.status(500).json({ message: "Server error", error });
   }
 });
 
-router.get("/:email", async (req, res) => {
+router.get("/:email", auth,async (req, res) => {
   try {
     const { email } = req.params;
-    
+     const isAdmin= req.user.role==="admin"
     if (!email) {
       return res.status(400).json({ error: "Email is required" });
     }
+    
 
     // Fetch user orders
     const userRequests = await PurchaseOrder.find({ email });
+    
+    const response=(userRequests.map((order=>{
+      if(!isAdmin){
+        delete  order.Approvals
+      }
+      return order
+    })))
 
     if (!userRequests.length) {
       return res.status(404).json({ message: "No orders found for this email" });
     }
 
-    res.status(200).json(userRequests);
+    res.status(200).json(response);
   } catch (error) {
     console.error("Error fetching user orders:", error);
     res.status(500).json({ error: "Failed to retrieve orders" });
@@ -87,7 +104,29 @@ router.post("/",  async (req, res) => {
     res.status(400).json({ message: "Error creating purchase order", error });
   }
 });
+router.put("/:id/approve",async (req, res) => {
+  const { orderId } = req.params.id;
+  const { adminName} = req.body; // Pass the admin's name in the request body
 
+  try {
+      console.log("orderid",orderId)
+      console.log("adminname",adminName)
+      const order = await PurchaseOrder.findById(orderId);
+      if (!order) {
+          return res.status(404).json({ message: "Order not found" });
+      }
+
+      if (!order.Approvals.includes(adminName)) {
+          order.Approvals.push(adminName);
+          await order.save();
+          return res.status(200).json({ message: "Order approved", order });
+      } else {
+          return res.status(400).json({ message: "Admin has already approved this order" });
+      }
+  } catch (error) {
+      res.status(500).json({ message: "Server error", error });
+  }
+});
 // Update order status
 router.put("/:id", async (req, res) => {
   try {

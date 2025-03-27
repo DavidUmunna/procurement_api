@@ -28,7 +28,7 @@ router.post('/login', async (req, res) => {
       return res.status(403).json({success:false, message: "Access denied. Admins only." });
     }
 
-    const token = jwt.sign({ userId: user_data._id,email: user_data.email, role: user_data.role }, process.env.JWT_SECRET|| "pedro1234", {
+    const token = jwt.sign({ userId: user_data._id,email: user_data.email, role: user_data.role,name: user_data.name }, process.env.JWT_SECRET|| "pedro1234", {
       expiresIn: "1h"
     });
 

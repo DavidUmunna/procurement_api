@@ -4,7 +4,7 @@ const  {user} = require('./users_');
 
 const PurchaseOrderSchema = new Schema({
   orderNumber: { type: String, unique: true, default: () => `PO-${Date.now()}` },
-
+  Approvals:{type:[String], required:false,default:[]},
   email: { type: String, required:false},
   products: [
     {
@@ -45,6 +45,12 @@ PurchaseOrderSchema.pre('save', async function(next) {
   }
   next();
 });
+PurchaseOrderSchema.set('toJSON',{
+  transform:function(doc,ret){
+    delete ret.Approvals;
+    return ret
+  }
+})
 
 
 module.exports = model("PurchaseOrder", PurchaseOrderSchema);
