@@ -1,0 +1,87 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 Edg/134.0.0.0" version="26.1.3">
+  <diagram name="Page-1" id="_0cFvfcrkhvYAsVQOI6-">
+    <mxGraphModel dx="1375" dy="484" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="ZYNj7-T5IlMomELFBFtX-1" target="ZYNj7-T5IlMomELFBFtX-17">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="250" y="240" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-1" value="start" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="190" y="100" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-22" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="ZYNj7-T5IlMomELFBFtX-15" target="ZYNj7-T5IlMomELFBFtX-21">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-49" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="ZYNj7-T5IlMomELFBFtX-15" target="ZYNj7-T5IlMomELFBFtX-48">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-15" value="user details gotten from backend" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
+          <mxGeometry x="190" y="555" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-47" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="ZYNj7-T5IlMomELFBFtX-17" target="ZYNj7-T5IlMomELFBFtX-25">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-17" value="initialization by user" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
+          <mxGeometry x="190" y="230" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-19" value="user details populate dashboard" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.display;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="190" y="680" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="ZYNj7-T5IlMomELFBFtX-15" target="ZYNj7-T5IlMomELFBFtX-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-21" value="token stored in local storage" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.direct_data;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="390" y="550" width="110" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-27" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="ZYNj7-T5IlMomELFBFtX-25" target="ZYNj7-T5IlMomELFBFtX-15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-29" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="ZYNj7-T5IlMomELFBFtX-25" target="ZYNj7-T5IlMomELFBFtX-28">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-33" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="ZYNj7-T5IlMomELFBFtX-25" target="ZYNj7-T5IlMomELFBFtX-32">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-25" value="navigation to dashboard and navbar" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
+          <mxGeometry x="180" y="400" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-45" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="ZYNj7-T5IlMomELFBFtX-28" target="ZYNj7-T5IlMomELFBFtX-44">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-28" value="navigation to requestHistory" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
+          <mxGeometry x="610" y="440" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-38" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="ZYNj7-T5IlMomELFBFtX-32" target="ZYNj7-T5IlMomELFBFtX-37">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-32" value="navigation to create order" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
+          <mxGeometry x="-250" y="440" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-43" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="ZYNj7-T5IlMomELFBFtX-34" target="ZYNj7-T5IlMomELFBFtX-42">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-34" value="user manually inputs order details" style="html=1;strokeWidth=2;shape=manualInput;whiteSpace=wrap;rounded=1;size=26;arcSize=11;" vertex="1" parent="1">
+          <mxGeometry x="-250" y="660" width="120" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-39" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="ZYNj7-T5IlMomELFBFtX-37" target="ZYNj7-T5IlMomELFBFtX-34">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-37" value="Form is displayed for user entry" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.display;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="-240" y="555" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-42" value="submission of request" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
+          <mxGeometry x="-250" y="810" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-44" value="user requests are gotten from purchase orders db using the email as key" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
+          <mxGeometry x="610" y="580" width="120" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="ZYNj7-T5IlMomELFBFtX-48" value="user details stored in context provider" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.direct_data;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="-10" y="560" width="100" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
