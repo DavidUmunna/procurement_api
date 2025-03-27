@@ -39,7 +39,7 @@ app.use("/api/signin",require("./routes/signin"))
 app.use("/api/check-auth",require("./routes/check-auth"))
 app.use("/api/fileupload", uploadRoutes);
 app.use("/api/admin-user",require("./routes/admin_user"))
-
+app.use("/api/access",require("./routes/access"))
 
 
 
