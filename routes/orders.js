@@ -105,13 +105,13 @@ router.post("/",  async (req, res) => {
   }
 });
 router.put("/:id/approve",async (req, res) => {
-  const { orderId } = req.params.id;
+  const { id:orderId } = req.params;
   const { adminName} = req.body; // Pass the admin's name in the request body
 
   try {
       console.log("orderid",orderId)
       console.log("adminname",adminName)
-      const order = await PurchaseOrder.findById(orderId);
+      const order = await PurchaseOrder.findById({_id:orderId});
       if (!order) {
           return res.status(404).json({ message: "Order not found" });
       }
