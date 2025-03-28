@@ -18,10 +18,7 @@ const PurchaseOrderSchema = new Schema({
   orderedBy: { type: String, required: true },
   status: { type: String, enum: ["Pending", "Approved", "Copmpleted", "Rejected"], default: "Pending" },
   urgency:{type:String, enum:["VeryUrgent","Urgent","NotUrgent"],default:"NotUrgent"},
-  file: {
-    data: Buffer,
-    contentType: String,
-  },
+ 
   remarks:{type:String,required:true}
 }, { timestamps: true });
 
