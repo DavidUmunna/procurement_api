@@ -1,0 +1,65 @@
+name: CI/CD Workflow for Procurement API
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    services:
+      mongo:
+        image: mongo:5.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'" 
+          --health-interval 10s 
+          --health-timeout 5s 
+          --health-retries 5
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16 # Use the Node.js version specified in your project
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Step 4: Set up environment variables
+      - name: Set up environment variables
+        run: |
+          echo "PORT=5000" >> .env
+          echo "MONGO_URI=mongodb://localhost:27017/procurement" >> .env
+          echo "JWT_SECRET=your_secret_key" >> .env
+
+      # Step 5: Run linting (optional)
+      - name: Run ESLint
+        run: npx eslint . || true
+
+      # Step 6: Run tests
+      - name: Run tests
+        run: npm test
+
+      # Step 7: Build the project (if applicable)
+      - name: Build the project
+        run: npm run build || echo "No build script found"
+
+      # Step 8: Deploy to Render
+      - name: Deploy to Render
+        uses: render-examples/deploy-render@v1
+        with:
+          api-key: ${{ secrets.RENDER_API_KEY }}
+          service-id: ${{ secrets.RENDER_SERVICE_ID }}
