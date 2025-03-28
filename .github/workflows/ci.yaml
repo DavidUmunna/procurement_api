@@ -33,6 +33,7 @@ jobs:
       - name: Build the project
         run: npm run build
 
+<<<<<<< HEAD
       # Step 6: Deploy to Render using cURL
       - name: Deploy to Render
         env:
@@ -44,3 +45,16 @@ jobs:
           -H "Content-Type: application/json" \
           -d '{"serviceId": "'$RENDER_SERVICE_ID'"}' \
           https://api.render.com/deploy
+=======
+      # Step 8: Deploy to Render
+      - name: Deploy to vercel
+        uses:  nexterias/actions-vercel@40c93311b3f4db0424ad64f8ff8e16b2820d7c38
+        with:
+           # Vercel token: https://vercel.com/account/tokens
+              token: MwfK5XuqDLg4pu6YzQn60zUk
+    # Vercel project ID
+              project-id: prj_YxhOdJWaPbOgBUy71M35d7OlE1lI
+    # User ID within Vercel
+              org-id: davidumunna
+ 
+>>>>>>> 48a534e4de00829f4850b5ab227907fddd4a5004
