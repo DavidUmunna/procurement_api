@@ -58,8 +58,13 @@ jobs:
         run: npm run build || echo "No build script found"
 
       # Step 8: Deploy to Render
-      - name: Deploy to Render
-        uses: render-examples/deploy-render@v1
+      - name: Deploy to vercel
+        uses:  nexterias/actions-vercel@40c93311b3f4db0424ad64f8ff8e16b2820d7c38
         with:
-          api-key: ${{ secrets.RENDER_API_KEY }}
-          service-id: ${{ secrets.RENDER_SERVICE_ID }}
+           # Vercel token: https://vercel.com/account/tokens
+              token: MwfK5XuqDLg4pu6YzQn60zUk
+    # Vercel project ID
+              project-id: prj_YxhOdJWaPbOgBUy71M35d7OlE1lI
+    # User ID within Vercel
+              org-id: davidumunna
+ 
