@@ -5,6 +5,7 @@ const connectDB =require("./db") ;
 const cookieparser=require('cookie-parser')
 const uploadRoutes = require("./routes/fileupload");
 
+
 require("dotenv").config();
 const allowedOrigins = ["http://localhost:3000", "http://localhost:3001"];
 // Initialize Express
@@ -40,6 +41,19 @@ app.use("/api/check-auth",require("./routes/check-auth"))
 app.use("/api/fileupload", uploadRoutes);
 app.use("/api/admin-user",require("./routes/admin_user"))
 app.use("/api/access",require("./routes/access"))
+
+
+app.get("/",async(req,res)=>{
+    try{
+        console.log(" 😁this is the server port may i take your request💻 ")
+        res.status(200).send("Welcome to the Procurement API!");
+    }catch(err){
+        console.error('requests cannot be taken at this time because :',err)
+        res.status(500).send("Server error");
+    }
+    
+})
+
 
 
 

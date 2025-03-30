@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const circuitBreaker = require("opossum");
 const XLSX = require("xlsx");
 const orderModel = require("./models/PurchaseOrder");
+const CircuitBreaker = require("opossum");
 
 require("dotenv").config();
 URI = "mongodb+srv://chimaumunna98:Chimaroke135@unique.xxejy.mongodb.net/?retryWrites=true&w=majority&appName=Unique";
