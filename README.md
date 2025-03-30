@@ -145,6 +145,13 @@ procurement_api/
 - `GET /api/products`: Fetches all products.
 - `POST /api/products`: Adds a new product.
 
+### **User Information**
+- `GET /api/users`:fetches all users 
+- `GET /api/users/:email`:fetches all users information with the email
+- `POST /api/users`:creates new user
+- `PUT /api/users`:updates user informarion like if user want to change password
+- `DELETE /api/users`:deletes user and user information
+
 ---
 
 ## 8. Workflows
@@ -172,10 +179,46 @@ procurement_api/
 3. **Fetch Orders**:
    - Users fetch their orders via the `GET /api/orders/:email` endpoint.
    - Admin users can fetch all orders via the `GET /api/orders` endpoint.
+  
+---
+
+## 8.3 User Management Workflow
+1.  ***Create User*:
+   - Admins can create users via `POST /api/users` endpoint
+   - Admins can delete users via `DELETE /api/users/:id` endpoint
+   - Users can upodate thier passwords via `PUT /api/users/:id` endpoint
+   - Admins can get all user information via `GET /api/users`
+   - Users can get thier  request history information via `GET /api/users/:email` endpoint 
+   
 
 ---
 
-## 9. Database Schema
+### 9. Environment Variables
+The following environment variables are required:
+
+PORT: The port on which the server runs (default: 5000).
+MONGO_URI: MongoDB connection string.
+JWT_SECRET: Secret key for signing JWT tokens.
+
+## 10. Error Handling
+The API includes comprehensive error handling for all endpoints. Common error responses include:
+
+400 Bad Request:
+Missing or invalid request parameters.
+401 Unauthorized:
+Invalid or missing authentication token.
+404 Not Found:
+Resource not found (e.g., order or supplier).
+500 Internal Server Error:
+Unexpected server errors.
+
+## 11. Contributing
+Contributions are welcome! Please follow these steps:
+
+Fork the repository.
+Create a new branch:
+git checkout -b feature-branch
+## 12. Database Schema
 
 ### **PurchaseOrder Schema**
 ```javascript
@@ -198,28 +241,3 @@ procurement_api/
 }, { timestamps: true });*/
 
 
-### 10. Environment Variables
-The following environment variables are required:
-
-PORT: The port on which the server runs (default: 5000).
-MONGO_URI: MongoDB connection string.
-JWT_SECRET: Secret key for signing JWT tokens.
-
-## 11. Error Handling
-The API includes comprehensive error handling for all endpoints. Common error responses include:
-
-400 Bad Request:
-Missing or invalid request parameters.
-401 Unauthorized:
-Invalid or missing authentication token.
-404 Not Found:
-Resource not found (e.g., order or supplier).
-500 Internal Server Error:
-Unexpected server errors.
-
-12. Contributing
-Contributions are welcome! Please follow these steps:
-
-Fork the repository.
-Create a new branch:
-git checkout -b feature-branch
