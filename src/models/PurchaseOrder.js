@@ -13,7 +13,7 @@ const PurchaseOrderSchema = new Schema({
       price: { type: Number, required: true },
     },
   ],
-  filename:{type:String},
+  filenames:{type:[String],default:[]},
   supplier: { type: String,  required: false },
   orderedBy: { type: String, required: true },
   status: { type: String, enum: ["Pending", "Approved", "Copmpleted", "Rejected"], default: "Pending" },

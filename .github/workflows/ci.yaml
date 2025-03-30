@@ -1,0 +1,60 @@
+name: CI/CD Workflow for Procurement API
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Step 4: Run tests
+      - name: Run tests
+        run: npm test
+
+      # Step 5: Build the project
+      - name: Build the project
+        run: npm run build
+
+<<<<<<< HEAD
+      # Step 6: Deploy to Render using cURL
+      - name: Deploy to Render
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+        run: |
+          curl -X POST \
+          -H "Authorization: Bearer $RENDER_API_KEY" \
+          -H "Content-Type: application/json" \
+          -d '{"serviceId": "'$RENDER_SERVICE_ID'"}' \
+          https://api.render.com/deploy
+=======
+      # Step 8: Deploy to Render
+      - name: Deploy to vercel
+        uses:  nexterias/actions-vercel@40c93311b3f4db0424ad64f8ff8e16b2820d7c38
+        with:
+           # Vercel token: https://vercel.com/account/tokens
+              token: MwfK5XuqDLg4pu6YzQn60zUk
+    # Vercel project ID
+              project-id: prj_YxhOdJWaPbOgBUy71M35d7OlE1lI
+    # User ID within Vercel
+              org-id: davidumunna
+ 
+>>>>>>> 48a534e4de00829f4850b5ab227907fddd4a5004

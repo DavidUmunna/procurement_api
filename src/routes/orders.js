@@ -39,8 +39,8 @@ router.get("/", auth,async (req, res) => {
 
 router.get("/:email", auth,async (req, res) => {
   try {
-    const { email } = req.params;
-     const isAdmin= req.user.role==="admin"
+      const { email } = req.params;
+      const isAdmin= req.user.role==="admin"
     if (!email) {
       return res.status(400).json({ error: "Email is required" });
     }
@@ -71,9 +71,9 @@ router.get("/:email", auth,async (req, res) => {
 // Create a new purchase order
 router.post("/",  async (req, res) => {
   try {
-    const { supplier, orderedBy, products,email,filename, urgency, remarks } = req.body;
+    const { supplier, orderedBy, products,email,filenames, urgency, remarks } = req.body;
     
-    console.log(req.body);
+    //console.log(req.body);
 
     // Ensure products is an array and destructure its fields
     if (!Array.isArray(products)) {
@@ -90,7 +90,7 @@ router.post("/",  async (req, res) => {
       email,
       products,
       urgency,
-      filename,
+      filenames,
       remarks
       
 
