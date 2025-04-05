@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
@@ -28,5 +29,9 @@
     "timestamp": "^0.0.1",
     "typescript": "^5.8.2",
     "xlsx": "^0.18.5"
+  },
+  "engines": {
+    "node": "22.x"
+
   }
 }
