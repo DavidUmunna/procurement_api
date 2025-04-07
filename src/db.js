@@ -54,7 +54,7 @@ breaker.fire().then((response) => console.log(response))
       let wb;
       try {
         // Try to read the existing workbook
-        wb = XLSX.readFile("orders.xlsx");
+        wb = XLSX.readFile("../orders.xlsx");
       } catch (err) {
         // If the file does not exist, create a new workbook
         wb = XLSX.utils.book_new();
@@ -80,7 +80,7 @@ breaker.fire().then((response) => console.log(response))
       wb.Sheets["productdata"] = updatedProductDataSheet;
   
       // Write the updated workbook to file
-      XLSX.writeFile(wb, "orders.xlsx");
+      XLSX.writeFile(wb, "../orders.xlsx");
   
       console.log("Orders exported to Excel successfully.");
     } catch (err) {
