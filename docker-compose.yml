@@ -1,0 +1,25 @@
+
+
+services:
+  mongo:
+    image: mongo:5.0
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  procurement_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: procurement_api
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/procurement
+    depends_on:
+      - mongo
+
+volumes:
+  mongo_data:
