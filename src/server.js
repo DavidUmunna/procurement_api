@@ -7,7 +7,7 @@ const uploadRoutes = require("./routes/fileupload");
 
 
 require("dotenv").config();
-const allowedOrigins = ["http://localhost:3000", "http://localhost:3001","https://davidumunna.github.io"];
+const allowedOrigins = ["http://localhost:3000", "http://localhost:3001","https://davidumunna.github.io","http://192.168.0.199:3000"];
 // Initialize Express
 const app = express();
 app.use(express.json());
