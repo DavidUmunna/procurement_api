@@ -73,7 +73,7 @@ router.post('/',logging, async (req, res) => {
         //console.log(res.headersSent)
         res.cookie("authToken",token,{
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
+            secure: false,
             maxAge: 60 * 60 * 1000, // 1 hour
             sameSite: "Lax",
         },
