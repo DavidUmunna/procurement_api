@@ -8,7 +8,7 @@ const jwt=require("jsonwebtoken");
 const sign_in = require("../models/sign_in");
 require("dotenv").config({ path: __dirname + "/.env" });
 const cookieparser=require('cookie-parser')
-
+const logging=require("./logging")
 
 
 
@@ -41,7 +41,7 @@ router.get('/',authenticateToken,async(req,res)=>{
     }
   
 })
-router.post('/', async (req, res) => {
+router.post('/',logging, async (req, res) => {
     try {
         const { username, password } = req.body;
         const email = username; 

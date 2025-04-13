@@ -15,10 +15,7 @@ const options = {
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/procurement";
 const connectDB = async () => {
   try {
-    await mongoose.connect(MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    }).then(console.log("✅ MongoDB connected successfully")).catch((err) => console.log(err));
+    await mongoose.connect(MONGO_URI, ).then(console.log("✅ MongoDB connected successfully")).catch((err) => console.log(err));
   } catch (error) {
     console.error("❌ MongoDB connection failed:", error);
     process.exit(1); // Exit process with failure
@@ -72,14 +69,22 @@ breaker.fire().then((response) => console.log(response))
       const updatedProductData = existingProductData.concat(productData);
   
       // Create new sheets with updated data
+      
       const updatedOrdersSheet = XLSX.utils.json_to_sheet(updatedOrdersData);
       const updatedProductDataSheet = XLSX.utils.json_to_sheet(updatedProductData);
   
       // Replace the existing sheets with updated data
       wb.Sheets["orders"] = updatedOrdersSheet;
       wb.Sheets["productdata"] = updatedProductDataSheet;
-  
+      
+      if (!wb.SheetNames.includes("orders")) {
+              XLSX.utils.book_append_sheet(wb, updatedOrdersSheet, "orders");
+      }
+      if (!wb.SheetNames.includes("productdata")) {
+        XLSX.utils.book_append_sheet(wb, updatedProductDataSheet, "productdata");
+      }
       // Write the updated workbook to file
+      
       XLSX.writeFile(wb, "../orders.xlsx");
   
       console.log("Orders exported to Excel successfully.");

@@ -117,7 +117,7 @@ router.put("/:id/approve",async (req, res) => {
       }
 
       if (!order.Approvals.includes(adminName)) {
-          order.Approvals.push(adminName);
+          order.Approvals.push(` ${adminName}`);
           await order.save();
           return res.status(200).json({ message: "Order approved", order });
       } else {

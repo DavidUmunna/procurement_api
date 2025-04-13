@@ -8,6 +8,7 @@ const router = express.Router();
 
 
 
+
 //console.log("path variable",path)
 const uploadDir = path.join("../uploads");
 if (!fs.existsSync(uploadDir)) {
