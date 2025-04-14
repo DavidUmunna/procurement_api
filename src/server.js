@@ -7,7 +7,7 @@ const uploadRoutes = require("./routes/fileupload");
 
 
 require("dotenv").config();
-const allowedOrigins = ["http://localhost:3000", "http://localhost:3001","https://davidumunna.github.io","http://192.168.0.185:3000","http://192.168.56.1:3000"," http://localhost:3001"];
+const allowedOrigins = ["http://localhost:3000","http://127.0.0.1:5000", "http://localhost:3001","https://davidumunna.github.io","http://192.168.0.185:3000","http://192.168.56.1:3000"," http://localhost:3001"];
 // Initialize Express
 const app = express();
 app.use(express.json());
@@ -16,8 +16,10 @@ app.use(cors(
     {
         origin:(origin, callback)=>{
             if (!origin || allowedOrigins.includes(origin)){
+                
                 callback(null,true)
             }else{
+                console.log("disallowed request",origin)
                 callback(new Error("Not allowed by cors"))
             }
         },credentials:true,
@@ -41,6 +43,7 @@ app.use("/api/check-auth",require("./routes/check-auth"))
 app.use("/api/fileupload", uploadRoutes);
 app.use("/api/admin-user",require("./routes/admin_user"))
 app.use("/api/access",require("./routes/access"))
+app.use("/api/admin_test",require("./routes/admin_test"))
 
 
 app.get("/",async(req,res)=>{
