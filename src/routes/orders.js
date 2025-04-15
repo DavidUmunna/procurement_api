@@ -104,6 +104,35 @@ router.post("/",  async (req, res) => {
     res.status(400).json({ message: "Error creating purchase order", error });
   }
 });
+router.put("/:id/reject", async (req, res) => {
+
+  const { id:orderId } = req.params;
+  const { adminName} = req.body; // Pass the admin's name in the request body
+
+  try {
+      console.log("orderid",orderId)
+      console.log("adminname",adminName)
+      const order = await PurchaseOrder.findById({_id:orderId});
+      if (!order) {
+          return res.status(404).json({ message: "Order not found" })
+      }
+      if (order.Approvals.includes(adminName)) {
+          order.Approvals.filter(name=>name!==adminName);
+          await order.save();
+          return res.status(200).json({ message: "Order rejected", order });
+        }else {
+        console.log(order.Approvals.length)
+
+        return res.status(400).json({ message: "Admin has not approved this order" });
+      }
+  } catch (error) {
+      console.error("Error approving order:", error);
+      res.status(500).json({ message: "Error approving order", error });
+  }
+
+
+})
+
 router.put("/:id/approve",async (req, res) => {
   const { id:orderId } = req.params;
   const { adminName} = req.body; // Pass the admin's name in the request body
@@ -115,9 +144,9 @@ router.put("/:id/approve",async (req, res) => {
       if (!order) {
           return res.status(404).json({ message: "Order not found" });
       }
-
-      if (!order.Approvals.includes(adminName)) {
-          order.Approvals.push(` ${adminName}`);
+      const trimmedAdminName = adminName.trim();
+      if (!order.Approvals.includes(trimmedAdminName)) {
+          order.Approvals.push(`${adminName}`);
           await order.save();
           return res.status(200).json({ message: "Order approved", order });
       } else {

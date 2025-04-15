@@ -2,14 +2,16 @@ const { Router } = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const AdminUser = require('../models/users_');
+const admin_middle=require('./admin_test')
 
 const router = Router();
 
 // Login route
-router.post('/login', async (req, res) => {
+router.post('/login',admin_middle, async (req, res) => {
  
 
   try {
+    
 
      const { username, password } = req.body;
      const email=username
@@ -52,6 +54,8 @@ router.post('/login', async (req, res) => {
       
    });
   } catch (error) {
+    console.log(error)
+    console.error("error from admin login",error)
     res.status(500).json({ message: "Server error" });
   }
 });
