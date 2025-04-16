@@ -19,14 +19,14 @@ router.post('/login',admin_middle, async (req, res) => {
     if (!user_data) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
-      
+    admin_roles=["admin","prcurement_officer","human_resources","internal_auditor","global_admin","waste_management","PVT","lab","accounts"]
     const isMatch = await AdminUser.exists({password:password});
     
     if (!isMatch) {
       return res.status(401).json({success:false, message: "Invalid email or password" });
     }
 
-    if (user_data.role !== "admin") {
+    if (!admin_roles.includes(user_data.role)) {
       return res.status(403).json({success:false, message: "Access denied. Admins only." });
     }
 

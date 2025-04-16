@@ -7,8 +7,12 @@ const UserSchema = new Schema({
   name: { type: String, required: true },
   email: { type: String, required: true },
   password: { type: String, required: true,select:true },
-  role: { type: String, enum: ["admin", "procurement_officer","staff"], default: "staff" },
-
+  role: { type: String, enum: ["admin", "procurement_officer","human_resocurces","staff",
+    "internal_auditor","global_admin","waste_management","PVT","lab","accounts"], default: "staff" },
+  canApprove: {
+      type: Boolean,
+      default: false
+    }
 }, { timestamps: true });
 
 UserSchema.plugin(timestamp);

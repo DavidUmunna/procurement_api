@@ -104,12 +104,13 @@ router.post("/",  async (req, res) => {
     res.status(400).json({ message: "Error creating purchase order", error });
   }
 });
-router.put("/:id/reject", async (req, res) => {
+router.put("/:id/reject", auth,async (req, res) => {
 
   const { id:orderId } = req.params;
   const { adminName} = req.body; // Pass the admin's name in the request body
-
-  try {
+  const user=req.user
+  if (user.canApprove){
+     try {
       console.log("orderid",orderId)
       console.log("adminname",adminName)
       const order = await PurchaseOrder.findById({_id:orderId});
@@ -117,7 +118,7 @@ router.put("/:id/reject", async (req, res) => {
           return res.status(404).json({ message: "Order not found" })
       }
       if (order.Approvals.includes(adminName)) {
-          order.Approvals.filter(name=>name!==adminName);
+          order.Approvals=order.Approvals.filter(name=>name!==adminName);
           await order.save();
           return res.status(200).json({ message: "Order rejected", order });
         }else {
@@ -125,19 +126,24 @@ router.put("/:id/reject", async (req, res) => {
 
         return res.status(400).json({ message: "Admin has not approved this order" });
       }
-  } catch (error) {
-      console.error("Error approving order:", error);
-      res.status(500).json({ message: "Error approving order", error });
+      } catch (error) {
+          console.error("Error approving order:", error);
+          res.status(500).json({ message: "Error approving order", error });
+      }
+  }else{
+    return res.status(403).json({ message: 'You are not authorized to approve requests' });
   }
+ 
 
 
 })
 
-router.put("/:id/approve",async (req, res) => {
+router.put("/:id/approve",auth,async (req, res) => {
   const { id:orderId } = req.params;
   const { adminName} = req.body; // Pass the admin's name in the request body
-
-  try {
+  const user=req.user
+  if (user.canApprove){
+    try {
       console.log("orderid",orderId)
       console.log("adminname",adminName)
       const order = await PurchaseOrder.findById({_id:orderId});
@@ -152,9 +158,13 @@ router.put("/:id/approve",async (req, res) => {
       } else {
           return res.status(400).json({ message: "Admin has already approved this order" });
       }
-  } catch (error) {
-      res.status(500).json({ message: "Server error", error });
+      } catch (error) {
+          res.status(500).json({ message: "Server error", error });
+      }
+  }else{
+    return res.status(403).json({ message: 'You are not authorized to approve requests' });
   }
+  
 });
 // Update order status
 router.put("/:id", async (req, res) => {

@@ -34,7 +34,7 @@ app.use(cookieparser())
 connectDB();
 
 //import routes
-app.use("/api/suppliers", require("./routes/suppliers"));
+app.use("/api/supplier", require("./routes/suppliers"));
 app.use("/api/products", require("./routes/products"));
 app.use("/api/orders", require("./routes/orders"));
 app.use("/api/users", require('./routes/users') )
