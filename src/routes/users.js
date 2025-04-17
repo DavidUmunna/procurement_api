@@ -36,9 +36,15 @@ router.get("/:email", async (req, res) => {
 //create the user
 router.post('/',async (req,res)=>{
     try{
+        const can_approve_roles=[ "procurement_officer","human_resocurces","internal_auditor","global_admin"]
         const {name, email, password, role}= req.body;
         
+        
         const new_user=new User({name,email, password, role});
+        if (can_approve_roles.includes(role)){
+                new_user.canApprove=true
+        }
+
         console.log(new_user)
         await new_user.save()
         res.status(201).json(new_user)

@@ -19,7 +19,7 @@ router.post('/login',admin_middle, async (req, res) => {
     if (!user_data) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
-    admin_roles=["admin","prcurement_officer","human_resources","internal_auditor","global_admin","waste_management","PVT","lab","accounts"]
+    admin_roles=["admin","procurement_officer","human_resources","internal_auditor","global_admin","waste_management","PVT","lab","accounts"]
     const isMatch = await AdminUser.exists({password:password});
     
     if (!isMatch) {
@@ -30,7 +30,7 @@ router.post('/login',admin_middle, async (req, res) => {
       return res.status(403).json({success:false, message: "Access denied. Admins only." });
     }
 
-    const token = jwt.sign({ userId: user_data._id,email: user_data.email, role: user_data.role,name: user_data.name }, process.env.JWT_SECRET|| "pedro1234", {
+    const token = jwt.sign({ userId: user_data._id,email: user_data.email, role: user_data.role,name: user_data.name,canApprove:user_data.canApprove }, process.env.JWT_SECRET|| "pedro1234", {
       expiresIn: "1h"
     });
 
@@ -42,6 +42,7 @@ router.post('/login',admin_middle, async (req, res) => {
   },
   
   )
+  //console.log(user)
 
   return res.json({
       success:true, 
@@ -49,10 +50,15 @@ router.post('/login',admin_middle, async (req, res) => {
       token:token,
       user:{name: user_data.name,
       email: user_data.email,
-      role: user_data.role}
+      role: user_data.role,
+      canApprove:user_data.canApprove 
+
+    }
       
       
    });
+
+
   } catch (error) {
     console.log(error)
     console.error("error from admin login",error)

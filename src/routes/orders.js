@@ -40,7 +40,8 @@ router.get("/", auth,async (req, res) => {
 router.get("/:email", auth,async (req, res) => {
   try {
       const { email } = req.params;
-      const isAdmin= req.user.role==="admin"
+      //const isAdmin= req.user.role==="admin"
+      const global=[ "procurement_officer","human_resocurces","internal_auditor","global_admin","admin"]
     if (!email) {
       return res.status(400).json({ error: "Email is required" });
     }
@@ -50,7 +51,7 @@ router.get("/:email", auth,async (req, res) => {
     const userRequests = await PurchaseOrder.find({ email });
     
     const response=(userRequests.map((order=>{
-      if(!isAdmin){
+      if(!global.includes(req.user.role)){
         delete  order.Approvals
       }
       return order
@@ -71,7 +72,7 @@ router.get("/:email", auth,async (req, res) => {
 // Create a new purchase order
 router.post("/",  async (req, res) => {
   try {
-    const { supplier, orderedBy, products,email,filenames, urgency, remarks } = req.body;
+    const { supplier, orderedBy, products,email,filenames, urgency, remarks, Title } = req.body;
     
     //console.log(req.body);
 
@@ -86,6 +87,7 @@ router.post("/",  async (req, res) => {
 
     const newOrder = new PurchaseOrder({
       supplier,
+      Title,
       orderedBy,
       email,
       products,

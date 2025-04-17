@@ -65,7 +65,7 @@ router.post('/',logging, async (req, res) => {
 
         // Store login session
         const token = jwt.sign(
-            { id: user_data._id, email: user_data.email, role: user_data.role}, 
+            { id: user_data._id, email: user_data.email, role: user_data.role,name:user_data.name}, 
             process.env.JWT_SECRET || "pedro1234", 
             { expiresIn: "1h" }
         );

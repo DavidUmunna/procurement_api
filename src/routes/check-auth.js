@@ -28,8 +28,9 @@ router.use((req, res, next) => {
       }
 
       // Attach the decoded user information to the request object
+      console.log(req.user)
       req.user = decoded;
-      console.log("Decoded token:", decoded);
+      
 
       // Token is valid, proceed to the next middleware or route handler
       next();
