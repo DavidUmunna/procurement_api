@@ -18,14 +18,15 @@ const router = Router();
 router.get("/", auth,async (req, res) => {
   try {
     console.log(req.user)
-    const isAdmin= req.user.role==="admin"
+    const global=[ "procurement_officer","human_resources","internal_auditor","global_admin","admin"]
+    //const isAdmin= req.user.role==="admin"
     const orders = await PurchaseOrder.find()
       .populate("supplier", "name email phone")
       .populate("products", "name quantity price")
       
     const response=(orders.map((order=>{
       const plainOrder=order.toObject()
-      if(!isAdmin){
+      if(!global.includes(req.user.role)){
         delete  plainOrder.Approvals
       }
       return plainOrder
@@ -41,7 +42,7 @@ router.get("/:email", auth,async (req, res) => {
   try {
       const { email } = req.params;
       //const isAdmin= req.user.role==="admin"
-      const global=[ "procurement_officer","human_resocurces","internal_auditor","global_admin","admin"]
+      const global=[ "procurement_officer","human_resources","internal_auditor","global_admin","admin"]
     if (!email) {
       return res.status(400).json({ error: "Email is required" });
     }
@@ -106,67 +107,100 @@ router.post("/",  async (req, res) => {
     res.status(400).json({ message: "Error creating purchase order", error });
   }
 });
-router.put("/:id/reject", auth,async (req, res) => {
+router.put("/:id/approve", auth, async (req, res) => {
+  const { id: orderId } = req.params;
+  const { adminName } = req.body;
+  const user = req.user;
 
-  const { id:orderId } = req.params;
-  const { adminName} = req.body; // Pass the admin's name in the request body
-  const user=req.user
-  if (user.canApprove){
-     try {
-      console.log("orderid",orderId)
-      console.log("adminname",adminName)
-      const order = await PurchaseOrder.findById({_id:orderId});
-      if (!order) {
-          return res.status(404).json({ message: "Order not found" })
-      }
-      if (order.Approvals.includes(adminName)) {
-          order.Approvals=order.Approvals.filter(name=>name!==adminName);
-          await order.save();
-          return res.status(200).json({ message: "Order rejected", order });
-        }else {
-        console.log(order.Approvals.length)
-
-        return res.status(400).json({ message: "Admin has not approved this order" });
-      }
-      } catch (error) {
-          console.error("Error approving order:", error);
-          res.status(500).json({ message: "Error approving order", error });
-      }
-  }else{
+  if (!user.canApprove) {
     return res.status(403).json({ message: 'You are not authorized to approve requests' });
   }
- 
 
+  try {
+    const order = await PurchaseOrder.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
 
-})
+    // Check if this specific admin already approved
+    const existingApproval = order.Approvals.find(a => 
+      a.admin === adminName && a.status === "Approved"
+    );
+    
+    if (existingApproval) {
+      return res.status(400).json({ message: "You have already approved this order" });
+    }
 
-router.put("/:id/approve",auth,async (req, res) => {
-  const { id:orderId } = req.params;
-  const { adminName} = req.body; // Pass the admin's name in the request body
-  const user=req.user
-  if (user.canApprove){
-    try {
-      console.log("orderid",orderId)
-      console.log("adminname",adminName)
-      const order = await PurchaseOrder.findById({_id:orderId});
-      if (!order) {
-          return res.status(404).json({ message: "Order not found" });
+    // Add new approval (keeping any previous decisions)
+    order.Approvals.push({
+      admin: adminName,
+      status: "Approved",
+      timestamp: new Date()
+    });
+
+    await order.save();
+    return res.status(200).json({ 
+      message: "Approval recorded successfully", 
+      order,
+      yourDecision: {
+        admin: adminName,
+        status: "Approved",
+        timestamp: new Date()
       }
-      const trimmedAdminName = adminName.trim();
-      if (!order.Approvals.includes(trimmedAdminName)) {
-          order.Approvals.push(`${adminName}`);
-          await order.save();
-          return res.status(200).json({ message: "Order approved", order });
-      } else {
-          return res.status(400).json({ message: "Admin has already approved this order" });
-      }
-      } catch (error) {
-          res.status(500).json({ message: "Server error", error });
-      }
-  }else{
-    return res.status(403).json({ message: 'You are not authorized to approve requests' });
+    });
+
+  } catch (error) {
+    console.error("Error approving order:", error);
+    res.status(500).json({ message: "Error processing approval", error });
   }
-  
+});
+
+router.put("/:id/reject", auth, async (req, res) => {
+  const { id: orderId } = req.params;
+  const { adminName } = req.body;
+  const user = req.user;
+
+  if (!user.canApprove) {
+    return res.status(403).json({ message: 'You are not authorized to reject requests' });
+  }
+
+  try {
+    const order = await PurchaseOrder.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Check if this specific admin already rejected
+    const existingRejection = order.Approvals.find(a => 
+      a.admin === adminName && a.status === "Rejected"
+    );
+    
+    if (existingRejection) {
+      return res.status(400).json({ message: "You have already rejected this order" });
+    }
+
+    // Add new rejection (keeping any previous decisions)
+    order.Approvals.push({
+      admin: adminName,
+      status: "Rejected",
+      timestamp: new Date()
+    });
+
+    await order.save();
+    return res.status(200).json({ 
+      message: "Rejection recorded successfully", 
+      order,
+      yourDecision: {
+        admin: adminName,
+        status: "Rejected",
+        timestamp: new Date()
+      }
+    });
+
+  } catch (error) {
+    console.error("Error rejecting order:", error);
+    res.status(500).json({ message: "Error processing rejection", error });
+  }
 });
 // Update order status
 router.put("/:id", async (req, res) => {

@@ -5,9 +5,9 @@ const timestamp=require('timestamp')
 
 const UserSchema = new Schema({
   name: { type: String, required: true },
-  email: { type: String, required: true, unique:true,match:/.+\@.\..+/},
+  email: { type: String, required: true, unique:true},
   password: { type: String, required: true,select:true },
-  role: { type: String, enum: ["admin", "procurement_officer","human_resocurces","staff",
+  role: { type: String, enum: ["admin", "procurement_officer","human_resources","staff",
     "internal_auditor","global_admin","waste_management","PVT","lab","accounts"], default: "staff" },
   canApprove: {
       type: Boolean,

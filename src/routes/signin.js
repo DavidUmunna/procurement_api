@@ -86,7 +86,9 @@ router.post('/',logging, async (req, res) => {
             token:token,
             user:{name: user_data.name,
             email: user_data.email,
-            role: user_data.role}
+            role: user_data.role,
+            userId:user_data._id
+        },
             
             
          });

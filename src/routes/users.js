@@ -36,7 +36,7 @@ router.get("/:email", async (req, res) => {
 //create the user
 router.post('/',async (req,res)=>{
     try{
-        const can_approve_roles=[ "procurement_officer","human_resocurces","internal_auditor","global_admin"]
+        const can_approve_roles=[ "procurement_officer","human_resources","internal_auditor","global_admin"]
         const {name, email, password, role}= req.body;
         
         

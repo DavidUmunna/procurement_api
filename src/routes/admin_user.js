@@ -51,7 +51,9 @@ router.post('/login',admin_middle, async (req, res) => {
       user:{name: user_data.name,
       email: user_data.email,
       role: user_data.role,
-      canApprove:user_data.canApprove 
+      canApprove:user_data.canApprove,
+      createdAt:user_data.createdAt,
+      userId:user_data._id
 
     }
       

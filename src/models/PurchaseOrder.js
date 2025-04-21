@@ -5,7 +5,14 @@ const  {user} = require('./users_');
 const PurchaseOrderSchema = new Schema({
   orderNumber: { type: String, unique: true, default: () => `PO-${Date.now()}` },
   Title:{type:String,required:false},
-  Approvals:{type:[String], required:false,default:[]},
+  Approvals: [{
+    admin: String,      // e.g., "John Doe"
+    status: String,     // e.g., "Approved" or "Rejected"
+    timestamp: {        // When the action occurred
+      type: Date,
+      default: Date.now
+    }
+  }],
   email: { type: String, required:false },
   products: [
     {

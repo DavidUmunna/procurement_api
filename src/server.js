@@ -4,6 +4,7 @@ const path = require("path");
 const connectDB =require("./db") ;
 const cookieparser=require('cookie-parser')
 const uploadRoutes = require("./routes/fileupload");
+const Department=require("./routes/Department_route")
 
 
 require("dotenv").config();
@@ -44,7 +45,9 @@ app.use("/api/fileupload", uploadRoutes);
 app.use("/api/admin-user",require("./routes/admin_user"))
 app.use("/api/access",require("./routes/access"))
 app.use("/api/admin_test",require("./routes/admin_test"))
-
+app.use("/api/department",Department)
+app.use("/api/tasks",require("./routes/task"))
+app.use("/api/inventory",require("./routes/inventory_route"))
 
 app.get("/",async(req,res)=>{
     try{
