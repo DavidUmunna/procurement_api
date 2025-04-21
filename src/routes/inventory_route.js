@@ -35,17 +35,16 @@ router.get('/', auth, async (req, res) => {
 router.get('/categories', auth, async (req, res) => {
   try {
     // Return your predefined categories
-    res.json({ 
-      success: true, 
-      data: [
-        'IT_equipment',
+    const categories=['IT_equipment',
         'Furniture',
         'Office_Supplies',
         'waste_management',
         'lab',
         'PVT',
-        'Other'
-      ]
+        'Other']
+    res.json({ 
+      success: true, 
+      data: {categories}
     });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to fetch categories' });
@@ -56,7 +55,7 @@ router.get('/categories', auth, async (req, res) => {
 // @access  Private
 router.post('/', auth, async (req, res) => {
   try {
-    const { name, category, quantity, condition, description } = req.body;
+    const { name, category, quantity, condition, description,value } = req.body;
     
     const newItem = new InventoryItem({
       name,
@@ -64,13 +63,14 @@ router.post('/', auth, async (req, res) => {
       quantity,
       condition,
       description,
-      value: req.body.value || 0,
+      value,
       addedBy: req.user.userId
     });
 
     await newItem.save();
     res.status(201).json({ success: true, data: newItem });
   } catch (err) {
+    console.error("a posting error:",err)
     if (err.name === 'ValidationError') {
       return res.status(400).json({ 
         success: false, 
@@ -148,13 +148,18 @@ router.get('/stats', auth, async (req, res) => {
     const conditionStats = await InventoryItem.aggregate([
       { $group: { _id: '$condition', count: { $sum: 1 } } }
     ]);
-
+    const value = await InventoryItem.distinct('value');
+    const totalvalue = await InventoryItem.aggregate([
+      { $group: { _id: null, count: { $sum: '$value' } } }
+    ]);
+    console.log(totalvalue)
     res.json({
       success: true,
       data: {
         totalItems,
         totalQuantity: totalQuantity[0]?.total || 0,
         totalCategories: categories.length,
+        totalvalue: totalvalue[0]?.count||0,
         conditionStats
       }
     });

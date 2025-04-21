@@ -42,27 +42,10 @@ const inventoryItemSchema = new Schema({
     trim: true,
     maxlength: [500, 'Description cannot exceed 500 characters']
   },
-  sku: {
-    type: String,
-    unique: true,
-    trim: true,
-    uppercase: true,
-    validate: {
-      validator: function(v) {
-        return /^[A-Z0-9]{6,12}$/.test(v);
-      },
-      message: 'SKU must be 6-12 alphanumeric characters'
-    }
-  },
+  
   location: {
-    warehouse: {
-      type: String,
-      trim: true
-    },
-    shelf: {
-      type: String,
-      trim: true
-    }
+    type:String,
+    default:"main_office"
   },
  
   lastUpdated: {

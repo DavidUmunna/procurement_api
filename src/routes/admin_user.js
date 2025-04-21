@@ -37,7 +37,7 @@ router.post('/login',admin_middle, async (req, res) => {
     res.cookie("authToken",token,{
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 1000, // 1 hour
+      maxAge: (60 * 60 * 1000)*2, // 1 hour
       sameSite: "Lax",
   },
   

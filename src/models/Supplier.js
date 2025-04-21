@@ -5,12 +5,9 @@ const SupplierSchema = new Schema({
   email: { type: String, required: true },
   phone: { type: String, required: true },
   address: { type: String },
+  description:{type:String},
   status: { type: String, enum: ["active", "inactive"], default: "active" },
-  requests:{
-    type:mongoose.Schema.Types.ObjectId,
-    ref:"PurchaseOrder"
 
-  }
 }, { timestamps: true });
 
 SupplierSchema.plugin(timestamps);
