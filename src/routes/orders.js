@@ -7,7 +7,7 @@ const fs = require("fs");
 const file=require("./fileupload")
 const auth=require("./check-auth")
 const uploadDir = path.join(__dirname, "../uploads");
-
+const exporttoexcel=require("../exporttoexcel")
 const router = Router();
 
 
@@ -101,6 +101,8 @@ router.post("/",  async (req, res) => {
     console.log(newOrder)
 
     await newOrder.save();
+    const excelexport=await exporttoexcel()
+    console.log(excelexport)
     res.status(200).json({ newOrder });
   } catch (error) {
     console.error("Error creating purchase order:", error);
