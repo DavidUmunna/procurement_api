@@ -7,9 +7,25 @@ const router=Router()
 router.get("/", async (req, res) => {
   try {
     const user_data = await User.find()//.select("-password")
+    const response=(user_data.map((user=>{
+      const plainUser=user.toObject()
+      
+        delete  plainUser.password
+      
+      return plainUser
+    })))
+    res.json(response);
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: "Server error" });
+  }
+});
+router.get("/:id", async (req, res) => {
+  try {
+    const user_data = await User.findById(req.params.id)//.select("-password")
     res.json(user_data);
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "an error occured while getting user" });
   }
 });
 router.get("/:email", async (req, res) => {
