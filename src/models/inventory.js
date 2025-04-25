@@ -26,6 +26,11 @@ const inventoryItemSchema = new Schema({
     },
     default: 'New'
   },
+  sku: {
+    type: String,
+    unique: true,
+    required: true,
+  },
   quantity: {
     type: Number,
     required: [true, 'Quantity is required'],

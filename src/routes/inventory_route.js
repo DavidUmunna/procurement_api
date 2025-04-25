@@ -3,9 +3,11 @@ const router = express.Router();
 const InventoryItem = require('../models/inventory');
 const auth = require('./check-auth');
 
-// @route   GET /api/inventory
-// @desc    Get all inventory items
-// @access  Private
+function generateSKU(name) {
+  const prefix = name.substring(0, 3).toUpperCase(); 
+  const unique = Date.now().toString().slice(-5);    
+  return `${prefix}-${unique}`;     
+}                 
 router.get('/', auth, async (req, res) => {
   try {
     const { category, condition, search } = req.query;
@@ -56,7 +58,7 @@ router.get('/categories', auth, async (req, res) => {
 router.post('/', auth, async (req, res) => {
   try {
     const { name, category, quantity, condition, description,value } = req.body;
-    
+    const sku=generateSKU(name)
     const newItem = new InventoryItem({
       name,
       category,
@@ -64,8 +66,11 @@ router.post('/', auth, async (req, res) => {
       condition,
       description,
       value,
+      sku,
       addedBy: req.user.userId
     });
+
+    
 
     await newItem.save();
     res.status(201).json({ success: true, data: newItem });
@@ -131,6 +136,7 @@ router.delete('/:id', auth, async (req, res) => {
 
     res.json({ success: true, data: {} });
   } catch (err) {
+    console.error(err)
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 });
