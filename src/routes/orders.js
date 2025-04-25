@@ -109,7 +109,7 @@ router.post("/",  async (req, res) => {
     res.status(400).json({ message: "Error creating purchase order", error });
   }
 });
-router.put("/:id/approve", auth, async (req, res) => {
+router.put("/:id/approve",auth, async (req, res) => {
   const { id: orderId } = req.params;
   const { adminName } = req.body;
   const user = req.user;
@@ -176,6 +176,7 @@ router.put("/:id/reject", auth, async (req, res) => {
     const existingRejection = order.Approvals.find(a => 
       a.admin === adminName && a.status === "Rejected"
     );
+    const existingApproval=order.Approvals
     
     if (existingRejection) {
       return res.status(400).json({ message: "You have already rejected this order" });
