@@ -38,6 +38,7 @@ router.get("/", auth,async (req, res) => {
   }
 });
 
+//if user not admin order.Approvals is removed from document
 router.get("/:email", auth,async (req, res) => {
   try {
       const { email } = req.params;
@@ -109,7 +110,7 @@ router.post("/",  async (req, res) => {
     res.status(400).json({ message: "Error creating purchase order", error });
   }
 });
-router.put("/:id/approve",auth, async (req, res) => {
+router.put("/:id/approve", auth, async (req, res) => {
   const { id: orderId } = req.params;
   const { adminName } = req.body;
   const user = req.user;
@@ -124,31 +125,24 @@ router.put("/:id/approve",auth, async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Check if this specific admin already approved
-    const existingApproval = order.Approvals.find(a => 
-      a.admin === adminName && a.status === "Approved"
+    // Remove any previous decisions from this admin
+    order.Approvals = (order.Approvals || []).filter(
+      a => a.admin !== adminName
     );
-    
-    if (existingApproval) {
-      return res.status(400).json({ message: "You have already approved this order" });
-    }
 
-    // Add new approval (keeping any previous decisions)
-    order.Approvals.push({
+    // Add new approval
+    const newApproval = {
       admin: adminName,
       status: "Approved",
       timestamp: new Date()
-    });
+    };
+    order.Approvals.push(newApproval);
 
     await order.save();
     return res.status(200).json({ 
       message: "Approval recorded successfully", 
       order,
-      yourDecision: {
-        admin: adminName,
-        status: "Approved",
-        timestamp: new Date()
-      }
+      yourDecision: newApproval
     });
 
   } catch (error) {
@@ -173,14 +167,15 @@ router.put("/:id/reject", auth, async (req, res) => {
     }
 
     // Check if this specific admin already rejected
-    const existingRejection = order.Approvals.find(a => 
-      a.admin === adminName && a.status === "Rejected"
-    );
-    const existingApproval=order.Approvals
     
-    if (existingRejection) {
-      return res.status(400).json({ message: "You have already rejected this order" });
-    }
+   
+  
+   
+    
+    
+    order.Approvals = (order.Approvals || []).filter(
+      a => a.admin !== adminName
+    );
 
     // Add new rejection (keeping any previous decisions)
     order.Approvals.push({

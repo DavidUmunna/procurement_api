@@ -104,6 +104,10 @@ router.post('/',logging, async (req, res) => {
 });
 router.post("/logout", async (req, res) => {
     try {
+        req.session.destroy(()=>{
+                res.clearCookie("sessionId")
+
+        })
         res.clearCookie("authToken"); // ✅ Ensure cookie name matches login route
         return res.json({ message: "Logout successful" });
     } catch (error) {

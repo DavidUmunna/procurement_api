@@ -26,9 +26,9 @@ router.post('/login',admin_middle, async (req, res) => {
       return res.status(401).json({success:false, message: "Invalid email or password" });
     }
 
-    if (!admin_roles.includes(user_data.role)) {
+    /*if (!admin_roles.includes(user_data.role)) {
       return res.status(403).json({success:false, message: "Access denied. Admins only." });
-    }
+    }*/
 
     const token = jwt.sign({ userId: user_data._id,email: user_data.email, role: user_data.role,name: user_data.name,canApprove:user_data.canApprove }, process.env.JWT_SECRET|| "pedro1234", {
       expiresIn: "1h"
@@ -53,6 +53,7 @@ router.post('/login',admin_middle, async (req, res) => {
       role: user_data.role,
       canApprove:user_data.canApprove,
       createdAt:user_data.createdAt,
+      Department:user_data.Department,
       userId:user_data._id
 
     }

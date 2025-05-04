@@ -21,3 +21,6 @@ userdataa ttracking almost fully inplemented
 ##[16/03/25]
 -implementation of no app rendering when refreshed 
 
+##[04/05/25 -05/05/25]
+-users should have departments in thier schema
+

@@ -8,7 +8,7 @@ const Department=require("./routes/Department_route")
 
 
 require("dotenv").config();
-const allowedOrigins = ["http://localhost:3000","http://127.0.0.1:5000", "http://localhost:3001","https://davidumunna.github.io","http://192.168.0.185:3000","http://192.168.56.1:3000"," http://localhost:3001"];
+const allowedOrigins = ["http://localhost:3000","http://127.0.0.1:5000", "http://localhost:3001","https://davidumunna.github.io","http://192.168.0.185:3000","http://192.168.56.1:3000"," http://localhost:3001","https://8a13-102-90-79-163.ngrok-free.app","https://reqmanusers.netlify.app/","https://resourceman.netlify.app"];
 // Initialize Express
 const app = express();
 app.use(express.json());

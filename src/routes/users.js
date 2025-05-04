@@ -53,10 +53,10 @@ router.get("/:email", async (req, res) => {
 router.post('/',async (req,res)=>{
     try{
         const can_approve_roles=[ "procurement_officer","human_resources","internal_auditor","global_admin"]
-        const {name, email, password, role}= req.body;
+        const {name, email, password,Department, role}= req.body;
         
         
-        const new_user=new User({name,email, password, role});
+        const new_user=new User({name,email, password,Department, role});
         if (can_approve_roles.includes(role)){
                 new_user.canApprove=true
         }
