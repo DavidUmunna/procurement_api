@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const InventoryItem = require('../models/inventory');
-const auth = require('./check-auth');
+const auth = require('../middleware/check-auth');
 
 function generateSKU(name) {
   const prefix = name.substring(0, 3).toUpperCase(); 

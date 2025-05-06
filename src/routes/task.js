@@ -1,6 +1,6 @@
 const express=require('express')
 const Task=require("../models/tasks")
-const auth=require('./check-auth')
+const auth=require('../middleware/check-auth')
 const router=express.Router()
 
 router.post('/', auth, async (req, res) => {
