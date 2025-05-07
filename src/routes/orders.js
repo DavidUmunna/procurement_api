@@ -9,6 +9,7 @@ const auth=require("../middleware/check-auth")
 const uploadDir = path.join(__dirname, "../uploads");
 const exporttoexcel=require("../exporttoexcel")
 const router = Router();
+const notifyAdmins=require("../emailnotification/emailNotification")
 
 
 
@@ -103,6 +104,7 @@ router.post("/",  async (req, res) => {
 
     await newOrder.save();
     const excelexport=await exporttoexcel()
+    notifyAdmins(newOrder);
     console.log(excelexport)
     res.status(200).json({ newOrder });
   } catch (error) {

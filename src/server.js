@@ -3,7 +3,7 @@ require("dotenv").config();
 
 // Core modules
 const path = require("path");
-
+require('dotenv').config();
 // Third-party packages
 const express = require("express");
 const cors = require("cors");
