@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const InventoryItem = require('../models/inventory');
+const AssetItem = require('../models/Assets');
 const auth = require('../middleware/check-auth');
 
 function generateSKU(name) {
@@ -24,7 +24,7 @@ router.get('/', auth, async (req, res) => {
       ];
     }
 
-    const items = await InventoryItem.find(filter)
+    const items = await AssetItem.find(filter)
       .sort({ lastUpdated: -1 })
       .lean();
 
@@ -39,7 +39,6 @@ router.get('/categories', auth, async (req, res) => {
     // Return your predefined categories
     const categories=['IT_equipment',
         'Furniture',
-        'Office_Supplies',
         'waste_management',
         'lab',
         'PVT',
@@ -52,14 +51,14 @@ router.get('/categories', auth, async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to fetch categories' });
   }
 });
-// @route   POST /api/inventory
-// @desc    Create new inventory item
+// @route   POST /apiAsset
+// @desc    Create newAsset item
 // @access  Private
 router.post('/', auth, async (req, res) => {
   try {
     const { name, category, quantity, condition, description,value } = req.body;
     const sku=generateSKU(name)
-    const newItem = new InventoryItem({
+    const newItem = new AssetItem({
       name,
       category,
       quantity,
@@ -67,7 +66,7 @@ router.post('/', auth, async (req, res) => {
       description,
       value,
       sku,
-      addedBy: req.user.userId
+      addedBy: req.user.name
     });
 
     
@@ -86,14 +85,14 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-// @route   PUT /api/inventory/:id
-// @desc    Update inventory item
+// @route   PUT /apiAsset/:id
+// @desc    UpdateAsset item
 // @access  Private
 router.put('/:id', auth, async (req, res) => {
   try {
     const { name, category, quantity, condition, description } = req.body;
     
-    const updatedItem = await InventoryItem.findByIdAndUpdate(
+    const updatedItem = await AssetItem.findByIdAndUpdate(
       req.params.id,
       { 
         name,
@@ -123,12 +122,12 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-// @route   DELETE /api/inventory/:id
-// @desc    Delete inventory item
+// @route   DELETE /apiAsset/:id
+// @desc    DeleteAsset item
 // @access  Private (Admin only)
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const deletedItem = await InventoryItem.findByIdAndDelete(req.params.id);
+    const deletedItem = await AssetItem.findByIdAndDelete(req.params.id);
     
     if (!deletedItem) {
       return res.status(404).json({ success: false, message: 'Item not found' });
@@ -141,21 +140,21 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
-// @route   GET /api/inventory/stats
-// @desc    Get inventory statistics
+// @route   GET /api/Asset/stats
+// @desc    GetAsset statistics
 // @access  Private
 router.get('/stats', auth, async (req, res) => {
   try {
-    const totalItems = await InventoryItem.countDocuments();
-    const totalQuantity = await InventoryItem.aggregate([
+    const totalItems = await AssetItem.countDocuments();
+    const totalQuantity = await AssetItem.aggregate([
       { $group: { _id: null, total: { $sum: '$quantity' } } }
     ]);
-    const categories = await InventoryItem.distinct('category');
-    const conditionStats = await InventoryItem.aggregate([
+    const categories = await AssetItem.distinct('category');
+    const conditionStats = await AssetItem.aggregate([
       { $group: { _id: '$condition', count: { $sum: 1 } } }
     ]);
-    const value = await InventoryItem.distinct('value');
-    const totalvalue = await InventoryItem.aggregate([
+    const value = await AssetItem.distinct('value');
+    const totalvalue = await AssetItem.aggregate([
       { $group: { _id: null, count: { $sum: '$value' } } }
     ]);
     console.log(totalvalue)

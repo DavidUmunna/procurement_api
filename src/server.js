@@ -26,7 +26,8 @@ const adminUserRoutes = require("./routes/admin_user");
 const accessRoutes = require("./routes/access");
 const adminTestRoutes = require("./routes/admin_test");
 const taskRoutes = require("./routes/task");
-const inventoryRoutes = require("./routes/inventory_route");
+const assetsRoutes = require("./routes/assets_route");
+const InventoryRoute=require("./routes/Inventoy_route")
 
 // Initialize Express
 const app = express();
@@ -84,8 +85,9 @@ app.use("/api/access", accessRoutes);
 app.use("/api/admin_test", adminTestRoutes);
 app.use("/api/department", departmentRoutes);
 app.use("/api/tasks", taskRoutes);
-app.use("/api/inventory", inventoryRoutes);
+app.use("/api/assets", assetsRoutes);
 app.use("/api/companydata", companyDataRoutes);
+app.use("/api/inventory", InventoryRoute);
 
 // Health check route
 app.get("/", (req, res) => {
