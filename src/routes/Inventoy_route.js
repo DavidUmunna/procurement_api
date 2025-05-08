@@ -29,12 +29,16 @@ router.get('/', auth, async (req, res) => {
         ];
       }
   
-      const items = await AssetItem.find(filter)
+      const items = await InventoryItem.find(filter)
         .sort({ lastUpdated: -1 })
         .lean();
+      if(!items){
+        res.status(404).json({success:false,message:"no  items available"})
+      }
   
         res.json({ success: true, data: items });
     } catch (err) {
+      console.error("from inventory get:",err)
       res.status(500).json({ success: false, message: 'Server Error' });
     }
   });
@@ -42,7 +46,7 @@ router.get('/', auth, async (req, res) => {
   router.get('/categories', auth, async (req, res) => {
     try {
       // Return your predefined categories
-      const categories=['procurement_items','lab_items']
+      const categories=[{_id:1,name:'procurement_items'},{_id:2,name:'lab_items'}]
       res.json({ 
         success: true, 
         data: {categories}
@@ -56,7 +60,7 @@ router.post('/', auth, async (req, res) => {
   try {
     const { name, category, quantity } = req.body;
     const sku=generateSKU(name)
-    const newItem = new AssetItem({
+    const newItem = new invetoryItem({
       name,
       category,
       quantity,
@@ -89,8 +93,8 @@ router.put("/:id",async(req,res)=>{
             res.status(404).json({message:"inventory documenet not found"})
         }
         
-        inventory.quantity=new_qauntiity
-        res.status(200).json({message:"quantity updated successfully"})
+        inventory.quantity=invetoryItem.quantity+new_qauntiity
+        res.status(200).json({message:"quantity updated successfully",data:inventory.quantity})
 
     }catch(error){
         console.error("error originated from update quantity:",error)

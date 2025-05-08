@@ -17,14 +17,16 @@ router.use((req, res, next) => {
     const token = authheaders.split(" ")[1];
     console.log("Token:", token);
 
-    const secretKey = "pedro1234"; // Replace with your actual secret key
+    const secretKey = process.env.JWT_SECRET; // Replace with your actual secret key
 
     jwt.verify(token, secretKey, (err, decoded) => {
       if (err) {
+        console.error(err)
         return res.status(401).json({
           authenticated: false,
           message: "Invalid token",
         });
+
       }
 
       // Attach the decoded user information to the request object

@@ -35,7 +35,7 @@ router.post('/login',admin_middle, async (req, res) => {
       role: user_data.role,
       name: user_data.name,
       canApprove:user_data.canApprove,
-    }, process.env.JWT_SECRET|| "pedro1234", {
+    }, process.env.JWT_SECRET, {
       expiresIn: "1h"
     });
 
