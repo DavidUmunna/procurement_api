@@ -20,7 +20,7 @@ const authenticateToken = (req, res, next) => {
 
     if (!token) return res.status(401).json({ error: "Access Denied" });
 
-    jwt.verify(token, process.env.JWT_SECRET || "pedro1234", (err, user) => {
+    jwt.verify(token, process.env.JWT_SECRET , (err, user) => {
         if (err) return res.status(403).json({ error: "Invalid Token" });
 
         req.user = user; // Attach user data to request
@@ -66,7 +66,7 @@ router.post('/',logging, async (req, res) => {
         // Store login session
         const token = jwt.sign(
             { id: user_data._id, email: user_data.email, role: user_data.role,name:user_data.name}, 
-            process.env.JWT_SECRET || "pedro1234", 
+            process.env.JWT_SECRET , 
             { expiresIn: "1h" }
         );
     

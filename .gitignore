@@ -3,4 +3,5 @@ node_modules
 uploads
 orders.xlsx
 dump
+.env
 

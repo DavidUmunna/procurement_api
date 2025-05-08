@@ -28,6 +28,13 @@ const InventoryItemSchema = new Schema({
     min: [0, 'Quantity cannot be negative'],
     default: 1
   },
+  activities:[{
+    action:{type:String},
+    name:{type:String},
+    quantity:{type:String},
+    user:{type:String}
+
+  }]
 
 },{
     timestamps: true,
