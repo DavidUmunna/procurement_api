@@ -3,6 +3,8 @@ const PurchaseOrder = require('./src/models/PurchaseOrder');
 //const orders=require("./models/PurchaseOrder")// Ensure you require the PurchaseOrder model
 const tasks=require("./src/models/tasks");
 const Department = require("./src/models/Department");
+const invetoryItem=require("./src/models/inventory");
+const InventoryItem = require("./src/models/inventory");
 // MongoDB connection URI
 const mongoURI = "mongodb://127.0.0.1:27017/procurement";
 
@@ -33,8 +35,8 @@ mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
             {"status":"Pending"}
 
           )*/
-         await Department.findOneAndDelete({users:{name:"john"}})
-      console.log("All orders migrated  successfully");
+         await InventoryItem.deleteMany()
+      console.log("All items deleted  successfully");
     } catch (error) {
       console.error("Error migrating all orders", error);
     }
