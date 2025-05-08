@@ -9,21 +9,22 @@ const auth=require("../middlewares/check-auth")
 const uploadDir = path.join(__dirname, "../uploads");
 const exporttoexcel=require("../exporttoexcel")
 const router = Router();
-const notifyAdmins=require("../emailnotification/emailNotification")
+const {getPagination,getPagingData}=require('../middlewares/pagination')
+const notifyAdmins=require("../emailnotification/emailNotification");
+const { Pagination } = require("react-bootstrap");
 
 
 
 
-
-// Get all purchase orders
-router.get("/", auth,async (req, res) => {
+router.get("/all", auth,async (req, res) => {
   try {
-    console.log(req.user)
+   
+
+    
+
     const global=[ "procurement_officer","human_resources","internal_auditor","global_admin","admin"]
     //const isAdmin= req.user.role==="admin"
-    const orders = await PurchaseOrder.find()
-      .populate("supplier", "name email phone")
-      .populate("products", "name quantity price")
+    const orders=await PurchaseOrder.find()
       
     const response=(orders.map((order=>{
       const plainOrder=order.toObject()
@@ -32,7 +33,50 @@ router.get("/", auth,async (req, res) => {
       }
       return plainOrder
     })))
-    res.json(response);
+    res.json({data:response});
+  } catch (error) {
+    console.error(error)
+    //res.status(500).json({ message: "Server error", error });
+  }
+});
+// Get all purchase orders
+router.get("/", auth,async (req, res) => {
+  try {
+    const { page, limit, skip } = getPagination(req);
+    const query = {};
+
+    if (req.query.action) {
+      query.action = req.query.action;
+    }
+    console.log(req.user)
+    if (req.query.startDate && req.query.endDate) {
+      query.timestamp = {
+        $gte: new Date(req.query.startDate),
+        $lte: new Date(req.query.endDate)
+      };
+    }
+
+    const global=[ "procurement_officer","human_resources","internal_auditor","global_admin","admin"]
+    //const isAdmin= req.user.role==="admin"
+   const [total, orders] = await Promise.all([
+           PurchaseOrder.countDocuments(query),
+           PurchaseOrder.find(query)
+             .sort({ timestamp: -1 })
+             .skip(skip)
+             .limit(limit)
+             
+             
+         ]);
+      
+    const response=(orders.map((order=>{
+      const plainOrder=order.toObject()
+      if(!global.includes(req.user.role)){
+        delete  plainOrder.Approvals
+      }
+      return plainOrder
+    })))
+    res.json({data:response,
+      Pagination:getPagingData(total,page,limit)});
   } catch (error) {
     console.error(error)
     //res.status(500).json({ message: "Server error", error });

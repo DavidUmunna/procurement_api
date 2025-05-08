@@ -47,7 +47,7 @@ router.get('/', auth, async (req, res) => {
     try {
       // Return your predefined categories
       const categories=[{ _id:1,name:'procurement_items'},{ _id:2,name:'lab_items'}]
-      const categories=[{_id:1,name:'procurement_items'},{_id:2,name:'lab_items'}]
+
       res.json({ 
         success: true, 
         data: {categories}
@@ -73,6 +73,7 @@ router.post('/', auth, async (req, res) => {
         itemId: newItem._id,
         itemName: newItem.name,
         quantity: newItem.quantity,
+        category:newItem.category,
         user: req.user._id,
         userName: req.user.name
       });
@@ -115,6 +116,7 @@ router.put("/:id",auth,async(req,res)=>{
           itemId: item._id,
           itemName: item.name,
           quantity: absQuantity,
+          category:item.category,
           user: req.user._id,
           userName: req.user.name
         });
