@@ -20,7 +20,7 @@ router.post('/login',admin_middle, async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
     admin_roles=["admin","procurement_officer","human_resources","internal_auditor","global_admin","waste_management","PVT","lab","accounts"]
-    const isMatch = await AdminUser.exists({password:password});
+    const isMatch = await bcrypt.compare(password,user_data.password);
     
     if (!isMatch) {
       return res.status(401).json({success:false, message: "Invalid email or password" });

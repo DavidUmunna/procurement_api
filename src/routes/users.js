@@ -1,6 +1,7 @@
 const {Router}=require('express')
 const User=require('../models/users_');
 const users_ = require('../models/users_');
+const bcrypt=require("bcrypt")
 
 const router=Router()
 
@@ -20,24 +21,22 @@ router.get("/", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-router.get("/:id", async (req, res) => {
-  try {
-    const user_data = await User.findById(req.params.id)//.select("-password")
-    res.status(200).json({success:true ,message:"user exists"});
-  } catch (error) {
-    res.status(500).json({ message: "an error occured while getting user" });
-  }
-});
 router.get("/:email", async (req, res) => {
   try {
     const {email}=req.params
     console.log(email)
-    const user_data = await User.find(email)//.select("-password")
-    res.json(user_data);
+    const user_data = await User.find({email:email})//.select("-password")
+    if (user_data){
+      res.status(200).json({success:true ,message:"user exists"});
+
+    }else{
+      res.status(404).json({message:"user does not exist"})
+    }
   } catch (error) {
     res.status(500).json({ message: "an error occured while getting user" });
   }
 });
+
 router.get("/:email", async (req, res) => {
   try {
     const { email } = req.params;
@@ -60,27 +59,31 @@ router.get("/:email", async (req, res) => {
   }
 });
 //create the user
-router.post('/',async (req,res)=>{
-    try{
-        const can_approve_roles=[ "procurement_officer","human_resources","internal_auditor","global_admin"]
-        const {name, email, password,Department, role}= req.body;
-        
-        
-        const new_user=new User({name,email, password,Department, role});
-        if (can_approve_roles.includes(role)){
-                new_user.canApprove=true
-        }
+router.post('/', async (req, res) => {
+  try {
+    const can_approve_roles = ["procurement_officer", "human_resources", "internal_auditor", "global_admin"];
+    const { name, email, password, Department, role } = req.body;
 
-        console.log(new_user)
-        await new_user.save()
-        res.status(201).json(new_user)
+    const hashedPassword = await bcrypt.hash(password, 10);
 
+    const new_user = new User({
+      name,
+      email,
+      password: hashedPassword, //assign the hashed password
+      Department,
+      role,
+      canApprove: can_approve_roles.includes(role) // assign this directly
+    });
 
-    }catch (error) {
-      res.status(400).json({ message: "Error User not created" });
-      console.error(error)
-    }
-})
+    await new_user.save();
+    res.status(201).json(new_user);
+
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ message: "Error: User not created", error: error.message });
+  }
+});
+
 
 router.get("/:email", async (req, res) => {
   try {
@@ -99,10 +102,10 @@ router.get("/:email", async (req, res) => {
 });
 
 router.put("/:email", async (req, res) => {
-  const {  email,newPassword } = req.body;
+  const { email, newPassword } = req.body;
 
-  if ( !newPassword) {
-    return res.status(400).json({ message: "Email and new password are required" });
+  if (!newPassword) {
+    return res.status(400).json({ message: "New password is required" });
   }
 
   try {
@@ -112,13 +115,14 @@ router.put("/:email", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    
+    // ✅ Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    user.password = newPassword;
+    // ✅ Save the hashed password
+    user.password = hashedPassword;
     await user.save();
 
     res.status(200).json({ message: "Password updated successfully" });
-
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
