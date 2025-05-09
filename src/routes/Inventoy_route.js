@@ -3,7 +3,8 @@ const router = express.Router();
 const invetoryItem = require('../models/inventory');
 const auth = require('../middlewares/check-auth');
 const InventoryItem = require('../models/inventory');
-const Activity=require("../models/Activity")
+const Activity=require("../models/Activity");
+const { getPagination, getPagingData } = require('../middlewares/pagination');
 
 
 function generateSKU(name) {
@@ -15,13 +16,19 @@ function generateSKU(name) {
 
 router.get('/', auth, async (req, res) => {
     try {
-      const { category, search } = req.query;
-  
-      const filter = {};
-  
-      if (category && category !== 'All') filter.category = category;
-      
-      if (search) {
+        const {page,limit,skip}=getPagination(req);
+        const {query}={}
+        if (req.query.action){
+            query.action=req.query.action;
+        }
+
+        const { category, search } = req.query;
+    
+        const filter = {};
+    
+        if (category && category !== 'All') filter.category = category;
+        
+        if (search) {
         filter.$or = [
           { name: { $regex: search, $options: 'i' } },
          
@@ -29,14 +36,20 @@ router.get('/', auth, async (req, res) => {
         ];
       }
   
-      const items = await InventoryItem.find(filter)
+      const [total,items] = await Promise.all([
+        InventoryItem.countDocuments(query),
+        InventoryItem.find(filter)
         .sort({ lastUpdated: -1 })
-        .lean();
+        .lean()
+        .skip(skip)
+        .limit(limit)
+    
+    ]);
       if(!items){
         res.status(404).json({success:false,message:"no  items available"})
       }
   
-        res.json({ success: true, data: items });
+        res.json({ success: true, data: items,Pagination:getPagingData(total,page,limit) });
     } catch (err) {
       console.error("from inventory get:",err)
       res.status(500).json({ success: false, message: 'Server Error' });

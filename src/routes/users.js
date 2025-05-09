@@ -23,6 +23,16 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const user_data = await User.findById(req.params.id)//.select("-password")
+    res.status(200).json({success:true ,message:"user exists"});
+  } catch (error) {
+    res.status(500).json({ message: "an error occured while getting user" });
+  }
+});
+router.get("/:email", async (req, res) => {
+  try {
+    const {email}=req.params
+    console.log(email)
+    const user_data = await User.find(email)//.select("-password")
     res.json(user_data);
   } catch (error) {
     res.status(500).json({ message: "an error occured while getting user" });
