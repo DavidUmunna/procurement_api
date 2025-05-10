@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require('express')
 const router = express.Router();
 const invetoryItem = require('../models/inventory');
 const auth = require('../middlewares/check-auth');

@@ -61,7 +61,8 @@ router.get("/:email", async (req, res) => {
 //create the user
 router.post('/', async (req, res) => {
   try {
-    const can_approve_roles = ["procurement_officer", "human_resources", "internal_auditor", "global_admin"];
+    const can_approve_roles = ["procurement_officer", "human_resources", "internal_auditor", "global_admin","waste_mnagement",
+      "PVT","Environmental_lab","Financial_manager","accounts"];
     const { name, email, password, Department, role } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -124,6 +125,7 @@ router.put("/:email", async (req, res) => {
 
     res.status(200).json({ message: "Password updated successfully" });
   } catch (error) {
+    console.error("from update password:",error)
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });

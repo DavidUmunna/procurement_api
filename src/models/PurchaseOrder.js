@@ -21,12 +21,13 @@ const PurchaseOrderSchema = new Schema({
       price: { type: Number, required: true },
     },
   ],
+  Department:{type:String},
   filenames:{type:[String],default:[]},
   supplier: { type: String,  required: false },
   orderedBy: { type: String, required: true },
   status: { type: String, enum: ["Pending", "Approved", "Copmpleted", "Rejected"], default: "Pending" },
   urgency:{type:String, enum:["VeryUrgent","Urgent","NotUrgent"],default:"NotUrgent"},
- 
+  
   remarks:{type:String,required:true}
 }, { timestamps: true });
 

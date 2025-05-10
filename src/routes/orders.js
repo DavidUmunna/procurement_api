@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const PurchaseOrder = require("../models/PurchaseOrder");
 const multer = require("multer");
 const path = require("path");
+const user=require("../models/users_")
 const fs = require("fs");
 const file=require("./fileupload")
 const auth=require("../middlewares/check-auth")
@@ -15,7 +16,52 @@ const notifyAdmins=require("../emailnotification/emailNotification");
 
 
 
+router.get("/accounts", auth,async (req, res) => {
+  try {
+    const { page, limit, skip } = getPagination(req);
+    const query = {status:"Approved"};
 
+    if (req.query.action) {
+      query.action = req.query.action;
+    }
+    console.log(req.user)
+    if (req.query.startDate && req.query.endDate) {
+      query.timestamp = {
+        $gte: new Date(req.query.startDate),
+        $lte: new Date(req.query.endDate)
+      };
+    }
+
+    const global=[ "procurement_officer","human_resources","internal_auditor","global_admin","admin","accounts"]
+    //const isAdmin= req.user.role==="admin"
+   const [total, orders] = await Promise.all([
+           PurchaseOrder.countDocuments(query),
+           PurchaseOrder.find(query)
+             .sort({ createdAt: -1 })
+             .skip(skip)
+             .limit(limit)
+             
+             
+         ]);
+    const filteredOrders = orders.filter((order) => order.status?.trim().toLowerCase() === "approved");
+    console.log("Statuses in fetched orders:", orders.map(o => o.status));
+
+    const response=(filteredOrders.map((order=>{
+      const plainOrder=order.toObject()
+      if(!global.includes(req.user.role)){
+        delete  plainOrder.Approvals
+      }
+      return plainOrder
+    })))
+    console.log(filteredOrders)
+
+    res.json({data:response,
+      Pagination:getPagingData(total,page,limit)});
+  } catch (error) {
+    console.error(error)
+    //res.status(500).json({ message: "Server error", error });
+  }
+});
 router.get("/all", auth,async (req, res) => {
   try {
    
@@ -61,7 +107,7 @@ router.get("/", auth,async (req, res) => {
    const [total, orders] = await Promise.all([
            PurchaseOrder.countDocuments(query),
            PurchaseOrder.find(query)
-             .sort({ timestamp: -1 })
+             .sort({ createdAt: -1 })
              .skip(skip)
              .limit(limit)
              
@@ -71,6 +117,7 @@ router.get("/", auth,async (req, res) => {
     const response=(orders.map((order=>{
       const plainOrder=order.toObject()
       if(!global.includes(req.user.role)){
+        const plainOrder = order.toObject();
         delete  plainOrder.Approvals
       }
       return plainOrder
@@ -95,13 +142,14 @@ router.get("/:email", auth,async (req, res) => {
     
 
     // Fetch user orders
-    const userRequests = await PurchaseOrder.find({ email });
+    const userRequests = await PurchaseOrder.find({ email }).sort({createdAt:-1});
     
     const response=(userRequests.map((order=>{
+      const plainOrder = order.toObject();
       if(!global.includes(req.user.role)){
-        delete  order.Approvals
+        delete  plainOrder.Approvals
       }
-      return order
+      return plainOrder
     })))
 
     if (!userRequests.length) {
@@ -114,6 +162,75 @@ router.get("/:email", auth,async (req, res) => {
     res.status(500).json({ error: "Failed to retrieve orders" });
   }
 });
+//fetch department orders
+router.get('/department', auth,async (req, res) => {
+  try {
+    const {Department}=req.query
+    const { page, limit, skip } = getPagination(req);
+    const query = {Department:Department};
+    // Fetch orders for the department
+    const [total, orders] = await Promise.all([
+      PurchaseOrder.countDocuments(query),
+      PurchaseOrder.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        
+        
+    ]);
+    const global=[ "procurement_officer","human_resources","internal_auditor","global_admin","admin","waste_management"]
+    const response=(orders.map((order=>{
+      const plainOrder=order.toObject()
+      if(!global.includes(req.user.role)){
+        delete  plainOrder.Approvals
+      }
+      return plainOrder
+    })))
+    
+    
+
+    res.json({data:response,
+      Pagination:getPagingData(total,page,limit)});
+  } catch (error) {
+    console.error("Error fetching department orders:", error);
+    res.status(500).json({ message: "Error fetching orders" });
+  }
+});
+
+router.get('/department/all', auth,async (req, res) => {
+  try {
+    const {Department}=req.query
+    //const { page, limit, skip } = getPagination(req);
+    const query = {Department:Department};
+    // Fetch orders for the department
+    const [total, orders] = await Promise.all([
+      PurchaseOrder.countDocuments(query),
+      PurchaseOrder.find(query)
+        .sort({ createdAt: -1 })
+        
+        
+        
+    ]);
+    const global=[ "procurement_officer","human_resources","internal_auditor","global_admin","admin","waste_management"]
+    const response=(orders.map((order=>{
+      const plainOrder=order.toObject()
+      if(!global.includes(req.user.role)){
+        delete  plainOrder.Approvals
+      }
+      return plainOrder
+    })))
+    
+    
+
+    res.json({data:response,
+  });
+  } catch (error) {
+    console.error("Error fetching department orders:", error);
+    res.status(500).json({ message: "Error fetching orders" });
+  }
+});
+
+
 
 
 // Create a new purchase order
@@ -129,8 +246,12 @@ router.post("/",  async (req, res) => {
     }
 
     
-
-   
+    const User=await user.findOne({email})
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const Department=User.Department
+    console.log("Department",Department)
 
     const newOrder = new PurchaseOrder({
       supplier,
@@ -140,15 +261,16 @@ router.post("/",  async (req, res) => {
       products,
       urgency,
       filenames,
-      remarks
+      remarks,
+      Department
       
 
     });
-    console.log(newOrder)
+    
 
     await newOrder.save();
     const excelexport=await exporttoexcel()
-    notifyAdmins(newOrder);
+    //notifyAdmins(newOrder);
     console.log(excelexport)
     res.status(200).json({ newOrder });
   } catch (error) {
