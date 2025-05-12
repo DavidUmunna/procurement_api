@@ -30,10 +30,12 @@ router.get('/:supplier/requests', async (req, res) => {
 // Create a new supplier
 router.post("/", async (req, res) => {
   try {
-    const supplier = new Supplier(req.body);
+    const {name,email,phone,address,description,status}=req.body.form
+    const supplier = new Supplier({name,email,phone,address,description,status});
     await supplier.save();
     res.status(201).json(supplier);
   } catch (error) {
+    console.log("error originated from supplier post:",error)
     res.status(400).json({ message: "Error creating supplier" });
   }
 });

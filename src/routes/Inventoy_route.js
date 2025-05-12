@@ -72,14 +72,15 @@ router.get('/', auth, async (req, res) => {
 
 router.post('/', auth, async (req, res) => {
   try {
-    const { name, category, quantity } = req.body;
+    const { name, category, quantity, AddedBy } = req.body;
     const sku=generateSKU(name)
     const newItem = new InventoryItem({
       name,
       category,
       quantity,
+      
       sku,
-      addedBy: req.user.name
+      AddedBy: req.user.name
     });
     await Activity.create({
         action: 'Created',
@@ -87,7 +88,7 @@ router.post('/', auth, async (req, res) => {
         itemName: newItem.name,
         quantity: newItem.quantity,
         category:newItem.category,
-        user: req.user._id,
+        AddedBy: req.user.name,
         userName: req.user.name
       });
 
