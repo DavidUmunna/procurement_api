@@ -28,7 +28,7 @@ const AssetItemSchema = new Schema({
   },
   sku: {
     type: String,
-    unique: true,
+  
     required: true,
   },
   quantity: {
