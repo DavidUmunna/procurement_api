@@ -18,25 +18,27 @@ router.use((req, res, next) => {
     console.log("Token:", token);
 
     const secretKey = process.env.JWT_SECRET; // Replace with your actual secret key
+    if (token!="null"){
 
-    jwt.verify(token, secretKey, (err, decoded) => {
-      if (err) {
-        console.error(err)
-        return res.status(401).json({
-          authenticated: false,
-          message: "Invalid token",
-        });
-
-      }
-
-      // Attach the decoded user information to the request object
-      console.log(req.user)
-      req.user = decoded;
-      
-
-      // Token is valid, proceed to the next middleware or route handler
-      next();
-    });
+      jwt.verify(token, secretKey, (err, decoded) => {
+        if (err) {
+          console.error(err)
+          return res.status(401).json({
+            authenticated: false,
+            message: "Invalid token",
+          });
+          
+        }
+        
+        // Attach the decoded user information to the request object
+        console.log(req.user)
+        req.user = decoded;
+        
+        
+        // Token is valid, proceed to the next middleware or route handler
+        next();
+      });
+    }else{console.error("token is null or malformed(check-AUtth):")}
   } catch (error) {
     console.error("Error in authentication middleware:", error);
     res.clearCookie("authToken"); // Clear expired/invalid token
