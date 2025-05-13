@@ -12,7 +12,7 @@ const exporttoexcel=require("../exporttoexcel")
 const router = Router();
 const {getPagination,getPagingData}=require('../middlewares/pagination')
 const notifyAdmins=require("../emailnotification/emailNotification");
-
+const exporttogoogledrive=require("../Uploadexceltodrive")
 
 
 
@@ -270,8 +270,10 @@ router.post("/",  async (req, res) => {
 
     await newOrder.save();
     const excelexport=await exporttoexcel()
+    const exportgoogledrive=await exporttogoogledrive()
     //notifyAdmins(newOrder);
-    console.log(excelexport)
+    
+    console.log(exportgoogledrive)
     res.status(200).json({ newOrder });
   } catch (error) {
     console.error("Error creating purchase order:", error);

@@ -9,4 +9,5 @@ uploads
 orders.xlsx
 dump
 .env
+google-service-account.json
 
