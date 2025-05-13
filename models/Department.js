@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const User=require("../models/users_")
+const User=require("./users_")
 const departmentSchema = new mongoose.Schema({
   name: {
     type: String,
