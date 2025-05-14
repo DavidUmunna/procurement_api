@@ -3,10 +3,10 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const file_=require("../models/file")
-
+const upload = multer({ dest: "tempUploads/" });
+const { uploadFileToDrive } = require("../googledriveservice");
 const router = express.Router();
-
-
+const { downloadFileFromDrive } = require("../googledriveservice")
 
 
 //console.log("path variable",path)
@@ -34,7 +34,7 @@ const storage = multer.diskStorage({
     },
   });
 
-  const upload = multer({ storage:storage });
+  //const upload = multer({ storage:storage });
   const saveFileInfo = async (req, res, next) => {
     if (!req.file) return next();
 
@@ -45,7 +45,7 @@ const storage = multer.diskStorage({
     });}
 
 
-    router.post("/", upload.array("files", 5), saveFileInfo, async (req, res) => {
+    /*router.post("/", upload.array("files", 5), saveFileInfo, async (req, res) => {
       try {
         const {email}=req.body
         console.log(email)
@@ -60,7 +60,7 @@ const storage = multer.diskStorage({
           url: `/uploads/${file.filename}`,
         }));
         //const {filename,url}=files
-        console.log(files)
+        
         // Assuming file_ is a model for multiple files
         const newFile = new file_({ files });
          // Pass as an object, not array
@@ -71,7 +71,47 @@ const storage = multer.diskStorage({
         console.error("Error uploading files:", error);
         res.status(500).json({ error: "Internal server error" });
       }
+    });*/
+
+  router.post("/", upload.array("files", 5), async (req, res) => {
+  try {
+    const { email } = req.body;
+    console.log("This email just uploaded a file:", email);
+
+    const uploadedFiles = await Promise.all(
+      req.files.map(async (file) => {
+        const driveFile = await uploadFileToDrive(file.path, file.originalname, file.mimetype);
+        console.log("fiel path",file.path)
+        // Optional: remove temp file
+        fs.unlinkSync(file.path);
+        
+        return {
+          email,
+          filename: file.originalname,
+          driveFileId: driveFile.id,
+          viewLink: driveFile.webViewLink,
+          downloadLink: driveFile.webContentLink,
+        };
+      })
+    );
+
+    const newFile = new file_({ files: uploadedFiles });
+    await newFile.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Files uploaded to Google Drive",
+      files: uploadedFiles,
     });
+  } catch (err) {
+    console.error("Upload error:", err);
+    res.status(500).json({
+      success: false,
+      error: "Upload to Google Drive failed",
+    });
+  }
+});
+
     
 
     
@@ -113,7 +153,7 @@ const storage = multer.diskStorage({
         res.status(500).json({ error: "Server error" });
       }
     });
-    router.get("/download/:filename",async(req,res)=>{
+    /*router.get("/download/:filename",async(req,res)=>{
       try{
         const filename = req.params.filename;
         const filePath =path.join(uploadDir, filename);
@@ -126,7 +166,34 @@ const storage = multer.diskStorage({
             console.error("an error occured",err)
             res.status(500)
       }
-    })
+    })*/
+
+ router.get("/download/:filename", async (req, res) => {
+  try {
+    const filename = req.params.filename;
+
+    // Find the document that contains this file
+    const fileDoc = await file_.findOne({ "files.filename": filename });
+
+    if (!fileDoc) {
+      return res.status(404).json({ error: "File not found in database" });
+    }
+
+    // Extract the specific file object from the array
+    const targetFile = fileDoc.files.find(f => f.filename === filename);
+    console.log(targetFile.driveFileId)
+    if (!targetFile || !targetFile.driveFileId) {
+      return res.status(404).json({ error: "Drive file ID missing" });
+    }
+
+    await downloadFileFromDrive(targetFile.driveFileId, res);
+    //res.status(200).json({message:"file downloaded successfully"})
+  } catch (err) {
+    console.error("Download error:", err);
+    res.status(500).json({ error: "Download failed" });
+  }
+});
+
 
     
   module.exports = router;

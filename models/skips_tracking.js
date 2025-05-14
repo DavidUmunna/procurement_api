@@ -7,7 +7,7 @@ const SkipsTrackingSchema=mongoose.Schema({
     skip_id:{type:String,require:true},
     DeliveryWaybill:{type:Number, required:true},
     Quantity:{type:String,required:true},
-    WasteStream:{type:String,required:true,enum:["WBM","OBM","WBM cutting", "OBM Affluent"]},
+    WasteStream:{type:String,required:true,enum:["WBM","OBM","WBM_cutting", "OBM_Affluent"]},
     SourceWell:{type:String,Required:true},
     DispatchManifest:{type:String,Required:true},
     DeliveryOfEmptySkips:{type:Date,required:true},

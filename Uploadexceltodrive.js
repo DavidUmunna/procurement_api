@@ -68,4 +68,4 @@ const exportToExcelAndUpload = async () => {
 };
 
 // Run the function
-exportToExcelAndUpload();
+module.exports=exportToExcelAndUpload;

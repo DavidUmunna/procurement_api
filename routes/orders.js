@@ -12,7 +12,7 @@ const exporttoexcel=require("../exporttoexcel")
 const router = Router();
 const {getPagination,getPagingData}=require('../middlewares/pagination')
 const notifyAdmins=require("../emailnotification/emailNotification");
-const exporttogoogledrive=require("../Uploadexceltodrive")
+const exportToExcelAndUpload=require("../Uploadexceltodrive")
 
 
 
@@ -269,15 +269,16 @@ router.post("/",  async (req, res) => {
     
 
     await newOrder.save();
-    const excelexport=await exporttoexcel()
-    const exportgoogledrive=await exporttogoogledrive()
+
+    const excelexport=await exporttoexcel();
+    const exportgoogledrive=await exportToExcelAndUpload();
     //notifyAdmins(newOrder);
     
     console.log(exportgoogledrive)
-    res.status(200).json({ newOrder });
+    res.status(200).json({success:true, newOrder });
   } catch (error) {
     console.error("Error creating purchase order:", error);
-    res.status(400).json({ message: "Error creating purchase order", error });
+    res.status(500).json({success:false, message: "Error creating purchase order", error });
   }
 });
 router.put("/:id/approve", auth, async (req, res) => {
