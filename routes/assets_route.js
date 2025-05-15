@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const AssetItem = require('../models/Assets');
 const auth = require('../middlewares/check-auth');
+const { getPagination,getPagingData } = require('../middlewares/pagination');
 
 function generateSKU(name) {
   const prefix = name.substring(0, 3).toUpperCase(); 
@@ -10,8 +11,8 @@ function generateSKU(name) {
 }                 
 router.get('/', auth, async (req, res) => {
   try {
+    const {page,limit,skip}=getPagination(req);
     const { category, condition, search } = req.query;
-
     const filter = {};
 
     if (category && category !== 'All') filter.category = category;
@@ -24,12 +25,17 @@ router.get('/', auth, async (req, res) => {
       ];
     }
 
-    const items = await AssetItem.find(filter)
+    const [total,items] = await Promise.all([
+      AssetItem.countDocuments(filter),
+      AssetItem.find(filter)
       .sort({ lastUpdated: -1 })
-      .lean();
+      .lean()
+      .skip(skip)
+      .limit(limit)])
 
-    res.json({ success: true, data: items });
+    res.json({ success: true, data: items,Pagination:getPagingData(total,page,limit) });
   } catch (err) {
+    console.error("error originated from asset get route:",err)
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 });

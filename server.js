@@ -12,6 +12,7 @@ const connectDB = require("./db");
 
 // Route imports
 const uploadRoutes = require("./routes/fileupload");
+const skiptrackRoutes=require("./routes/skips_route")
 const departmentRoutes = require("./routes/Department_route");
 const companyDataRoutes = require("./routes/CompanyDataRoute");
 const supplierRoutes = require("./routes/suppliers");
@@ -87,6 +88,7 @@ app.use("/api/assets", assetsRoutes);
 app.use("/api/companydata", companyDataRoutes);
 app.use("/api/inventory", InventoryRoute);
 app.use("/api/inventory/activities", activityroute);
+app.use("/api/skiptrack", skiptrackRoutes);
 
 // Health check route
 app.get("/", (req, res) => {
