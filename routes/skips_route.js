@@ -172,19 +172,11 @@ router.delete('/:id', auth, async (req, res) => {
 
 router.get('/stats', auth, async (req, res) => {
     try {
-      const { month, year } = req.query;
+      const {startDate,endDate}=req.query
   
-      if (!month || !year) {
-        return res.status(400).json({ success: false, message: "Month and year are required in query (e.g. ?month=2&year=2025)" });
-      }
-  
-      const monthInt = parseInt(month);
-      const yearInt = parseInt(year);
   
       // Create start and end date for the selected month
-      const startDate = new Date(yearInt, monthInt - 1, 1);
-      const endDate = new Date(yearInt, monthInt, 1); // first day of next month
-  
+      
       // Filter for that month using lastUpdated field (or use createdAt if available)
       const dateFilter = { lastUpdated: { $gte: startDate, $lt: endDate } };
   
@@ -197,20 +189,16 @@ router.get('/stats', auth, async (req, res) => {
   
       const categories = await skipsTracking.distinct("WasteStream", dateFilter);
   
-      const conditionStats = await skipsTracking.aggregate([
-        { $match: dateFilter },
-        { $group: { _id: "$WasteStream", count: { $sum: 1 } } }
-      ]);
+      
   
       res.json({
         success: true,
         data: {
-          month,
-          year,
-          totalItems,
+          
+          totalItems:totalItems||0,
           totalQuantity: totalQuantity[0]?.total || 0,
           totalCategories: categories.length,
-          conditionStats
+          
         }
       });
     } catch (err) {
