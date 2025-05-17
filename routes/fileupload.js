@@ -75,8 +75,8 @@ const storage = multer.diskStorage({
 
   router.post("/", upload.array("files", 5), async (req, res) => {
   try {
-    const { email } = req.body;
-    console.log("This email just uploaded a file:", email);
+    const { userId } = req.body;
+    console.log("This id just uploaded a file:", userId);
 
     const uploadedFiles = await Promise.all(
       req.files.map(async (file) => {
@@ -86,7 +86,7 @@ const storage = multer.diskStorage({
         fs.unlinkSync(file.path);
         
         return {
-          email,
+          staff:userId,
           filename: file.originalname,
           driveFileId: driveFile.id,
           viewLink: driveFile.webViewLink,
@@ -116,18 +116,18 @@ const storage = multer.diskStorage({
 
     
 
-    router.get("/:email", async (req, res) => {
+    router.get("/:id", async (req, res) => {
       try {
-        const { email } = req.params;
-        console.log("Requested email:", email);
+        const { id } = req.params;
+        console.log("Requested email:", id);
     
         // Find the document that contains the file
-        const fileDoc = await file_.findOne({ "files.email": email });
+        const fileDoc = await file_.findOne({ staff: id });
         if (!fileDoc) return res.status(404).json({ error: "File not found in DB" });
         console.log("filedoc", fileDoc);
     
         // Extract the specific file object from the files array
-        const userFiles = fileDoc.files.filter(file => file.email === email);
+        const userFiles = fileDoc.files.filter(file => file.staff === id);
         if (!userFiles || userFiles.length === 0) return res.status(404).json({ error: "File not found in document" });
     
         console.log("Extracted File Object:", userFiles);

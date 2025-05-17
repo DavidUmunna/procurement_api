@@ -2,7 +2,10 @@ const mongoose = require("mongoose");
 
 const fileSchema = new mongoose.Schema({
     
-   files:[ {email:{type:String,},
+   files:[ {staff:{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'user',
+   },
     storedName: {
         type: String,
         default: function () {

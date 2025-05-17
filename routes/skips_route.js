@@ -2,7 +2,9 @@ const express=require("express")
 const invoicing=require("../models/invoicing")
 const skipsTracking=require("../models/skips_tracking")
 const auth=require("../middlewares/check-auth")
-const { getPagination } = require("../middlewares/pagination")
+const { getPagination ,getPagingData} = require("../middlewares/pagination")
+const SkipTracking = require("../models/skips_tracking")
+const analytics=require("../controllers/Analytics")
 const router=express.Router()
 
 
@@ -33,14 +35,18 @@ router.get("/",auth,async(req,res)=>{
         
         
 
-        const skipItem=await skipsTracking.find(filter)
-        .sort({lastUpdated:-1})
-        .lean();
+        const [total,items] = await Promise.all([
+        skipsTracking.countDocuments(filter),
+        skipsTracking.find(filter)
+        .sort({ lastUpdated: -1 })
+        .lean()
+        .skip(skip)
+        .limit(limit)])
         
-        if (!skipItem){
+        if (!items){
             res.status(404).json({success:false,message:"file not found"})
         }
-        res.status(200).json({success:true,message:"skip items retrieved successfully"})
+        res.status(200).json({success:true,message:"skip items retrieved successfully", data:items,Pagination:getPagingData(total,page,limit) })
     }catch(error){
         console.error("error originated from skip_route GET:",error)
         res.status(500).json({message:"server error"})
@@ -60,29 +66,29 @@ router.get('/categories', auth, async (req, res) => {
   }
 });
 
-router.post("/skiptrack",auth,async(req,res)=>{
+router.post("/create",auth,async(req,res)=>{
     try{
 
         const {skip_id,
-            DeliveryWaybill,
+            DeliveryWaybillNo,
             Quantity,WasteStream,
             SourceWell,DispatchManifestNo,
             DispatchTruckRegNo,
             DeliveryOfEmptySkips,
-            DemobilizationOfFilledSkips,
+            DemobilizationOfFilledSkips,DriverName,
             DateFilled}=req.body
             if (!skip_id){
                 res.status(403).json({message:"missing values in query"})
             }
             new_skipItem=new skipsTracking({
                 skip_id,
-                DeliveryWaybill,
+                DeliveryWaybillNo,
                 Quantity,WasteStream,
                 SourceWell,DispatchManifestNo,
                 DispatchTruckRegNo,
                 DeliveryOfEmptySkips,
                 DemobilizationOfFilledSkips,
-                DateFilled
+                DateFilled,DriverName
             })
             
             await new_skipItem.save()
@@ -171,42 +177,90 @@ router.delete('/:id', auth, async (req, res) => {
 });
 
 router.get('/stats', auth, async (req, res) => {
-    try {
-      const {startDate,endDate}=req.query
-  
-  
-      // Create start and end date for the selected month
-      
-      // Filter for that month using lastUpdated field (or use createdAt if available)
-      const dateFilter = { lastUpdated: { $gte: startDate, $lt: endDate } };
-  
-      const totalItems = await skipsTracking.countDocuments(dateFilter);
-  
-      const totalQuantity = await skipsTracking.aggregate([
-        { $match: dateFilter },
-        { $group: { _id: null, total: { $sum: "$Quantity.value" } } }
-      ]);
-  
-      const categories = await skipsTracking.distinct("WasteStream", dateFilter);
-  
-      
-  
-      res.json({
-        success: true,
-        data: {
-          
-          totalItems:totalItems||0,
-          totalQuantity: totalQuantity[0]?.total || 0,
-          totalCategories: categories.length,
-          
-        }
-      });
-    } catch (err) {
-      console.error("Stats route error:", err);
-      res.status(500).json({ success: false, message: 'Server Error' });
-    }
-  });
+  try {
+    const { startDate, endDate } = req.query;
 
+    // Validate dates
+    if (!startDate || !endDate) {
+      return res.status(400).json({ success: false, message: 'Both startDate and endDate are required' });
+    }
+
+    // Create date filter (ensure dates are in proper format)
+    const dateFilter = { 
+      lastUpdated: { 
+        $gte: new Date(startDate), 
+        $lte: new Date(endDate) 
+      } 
+    };
+
+    // Debug: Check how many documents match the filter
+    const matchingDocsCount = await skipsTracking.countDocuments(dateFilter);
+    console.log(`Found ${matchingDocsCount} documents in date range`);
+
+    // Get total items (without date filter)
+    const totalItems = await skipsTracking.countDocuments();
+
+    // Improved aggregation pipeline
+    const aggregationResult = await skipsTracking.aggregate([
+      { $match: dateFilter },
+      { 
+        $project: {
+          qtyInTonnes: {
+            $switch: {
+              branches: [
+                { 
+                  case: { $eq: ["$Quantity.unit", "kg"] }, 
+                  then: { $divide: ["$Quantity.value", 1000] } 
+                },
+                { 
+                  case: { $eq: ["$Quantity.unit", "tonne"] }, 
+                  then: "$Quantity.value" 
+                },
+                // Default case if unit is missing or different
+                { case: { $eq: ["$Quantity.unit", "ton"] }, then: "$Quantity.value" },
+                { case: { $eq: ["$Quantity.unit", "t"] }, then: "$Quantity.value" }
+              ],
+              default: 0 // If unit not recognized
+            }
+          }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalTonnes: { $sum: "$qtyInTonnes" },
+          count: { $sum: 1 } // Count of documents for verification
+        }
+      },
+      { 
+        $project: { 
+          _id: 0, 
+          totalTonnes: { $round: ["$totalTonnes", 2] }, // Round to 2 decimal places
+          count: 1 
+        } 
+      }
+    ]);
+
+    const totalTonnes = aggregationResult[0]?.totalTonnes || 0;
+    console.log("Aggregation result:", aggregationResult);
+
+    const categories = await skipsTracking.distinct("WasteStream", dateFilter);
+
+    res.json({
+      success: true,
+      data: {
+        totalItems,
+        totalQuantity: totalTonnes,
+        totalCategories: categories.length,
+        matchingItemsCount: aggregationResult[0]?.count || 0 // For debugging
+      }
+    });
+  } catch (err) {
+    console.error("Stats route error:", err);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+});
+  router.get("/analytics",auth,analytics.getSkipAnalytics)
 
 
   module.exports=router;

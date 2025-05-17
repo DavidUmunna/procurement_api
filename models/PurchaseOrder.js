@@ -1,19 +1,20 @@
-const { Schema, model } = require('mongoose');
+const   { Schema, model } = require('mongoose');
 const timestamps = require('timestamp');
-const  {user} = require('./users_');
+const  User = require('./users_');
 
 const PurchaseOrderSchema = new Schema({
   orderNumber: { type: String, unique: true, default: () => `PO-${Date.now()}` },
   Title:{type:String,required:false},
   Approvals: [{
     admin: String,      // e.g., "John Doe"
-    status: String,     // e.g., "Approved" or "Rejected"
+    status: String,   
+    comment:String,  // e.g., "Approved" or "Rejected"
     timestamp: {        // When the action occurred
       type: Date,
       default: Date.now
     }
   }],
-  email: { type: String, required:false },
+
   products: [
     {
       name: { type: String, required: true },
@@ -21,10 +22,15 @@ const PurchaseOrderSchema = new Schema({
       price: { type: Number, required: true },
     },
   ],
-  Department:{type:String},
+  staff: {
+    type: Schema.Types.ObjectId,
+    ref: 'user',
+    
+  },
+ 
   filenames:{type:[String],default:[]},
   supplier: { type: String,  required: false },
-  orderedBy: { type: String, required: true },
+
   status: { type: String, enum: ["Pending", "Approved", "Copmpleted", "Rejected"], default: "Pending" },
   urgency:{type:String, enum:["VeryUrgent","Urgent","NotUrgent"],default:"NotUrgent"},
   

@@ -70,7 +70,7 @@ router.get("/all", auth,async (req, res) => {
 
     const global=[ "procurement_officer","human_resources","internal_auditor","global_admin","admin"]
     //const isAdmin= req.user.role==="admin"
-    const orders=await PurchaseOrder.find()
+    const orders=await PurchaseOrder.find().populate("staff",  "-password -__v -role -canApprove -_id")
       
     const response=(orders.map((order=>{
       const plainOrder=order.toObject()
@@ -109,7 +109,7 @@ router.get("/", auth,async (req, res) => {
            PurchaseOrder.find(query)
              .sort({ createdAt: -1 })
              .skip(skip)
-             .limit(limit)
+             .limit(limit).populate("staff", "-password -__v -role -canApprove -_id")
              
              
          ]);
@@ -129,26 +129,72 @@ router.get("/", auth,async (req, res) => {
     //res.status(500).json({ message: "Server error", error });
   }
 });
+router.get('/department', auth, async (req, res) => {
+  try {
+    const { Department } = req.query;
+    const { page, limit, skip } = getPagination(req);
+
+    // Use populate first, then filter using JS
+    const allOrders = await PurchaseOrder.find()
+      .populate("staff", "Department email name ")
+      .sort({ createdAt: -1 });
+
+    // Filter by Department (after population)
+    const filteredOrders = allOrders.filter(order => 
+      order.staff?.Department === Department
+    );
+
+    const total = filteredOrders.length;
+
+    // Paginate filtered orders manually
+    const paginatedOrders = filteredOrders.slice(skip, skip + limit);
+
+    const globalRoles = [
+      "procurement_officer",
+      "human_resources",
+      "internal_auditor",
+      "global_admin",
+      "admin",
+      "waste_management"
+    ];
+
+    const response = paginatedOrders.map(order => {
+      const plainOrder = order.toObject();
+      /*if (!globalRoles.includes(req.user.role)) {
+        delete plainOrder.Approvals;
+      }*/
+      return plainOrder;
+    });
+
+    res.json({
+      data: response,
+      Pagination: getPagingData(total, page, limit)
+    });
+  } catch (error) {
+    console.error("Error fetching department orders:", error);
+    res.status(500).json({ message: "Error fetching orders" });
+  }
+});
 
 //if user not admin order.Approvals is removed from document
-router.get("/:email", auth,async (req, res) => {
+router.get("/:id", auth,async (req, res) => {
   try {
-      const { email } = req.params;
+      const { id } = req.params;
       //const isAdmin= req.user.role==="admin"
       const global=[ "procurement_officer","human_resources","internal_auditor","global_admin","admin"]
-    if (!email) {
+    if (!id) {
       return res.status(400).json({ error: "Email is required" });
     }
     
 
     // Fetch user orders
-    const userRequests = await PurchaseOrder.find({ email }).sort({createdAt:-1});
+    const userRequests = await PurchaseOrder.find({ staff:id }).sort({createdAt:-1}).populate("staff", "-password -__v -role -canApprove -_id")
     
     const response=(userRequests.map((order=>{
       const plainOrder = order.toObject();
-      if(!global.includes(req.user.role)){
+      /*if(!global.includes(req.user.role)){
         delete  plainOrder.Approvals
-      }
+      }*/
       return plainOrder
     })))
 
@@ -163,66 +209,29 @@ router.get("/:email", auth,async (req, res) => {
   }
 });
 //fetch department orders
-router.get('/department', auth,async (req, res) => {
-  try {
-    const {Department}=req.query
-    const { page, limit, skip } = getPagination(req);
-    const query = {Department:Department};
-    // Fetch orders for the department
-    const [total, orders] = await Promise.all([
-      PurchaseOrder.countDocuments(query),
-      PurchaseOrder.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        
-        
-    ]);
-    const global=[ "procurement_officer","human_resources","internal_auditor","global_admin","admin","waste_management"]
-    const response=(orders.map((order=>{
-      const plainOrder=order.toObject()
-      if(!global.includes(req.user.role)){
-        delete  plainOrder.Approvals
-      }
-      return plainOrder
-    })))
-    
-    
 
-    res.json({data:response,
-      Pagination:getPagingData(total,page,limit)});
-  } catch (error) {
-    console.error("Error fetching department orders:", error);
-    res.status(500).json({ message: "Error fetching orders" });
-  }
-});
-
+//route is just to display
 router.get('/department/all', auth,async (req, res) => {
   try {
     const {Department}=req.query
     //const { page, limit, skip } = getPagination(req);
     const query = {Department:Department};
     // Fetch orders for the department
-    const [total, orders] = await Promise.all([
-      PurchaseOrder.countDocuments(query),
-      PurchaseOrder.find(query)
+    const orders = await PurchaseOrder.find().populate("staff", "Department")
         .sort({ createdAt: -1 })
-        
-        
-        
-    ]);
+              
+  
+    const filteredOrders = orders.filter(order => 
+      order.staff?.Department === Department
+    );
+
+
     const global=[ "procurement_officer","human_resources","internal_auditor","global_admin","admin","waste_management"]
-    const response=(orders.map((order=>{
-      const plainOrder=order.toObject()
-      if(!global.includes(req.user.role)){
-        delete  plainOrder.Approvals
-      }
-      return plainOrder
-    })))
+    
     
     
 
-    res.json({data:response,
+    res.json({data:filteredOrders,
   });
   } catch (error) {
     console.error("Error fetching department orders:", error);
@@ -236,7 +245,7 @@ router.get('/department/all', auth,async (req, res) => {
 // Create a new purchase order
 router.post("/",  async (req, res) => {
   try {
-    const { supplier, orderedBy, products,email,filenames, urgency, remarks, Title } = req.body;
+    const { supplier, orderedBy, products,email,filenames, urgency, remarks, Title,staff } = req.body;
     
     //console.log(req.body);
 
@@ -245,13 +254,13 @@ router.post("/",  async (req, res) => {
       return res.status(400).json({ error: "Products must be an array" });
     }
 
-    
+    console.log("email",email)
     const User=await user.findOne({email})
+    console.log("User",User)
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
     const Department=User.Department
-    console.log("Department",Department)
 
     const newOrder = new PurchaseOrder({
       supplier,
@@ -262,7 +271,8 @@ router.post("/",  async (req, res) => {
       urgency,
       filenames,
       remarks,
-      Department
+      Department,
+      staff
       
 
     });
@@ -283,7 +293,7 @@ router.post("/",  async (req, res) => {
 });
 router.put("/:id/approve", auth, async (req, res) => {
   const { id: orderId } = req.params;
-  const { adminName } = req.body;
+  const { adminName ,comment} = req.body;
   const user = req.user;
 
   if (!user.canApprove) {
@@ -305,6 +315,7 @@ router.put("/:id/approve", auth, async (req, res) => {
     const newApproval = {
       admin: adminName,
       status: "Approved",
+      comment:comment,
       timestamp: new Date()
     };
     order.Approvals.push(newApproval);
@@ -324,7 +335,7 @@ router.put("/:id/approve", auth, async (req, res) => {
 
 router.put("/:id/reject", auth, async (req, res) => {
   const { id: orderId } = req.params;
-  const { adminName } = req.body;
+  const { adminName, comment } = req.body;
   const user = req.user;
 
   if (!user.canApprove) {
@@ -352,6 +363,7 @@ router.put("/:id/reject", auth, async (req, res) => {
     order.Approvals.push({
       admin: adminName,
       status: "Rejected",
+      comment:comment,
       timestamp: new Date()
     });
 

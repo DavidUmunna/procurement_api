@@ -27,7 +27,6 @@ router.get("/",async(req,res)=>{
           .sort({ timestamp: -1 })
           .skip(skip)
           .limit(limit)
-          .populate('user', 'name email')
           .populate('itemId', 'name category')
       ]);
         

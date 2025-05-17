@@ -26,7 +26,7 @@ userdataa ttracking almost fully inplemented
 
 
 ##[15/05/25]
--skips tracking endpoints
+-skips tracking endpoints✅
 -invoice generation schema
 invoice generation endpoints
 

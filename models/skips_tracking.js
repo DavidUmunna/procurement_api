@@ -1,3 +1,6 @@
+
+
+
 const mongoose=require("mongoose")
 const timestamp = require("timestamp")
 
@@ -20,7 +23,7 @@ const SkipsTrackingSchema=mongoose.Schema({
     DispatchTruckRegNo:{type:String},
     DriverName:{type:String},
     DeliveryOfEmptySkips:{type:Date,required:true},
-    DemobilizationOfFillledSkips:{type:Date},
+    DemobilizationOfFilledSkips:{type:Date},
     DateFilled:{type:Date},
     lastUpdated: {
     type: Date,
@@ -28,6 +31,7 @@ const SkipsTrackingSchema=mongoose.Schema({
     },
 
 },{timestamps:true})
+SkipsTrackingSchema.index({ createdAt: 1 });
 
 const SkipTracking=mongoose.model("Skipstracking",SkipsTrackingSchema)
 

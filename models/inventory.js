@@ -29,7 +29,9 @@ const InventoryItemSchema = new Schema({
     default: 1
   },
   AddedBy:{
-    type:String,
+        type: Schema.Types.ObjectId,
+        ref: 'user',
+        required: true,
     
   }
 
