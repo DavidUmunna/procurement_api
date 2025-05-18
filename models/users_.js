@@ -7,9 +7,9 @@ const UserSchema = new Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique:true},
   password: { type: String, required: true,select:true },
-  Department:{type:String, enum:["waste_management_dep","PVT","Environmental_lab_dep","accounts_dep","Human resources"]},
+  Department:{type:String, enum:["waste_management_dep","PVT","Environmental_lab_dep","accounts_dep","Human resources","Administration"]},
   role: { type: String, enum: ["admin", "procurement_officer","human_resources","staff",
-    "internal_auditor","global_admin","waste_management","PVT_manager","lab","Environmental_lab_manager","accounts","Administration"], default: "staff" },
+    "internal_auditor","global_admin","waste_management","PVT_manager","lab","Environmental_lab_manager","accounts"], default: "staff" },
   canApprove: {
       type: Boolean,
       default: false
