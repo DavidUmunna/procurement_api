@@ -28,6 +28,8 @@ const taskRoutes = require("./routes/task");
 const assetsRoutes = require("./routes/assets_route");
 const InventoryRoute=require("./routes/Inventoy_route")
 const activityroute=require("./routes/activityroute")
+const testDBRoute = require("./routes/test-db");
+
 // Initialize Express
 const app = express();
 
@@ -64,6 +66,7 @@ app.use(
     credentials: true,
   })
 );
+app.use(testDBRoute);
 
 // Static file serving
 app.use("/uploads", express.static(path.join("uploads")));
