@@ -23,19 +23,21 @@ router.get("/", async (req, res) => {
 });
 router.get("/:email", async (req, res) => {
   try {
-    const {email}=req.params
-    console.log(email)
-    const user_data = await User.find({email:email})//.select("-password")
-    if (user_data){
-      res.status(200).json({success:true ,message:"user exists"});
+    const { email } = req.params;
+    console.log(email);
 
-    }else{
-      res.status(404).json({message:"user does not exist"})
+    const user = await User.findOne({ email });
+
+    if (user) {
+      res.status(200).json({ success: true, message: "user exists" });
+    } else {
+      res.status(404).json({ success: false, message: "user does not exist" });
     }
   } catch (error) {
-    res.status(500).json({ message: "an error occured while getting user" });
+    res.status(500).json({ message: "An error occurred while getting user" });
   }
 });
+
 
 router.get("/:email", async (req, res) => {
   try {
@@ -104,13 +106,13 @@ router.get("/:email", async (req, res) => {
 
 router.put("/:email", async (req, res) => {
   const { email, newPassword } = req.body;
-  console.log(email)
+  console.log("email",email)
   if (!newPassword) {
     return res.status(400).json({ message: "New password is required" });
   }
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email:email });
 
     console.log(user)
 
