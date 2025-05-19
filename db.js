@@ -2,29 +2,32 @@ const mongoose = require("mongoose");
 const circuitBreaker = require("opossum");
 require('dotenv').config({ path: './.env' });
 
-
-
 const options = {
   timeout: 3000,
-  errorthresholdpercentage: 50,
-  resettimeout: 5000,
+  errorThresholdPercentage: 50,
+  resetTimeout: 5000,
 };
+
 const MONGO_URI = process.env.MONGO_URI;
+
 const connectDB = async () => {
   try {
-    await mongoose.connect(MONGO_URI ).then(console.log("✅ MongoDB connected successfully")).catch((err) => console.log(err));
+    await mongoose.connect(MONGO_URI);
+    console.log("✅ MongoDB connected successfully");
   } catch (error) {
-    console.error("❌ MongoDB connection failed:", error);
-    process.exit(1); // Exit process with failure
+    console.error("❌ MongoDB connection failed:", error.message);
+    throw error;
   }
 };
 
 const breaker = new circuitBreaker(connectDB, options);
-breaker.fallback(() => ({ message: "Service is down. Please try again later." }));
 
-breaker.fire().then((response) => console.log(response))
-  .catch(err => console.error("circuit breaker triggered", err));
+breaker.fallback(() => {
+  return { message: "Service is down. Please try again later." };
+});
 
+breaker.fire()
+  .then(response => console.log("Breaker Response:", response))
+  .catch(err => console.error("❌ Circuit breaker triggered:", err.message));
 
-
-module.exports = connectDB 
+module.exports = connectDB;
