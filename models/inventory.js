@@ -31,7 +31,7 @@ const InventoryItemSchema = new Schema({
   AddedBy:{
         type: Schema.Types.ObjectId,
         ref: 'user',
-        required: true,
+        
     
   }
 
