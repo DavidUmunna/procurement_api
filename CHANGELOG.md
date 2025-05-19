@@ -28,5 +28,10 @@ userdataa ttracking almost fully inplemented
 ##[15/05/25]
 -skips tracking endpoints✅
 -invoice generation schema
-invoice generation endpoints
+-invoice generation endpoints
+
+-implement email password changes 
+-create a dev branch 
+
+
 
