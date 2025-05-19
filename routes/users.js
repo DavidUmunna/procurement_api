@@ -104,7 +104,7 @@ router.get("/:email", async (req, res) => {
 
 router.put("/:email", async (req, res) => {
   const { email, newPassword } = req.body;
-
+  console.log(email)
   if (!newPassword) {
     return res.status(400).json({ message: "New password is required" });
   }
