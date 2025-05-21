@@ -13,7 +13,10 @@ const UserSchema = new Schema({
   canApprove: {
       type: Boolean,
       default: false
-    }
+    },
+  resetToken:String,
+  resetTokenExpiration:Date
+  
 }, { timestamps: true });
 
 UserSchema.plugin(timestamp);

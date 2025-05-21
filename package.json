@@ -16,6 +16,7 @@
     "cookie-parser": "^1.4.7",
     "cora": "^0.1.0",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "date-fns": "^4.1.0",
     "docker": "^1.0.0",
     "dotenv": "^16.5.0",

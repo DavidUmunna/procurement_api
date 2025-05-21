@@ -16,6 +16,15 @@ async function notifyAdmins(request) {
     subject: "New Request placed",
     text: `User ${request.orderedBy} made requests`,
   });
-}
 
-module.exports=notifyAdmins
+}
+const transporter = nodemailer.createTransport({
+  service: 'Gmail', // or use 'hotmail', 'yahoo', etc.
+  auth: {
+    user: 'chimarokeumunna98@gmail.com',
+    pass: 'xruialzgbdhfzzkt', // Use App Password if 2FA is enabled
+  },
+});
+
+
+module.exports={notifyAdmins,transporter}

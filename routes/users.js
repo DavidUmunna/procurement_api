@@ -2,6 +2,8 @@ const {Router}=require('express')
 const User=require('../models/users_');
 const users_ = require('../models/users_');
 const bcrypt=require("bcrypt")
+const crypto=require("crypto")
+const {transporter} = require('../emailnotification/emailNotification');
 
 const router=Router()
 
@@ -21,7 +23,7 @@ router.get("/", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-router.get("/:email", async (req, res) => {
+/*router.get("/:email", async (req, res) => {
   try {
     const { email } = req.params;
     console.log(email);
@@ -36,7 +38,7 @@ router.get("/:email", async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "An error occurred while getting user" });
   }
-});
+});*/
 
 
 router.get("/:email", async (req, res) => {
@@ -88,15 +90,33 @@ router.post('/', async (req, res) => {
 });
 
 
-router.get("/:email", async (req, res) => {
+router.put("/reset", async (req, res) => {
   try {
-      const { email } = req.params; // Get email from URL params
+      const { email } = req.body;
+      console.log(email) // Get email from URL params
       const user = await User.findOne({ email });
 
       if (user) {
-          return res.status(200).json({ message: "User is valid", user });
+        const token=crypto.randomBytes(32).toString('hex')
+        user.resetToken=token;
+        user.resetTokenExpiration=new Date(Date.now()+(1000*60*15))
+;       console.log("resettoken:",user.resetTokenExpiration)
+        await user.save()
+        const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+        const mailOptions = {
+          from: '"Halden Resource management"',
+          to: user.email,
+          subject: 'Password Reset Request',
+          html: `
+          <p>You requested a password reset.</p>
+          <p>Click this link to reset your password: <a href="${resetLink}">${resetLink}</a></p>
+          <p>This link will expire in 15 minutes.</p>
+          `,
+        };
+        await  transporter.sendMail(mailOptions);
+        return res.status(200).json({success:true, message:  "If this email exists, a reset link will be sent.", user });
       } else {
-          return res.status(404).json({ message: "User not found" });
+          return res.status(404).json({ success:false,message: "User not found" });
       }
   } catch (error) {
       console.error("Error fetching user:", error);
@@ -104,27 +124,29 @@ router.get("/:email", async (req, res) => {
   }
 });
 
-router.put("/:email", async (req, res) => {
-  const { email, newPassword } = req.body;
-  console.log("email",email)
+router.put("/reset-password", async (req, res) => {
+  const { token, newPassword } = req.body;
+  
+  console.log(token)
   if (!newPassword) {
     return res.status(400).json({ message: "New password is required" });
   }
 
   try {
-    const user = await User.findOne({ email:email });
+    console.log("Current time:", new Date(Date.now()));
+    const user = await User.findOne({ resetToken: token,
+    resetTokenExpiration: { $gt: Date.now() }});
 
     console.log(user)
 
     if (!user) {
-      return res.status(404).json({success:false, message: "User not found" });
+      return res.status(404).json({success:false, message: "invalid or expired token " });
     }
 
     // ✅ Hash the new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // ✅ Save the hashed password
-    user.password = hashedPassword;
+    user.password = await bcrypt.hash(newPassword, 12);
+    user.resetToken = undefined;
+    user.resetTokenExpiration = undefined;
     await user.save();
 
     res.status(200).json({success:true, message: "Password updated successfully" });
