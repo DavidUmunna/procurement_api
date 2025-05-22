@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const AssetItem = require('../models/Assets');
 const auth = require('../middlewares/check-auth');
-const { getPagination,getPagingData } = require('../middlewares/pagination');
+const { getPagination,getPagingData } = require('../controllers/pagination');
 
 function generateSKU(name) {
   const prefix = name.substring(0, 3).toUpperCase(); 

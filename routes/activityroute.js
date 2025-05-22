@@ -1,6 +1,6 @@
 const Activity = require('../models/Activity');
 const express=require('express')
-const { getPagination, getPagingData } = require('../middlewares/pagination');
+const { getPagination, getPagingData } = require('../controllers/pagination');
 const router=express.Router()
 
 

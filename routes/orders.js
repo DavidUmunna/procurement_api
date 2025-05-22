@@ -10,7 +10,7 @@ const auth=require("../middlewares/check-auth")
 const uploadDir = path.join(__dirname, "../uploads");
 const exporttoexcel=require("../exporttoexcel")
 const router = Router();
-const {getPagination,getPagingData}=require('../middlewares/pagination')
+const {getPagination,getPagingData}=require('../controllers/pagination')
 const notifyAdmins=require("../emailnotification/emailNotification");
 const exportToExcelAndUpload=require("../Uploadexceltodrive")
 

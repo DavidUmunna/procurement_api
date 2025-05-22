@@ -4,7 +4,7 @@ const invetoryItem = require('../models/inventory');
 const auth = require('../middlewares/check-auth');
 const InventoryItem = require('../models/inventory');
 const Activity=require("../models/Activity");
-const { getPagination, getPagingData } = require('../middlewares/pagination');
+const { getPagination, getPagingData } = require('../controllers/pagination');
 
 
 function generateSKU(name) {
