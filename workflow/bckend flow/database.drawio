@@ -1,10 +1,10 @@
 <mxfile host="65bd71144e">
     <diagram id="YLneeYMjzbY-CFZnUUsU" name="Page-1">
-        <mxGraphModel dx="1418" dy="436" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="1241" dy="467" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
-                <mxCell id="2" value="procurement" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.database;whiteSpace=wrap;" parent="1" vertex="1">
+                <mxCell id="2" value="RESOURCE MANAGEMENT" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.database;whiteSpace=wrap;" parent="1" vertex="1">
                     <mxGeometry x="160" y="60" width="100" height="100" as="geometry"/>
                 </mxCell>
                 <mxCell id="18" value="" style="edgeStyle=none;html=1;" parent="1" source="3" target="17" edge="1">
@@ -77,13 +77,13 @@
                     <mxGeometry x="26" y="183" width="70" height="40" as="geometry"/>
                 </mxCell>
                 <mxCell id="17" value="Attributes&lt;div&gt;&lt;ul&gt;&lt;li&gt;ordernumber&lt;/li&gt;&lt;li&gt;Approvals&lt;/li&gt;&lt;li&gt;email(foreign key)&lt;/li&gt;&lt;li&gt;filename&lt;/li&gt;&lt;li&gt;supplier&lt;/li&gt;&lt;li&gt;orderedby&lt;/li&gt;&lt;li&gt;status&lt;/li&gt;&lt;li&gt;remarks&lt;/li&gt;&lt;li&gt;datecreated&lt;/li&gt;&lt;li&gt;_id(primary key)&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.stored_data;whiteSpace=wrap;" parent="1" vertex="1">
-                    <mxGeometry x="-144" y="420" width="194" height="230" as="geometry"/>
+                    <mxGeometry x="-144" y="420" width="194" height="250" as="geometry"/>
                 </mxCell>
-                <mxCell id="19" value="Atributes&lt;div&gt;&lt;ul&gt;&lt;li&gt;name&lt;/li&gt;&lt;li&gt;email(foreign key)&lt;/li&gt;&lt;li&gt;password&lt;/li&gt;&lt;li&gt;role&lt;/li&gt;&lt;li&gt;_id(primary key)&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.stored_data;whiteSpace=wrap;" parent="1" vertex="1">
-                    <mxGeometry x="140" y="420" width="180" height="110" as="geometry"/>
+                <mxCell id="19" value="Atributes&lt;div&gt;&lt;ul&gt;&lt;li&gt;name&lt;/li&gt;&lt;li&gt;email(foreign key)&lt;/li&gt;&lt;li&gt;password&lt;/li&gt;&lt;li&gt;role&lt;/li&gt;&lt;li&gt;_id(primary key)&lt;/li&gt;&lt;li&gt;restToken&lt;/li&gt;&lt;li&gt;resetTokenExpiration Date&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.stored_data;whiteSpace=wrap;" parent="1" vertex="1">
+                    <mxGeometry x="120" y="420" width="210" height="180" as="geometry"/>
                 </mxCell>
                 <mxCell id="21" value="Attributes&lt;div&gt;&lt;ul&gt;&lt;li&gt;name&lt;/li&gt;&lt;li&gt;price&lt;/li&gt;&lt;li&gt;quantity&lt;/li&gt;&lt;li&gt;_id(primary key)&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.stored_data;whiteSpace=wrap;" parent="1" vertex="1">
-                    <mxGeometry x="425" y="420" width="145" height="160" as="geometry"/>
+                    <mxGeometry x="425" y="420" width="165" height="160" as="geometry"/>
                 </mxCell>
                 <mxCell id="23" value="Attributes&lt;div&gt;&lt;ul&gt;&lt;li&gt;storedName&lt;/li&gt;&lt;li&gt;filename&lt;/li&gt;&lt;li&gt;url&lt;/li&gt;&lt;li&gt;uplaodedat&lt;/li&gt;&lt;li&gt;_id(primary key)&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.stored_data;whiteSpace=wrap;" parent="1" vertex="1">
                     <mxGeometry x="750" y="420" width="160" height="190" as="geometry"/>

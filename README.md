@@ -37,9 +37,11 @@ The **Procurement API** is a back-end service designed to streamline and automat
 - **Authentication**:
   - Secure login with JWT-based authentication.
   - Role-based access control for admin and regular users.
+  -Check-auth middleware that helps authenticate users session status on every request
 
 - **File Uploads**:
   - Upload and manage files associated with purchase orders.
+  -Download of files also fromm the google cloud using file name  as reference 
 
 - **Error Handling**:
   - Comprehensive error handling for all endpoints.
@@ -51,8 +53,17 @@ The **Procurement API** is a back-end service designed to streamline and automat
 - **Node.js** (version 14 or higher)
 - **npm** (version 6 or higher)
 - **MongoDB** (local or cloud instance)
-
----
+- **bcrypt**
+- **express**
+- **Dotenv**
+- **express validator**
+- **fs**
+- **googleapis**
+- **jsonwebtoken**
+- **path**
+- **process**
+- **timestamp**
+- **nodemailer** 
 
 ## 4. Installation
 
@@ -87,6 +98,7 @@ The **Procurement API** is a back-end service designed to streamline and automat
 1. Start the API server:
     ```bash
     npm start
+    node server (name of main file)
     ```
 
 2. The API will be available at `http://localhost:5000`.
@@ -107,7 +119,16 @@ procurement_api/
 │   ├── Product.js         # Product schema
 │   ├── PurchaseOrder.js   # Purchase order schema
 │   ├── Supplier.js        # Supplier schema
-│   └── users_.js          # User schema
+│   ├──users_.js          # User schema
+|   ├──Department.js      # Department Schema
+|   ├── file.js            # file tracking schema
+|   ├── Assets.js          # Assets schema
+|   ├──Inventory.js       # inventory schema
+|   ├──Activity.js        # Recent activity schema
+|   ├──tasks.js           # tasks assigned to users 
+|   ├── CompanyData.js     # schema for companyy info
+|   ├── Skips_tracking.js  # schema for tracking skips 
+|   ├──invoicing.js       # for creating invoices
 ├── routes/                # API routes
 │   ├── access.js          # Access control routes
 │   ├── admin_user.js      # Admin user routes
@@ -118,6 +139,17 @@ procurement_api/
 │   ├── signin.js          # User sign-in routes
 │   ├── suppliers.js       # Supplier routes
 │   └── users.js           # User management routes
+├── middleware/
+|   ├── check-Auth.js      # intermediary between the request and endpoint
+|
+├── controllers/
+|   ├── Analytics.js       # for complex data analysis
+|   ├── pagination.js      # pagination function logic
+|
+├── Workflow/              # flowchart design
+|   ├── Backend flow/     
+|   ├── Frontend flow/
+|
 ├── uploads/               # Directory for uploaded files
 └── data/                  # Database-related files
 

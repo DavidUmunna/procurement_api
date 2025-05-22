@@ -42,6 +42,11 @@ const storage = multer.diskStorage({
         
         filename: req.file.filename,
         url: req.file.path, // Store the file path
+        staff:userId,
+        filename: req.file.originalname,
+        driveFileId: driveFile.id,
+        viewLink: driveFile.webViewLink,
+        downloadLink: driveFile.webContentLink
     });}
 
 
@@ -84,6 +89,16 @@ const storage = multer.diskStorage({
         console.log("fiel path",file.path)
         // Optional: remove temp file
         fs.unlinkSync(file.path);
+
+        const  new_file= new file_({
+          staff:userId,
+          filename: file.originalname,
+          driveFileId: driveFile.id,
+          viewLink: driveFile.webViewLink,
+          downloadLink: driveFile.webContentLink,
+        })
+
+        await new_file.save()
         
         return {
           staff:userId,

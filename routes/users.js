@@ -1,6 +1,7 @@
 const {Router}=require('express')
 const User=require('../models/users_');
 const users_ = require('../models/users_');
+require('dotenv').config({ path: './.env' });
 const bcrypt=require("bcrypt")
 const crypto=require("crypto")
 const {transporter} = require('../emailnotification/emailNotification');
@@ -102,7 +103,8 @@ router.put("/reset", async (req, res) => {
         user.resetTokenExpiration=new Date(Date.now()+(1000*60*15))
 ;       console.log("resettoken:",user.resetTokenExpiration)
         await user.save()
-        const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+        const FRONTEND_URL=process.env.FRONTEND_BASED_URL
+        const resetLink = `${FRONTEND_URL}/reset-password?token=${token}`;
         const mailOptions = {
           from: '"Halden Resource management"',
           to: user.email,
