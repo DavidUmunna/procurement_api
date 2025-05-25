@@ -44,7 +44,9 @@ const allowedOrigins = [
   "http://localhost:3001",
   "https://8a13-102-90-79-163.ngrok-free.app",
   "https://reqmanusers.netlify.app/",
-  "https://resourceman.netlify.app"
+  "https://resourceman.netlify.app",
+  "http://194.163.137.35:5000",
+  "http://194.163.137.35"
 ];
 
 // Middleware
