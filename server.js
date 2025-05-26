@@ -46,7 +46,8 @@ const allowedOrigins = [
   "https://reqmanusers.netlify.app/",
   "https://resourceman.netlify.app",
   "http://194.163.137.35:5000",
-  "http://194.163.137.35"
+  "http://194.163.137.35",
+  "https://erp.haldengroup.ng"
 ];
 
 // Middleware
