@@ -3,6 +3,7 @@ const User=require('../models/users_');
 const users_ = require('../models/users_');
 require('dotenv').config({ path: './.env' });
 const bcrypt=require("bcrypt")
+const auth=require("../middlewares/check-auth")
 const crypto=require("crypto")
 const {transporter} = require('../emailnotification/emailNotification');
 
@@ -18,7 +19,7 @@ router.get("/", async (req, res) => {
       
       return plainUser
     })))
-    res.json(response);
+    res.status(200).json({data:response});
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Server error" });
@@ -63,11 +64,27 @@ router.get("/:email", async (req, res) => {
     res.status(500).json({ error: "Failed to retrieve user" });
   }
 });
+
+router.get("/roles&departments",async(req,res)=>{
+  try{
+    const general_access= ["procurement_officer", "human_resources", "internal_auditor", "global_admin","admin",
+      "Financial_manager","accounts","Director",];
+
+    const departmental_access=["waste_management_manager","waste_management_supervisor","PVT_manager","Environmental_lab_manager","PVT_manager","lab_supervisor"]
+
+    const approved_access=["accounts_dep"]
+
+    res.status(200).json({message:"response successful",general_access,departmental_access,approved_access})
+  }catch(error){
+    console.error("from roles&departments:",error)
+    res.status(500).json({message:"server error"})
+  }
+})
 //create the user
-router.post('/', async (req, res) => {
+router.post('/', auth,async (req, res) => {
   try {
-    const can_approve_roles = ["procurement_officer", "human_resources", "internal_auditor", "global_admin","waste_mnagement",
-      "PVT","Environmental_lab","Financial_manager","accounts"];
+    const can_approve_roles = ["procurement_officer", "human_resources", "internal_auditor", "global_admin","waste_mnagement_manager","waste_management_supervisor",
+      "PVT_manager","Environmental_lab_manager","Financial_manager","accounts","Director"];
     const { name, email, password, Department, role } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -82,11 +99,11 @@ router.post('/', async (req, res) => {
     });
 
     await new_user.save();
-    res.status(201).json(new_user);
+    res.status(201).json({success:true,new_user});
 
   } catch (error) {
     console.error(error);
-    res.status(400).json({ message: "Error: User not created", error: error.message });
+    res.status(400).json({success:false, message: "Error: User not created", error: error.message });
   }
 });
 
@@ -160,14 +177,14 @@ router.put("/reset-password", async (req, res) => {
 
 router.put("/:id/updateuser",async(req,res)=>{
   try{
-    const {Department,canApprove,name,password}=req.body
+    const {Department,canApprove,name,password,role}=req.body
     const {id}=req.params
     const user_update=await User.findById(id)
     if (!user_update) {
       return res.status(404).json({ message: "User not found" });
     }
     
-    console.log("these are some values",canApprove,Department)
+    console.log("these are some values",canApprove,role)
     
     if (Department){
       user_update.Department=Department
@@ -178,17 +195,20 @@ router.put("/:id/updateuser",async(req,res)=>{
     if (name){
       user_update.name=name
     }
+    if(role){
+      user_update.role=role
+    }
     if (typeof password === 'string' && password.trim() !== '') {
       const hashedPassword = await bcrypt.hash(password, 10);
       User.password = hashedPassword;
     }
 
     await user_update.save()
-    res.status(200).json({message:"user details updated successfully",data:user_update})
+    res.status(200).json({success:true,message:"user details updated successfully",data:user_update})
 
   }catch(error){
     console.error("this error originated from users PUT:",error)
-    res.status(500).json({message:"server error"})
+    res.status(500).json({success:false,message:"server error"})
   }
 })
 //delete User

@@ -59,7 +59,7 @@ router.get('/', auth, async (req, res) => {
   router.get('/categories', auth, async (req, res) => {
     try {
       // Return your predefined categories
-      const categories=[{ _id:1,name:'procurement_items'},{ _id:2,name:'lab_items'}]
+      const categories=[{ _id:1,name:'procurement_items'},{ _id:2,name:'lab_items'},{ _id:3,name:'HSE_items'}]
 
       res.json({ 
         success: true, 
@@ -80,7 +80,7 @@ router.post('/', auth, async (req, res) => {
       quantity,
       
       sku,
-      AddedBy: req.user.name
+      AddedBy: AddedBy
     });
     await Activity.create({
         action: 'Created',

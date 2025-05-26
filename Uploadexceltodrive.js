@@ -18,19 +18,25 @@ const authenticateGoogleDrive = async () => {
 };
 
 // Function to export and upload Excel file to Google Drive
-const exportToExcelAndUpload = async () => {
+const exportToExcelAndUpload = async (Id) => {
   try {
     // Fetch your data (replace with actual MongoDB query)
-    const orders = await orderModel.find({}).lean();
-
+    const order = await orderModel.findById(Id).populate("staff","name email").lean();
+    console.log(order)
+    const products=order.products.map(product=>{
+        return {name:product.name,
+        quantity:product.quantity,
+        price:product.price}
+      })
     // Process the orders to create your Excel data
-    const formattedData = orders.map(order => ({
+    const formattedData = [{
       orderNumber: order.orderNumber || "N/A",
       supplier: order.supplier || "N/A",
-      email: order.email || "N/A",
+      email: order.staff.email || "N/A",
       status: order.status || "N/A",
-      orderedBy: order.orderedBy || "N/A",
-    }));
+      orderedBy: order.staff.name || "N/A",
+      products:products|| "N/A"
+    }];
 
     // Create the Excel file in memory
     const wb = XLSX.utils.book_new();
