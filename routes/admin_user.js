@@ -36,14 +36,14 @@ router.post('/login',admin_middle, async (req, res) => {
       name: user_data.name,
       canApprove:user_data.canApprove,
     }, process.env.JWT_SECRET, {
-      expiresIn: "1h"
+      expiresIn: "14m"
     });
 
     res.cookie("authToken",token,{
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: (60 * 60 * 1000)*2, // 1 hour
-      sameSite: "Lax",
+      maxAge: (14* 60 * 1000), // 1 hour
+      sameSite: "Strict",
   },
   
   )

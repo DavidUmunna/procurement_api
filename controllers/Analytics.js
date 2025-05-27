@@ -57,7 +57,7 @@ exports.getSkipAnalytics = async (req, res) => {
       // Truncate DateFilled to midnight of that day
       day: {
         $dateTrunc: {
-          date: "$DateFilled",
+          date: "$DemobilizationOfFilledSkips",
           unit: "day"
         }
       },
