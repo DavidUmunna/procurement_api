@@ -3,7 +3,7 @@ const XLSX = require("xlsx");
 
 const exporttoExcel = async () => {
   try {
-    const orders = await orderModel.find({}).lean();
+    const orders = await orderModel.find({}).populate("staff" ,"name Department email").lean();
 
     // Attempt to read the existing workbook
     let wb;
@@ -32,15 +32,15 @@ const exporttoExcel = async () => {
     }
 
     // Format new orders and their products
-    const formattedData = newOrders.map(item => ({
-      orderNumber: item.orderNumber || "N/A",
-      supplier: item.supplier || "halden",
-      email: item.email || "N/A",
-      status: item.status || "N/A",
-      orderedBy: item.orderedBy || "N/A",
-      urgency: item.urgency || "N/A",
-      remark: item.remarks || "N/A"
-    }));
+    const formattedData = orders.map((order)=>{
+      return{orderNumber: order.orderNumber || "N/A",
+      supplier: order.supplier || "N/A",
+      email: order.staff.email || "N/A",
+      status: order.status || "N/A",
+      orderedBy: order.staff.name || "N/A",
+      }
+    });
+    
 
     const productData = newOrders.flatMap(order =>
       order.products.map(item => ({
@@ -50,6 +50,7 @@ const exporttoExcel = async () => {
         price: item.price || "N/A"
       }))
     );
+    console.log("product data:",productData)
 
     // Append new data to existing data
     const updatedOrdersData = existingOrdersData.concat(formattedData);

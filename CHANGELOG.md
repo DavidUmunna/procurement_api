@@ -30,8 +30,16 @@ userdataa ttracking almost fully inplemented
 -invoice generation schema
 -invoice generation endpoints
 
--implement email password changes 
--create a dev branch 
+-implement email password changes (implemented)
+-create a dev branch (pending)
+
+
+-export to excel functionality:
+   -date range selection(make use of demobilization)
+   -category selection(make use of categories)
+   -excel sheet sent to the front end for download
+   -post request that returns the downloadable
 
 
 
+-refactor products in schema and endpoints for  scalability

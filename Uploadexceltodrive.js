@@ -5,6 +5,7 @@ const path = require('path');
 const readline = require('readline');
 const orderModel = require("./models/PurchaseOrder")
 const { Readable } = require('stream');
+const { getOverlappingDaysInIntervals } = require('date-fns');
 
 // Authenticate using the service account
 const authenticateGoogleDrive = async () => {
@@ -21,27 +22,35 @@ const authenticateGoogleDrive = async () => {
 const exportToExcelAndUpload = async (Id) => {
   try {
     // Fetch your data (replace with actual MongoDB query)
-    const order = await orderModel.findById(Id).populate("staff","name email").lean();
-    console.log(order)
-    const products=order.products.map(product=>{
-        return {name:product.name,
-        quantity:product.quantity,
-        price:product.price}
-      })
+    const orders = await orderModel.find({}).populate("staff","name email").lean();
+    
+   
     // Process the orders to create your Excel data
-    const formattedData = [{
-      orderNumber: order.orderNumber || "N/A",
+    const formattedData = orders.map((order)=>{
+      return{orderNumber: order.orderNumber || "N/A",
       supplier: order.supplier || "N/A",
       email: order.staff.email || "N/A",
       status: order.status || "N/A",
       orderedBy: order.staff.name || "N/A",
-      products:products|| "N/A"
-    }];
-
+      }
+    });
+    console.log("formatted data products:",formattedData.products)
+    
+    const productData = orders.flatMap(order =>
+      order.products.map(item => ({
+        orderNumber: order.orderNumber || "N/A", // Include orderNumber for reference
+        name: item.name || "N/A",
+        quantity: item.quantity || "N/A",
+        price: item.price || "N/A"
+      }))
+    );
     // Create the Excel file in memory
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(formattedData);
+    const ordersworksheet=XLSX.utils.json_to_sheet(productData)
+   
     XLSX.utils.book_append_sheet(wb, ws, "orders");
+    XLSX.utils.book_append_sheet(wb, ordersworksheet, "Request_data");
 
     // Write the workbook to a buffer (not to a file)
     const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "buffer" });

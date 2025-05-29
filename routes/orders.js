@@ -13,7 +13,7 @@ const router = Router();
 const {getPagination,getPagingData}=require('../controllers/pagination')
 const notifyAdmins=require("../emailnotification/emailNotification");
 const exportToExcelAndUpload=require("../Uploadexceltodrive")
-
+const products_=require("../models/Product")
 
 
 router.get("/accounts", auth,async (req, res) => {
@@ -34,9 +34,10 @@ router.get("/accounts", auth,async (req, res) => {
 
     const global=[ "procurement_officer","human_resources","internal_auditor","global_admin","admin","accounts"]
     //const isAdmin= req.user.role==="admin"
+    
    const [total, orders] = await Promise.all([
            PurchaseOrder.countDocuments(query),
-           PurchaseOrder.find(query)
+           PurchaseOrder.find(query).populate("staff", "-password -__v -role -canApprove -_id")
              .sort({ createdAt: -1 })
              .skip(skip)
              .limit(limit)
@@ -104,6 +105,7 @@ router.get("/", auth,async (req, res) => {
 
     const global=[ "procurement_officer","human_resources","internal_auditor","global_admin","admin"]
     //const isAdmin= req.user.role==="admin"
+ 
    const [total, orders] = await Promise.all([
            PurchaseOrder.countDocuments(query),
            PurchaseOrder.find(query)
@@ -136,7 +138,7 @@ router.get('/department', auth, async (req, res) => {
 
     // Use populate first, then filter using JS
     const allOrders = await PurchaseOrder.find()
-      .populate("staff", "Department email name ")
+      .populate("staff", "Department email name ").populate("products","name quantity price")
       .sort({ createdAt: -1 });
 
     // Filter by Department (after population)
@@ -189,6 +191,7 @@ router.get("/:id", auth,async (req, res) => {
 
     // Fetch user orders
     const userRequests = await PurchaseOrder.find({ staff:id }).sort({createdAt:-1}).populate("staff", "-password -__v -role -canApprove -_id")
+    .populate("products","name quantity price")
     
     const response=(userRequests.map((order=>{
       const plainOrder = order.toObject();
@@ -254,9 +257,8 @@ router.post("/",  async (req, res) => {
       return res.status(400).json({ error: "Products must be an array" });
     }
 
-    console.log("email",email)
+   
     const User=await user.findOne({email})
-    console.log("User",User)
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -271,11 +273,13 @@ router.post("/",  async (req, res) => {
       urgency,
       filenames,
       remarks,
+      products,
       Department,
       staff
       
 
     });
+    console.log(newOrder)
     
 
     await newOrder.save();

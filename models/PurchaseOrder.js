@@ -15,13 +15,10 @@ const PurchaseOrderSchema = new Schema({
     }
   }],
 
-  products: [
-    {
-      name: { type: String, required: true },
-      quantity: { type: Number, required: true },
-      price: { type: Number, required: true },
-    },
-  ],
+  products: [{name: { type: String, required: true }, 
+  quantity:{ type:Number , required:true},
+  price: { type: Number, required: true },
+  }],
   staff: {
     type: Schema.Types.ObjectId,
     ref: 'user',
