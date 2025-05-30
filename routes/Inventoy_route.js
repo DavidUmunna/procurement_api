@@ -146,7 +146,7 @@ router.delete('/:id', auth, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Item not found' });
     }
 
-    res.json({ success: true, data: {} });
+    res.json({ success: true, message:"deleted successfully" });
   } catch (err) {
     console.error(err)
     res.status(500).json({ success: false, message: 'Server Error' });
