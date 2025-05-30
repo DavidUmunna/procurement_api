@@ -4,11 +4,19 @@ const { getPagination, getPagingData } = require('../controllers/pagination');
 const router=express.Router()
 
 
-router.get("/",async(req,res)=>{
+router.get("/:Department",async(req,res)=>{
     try{
-        const { page, limit, skip } = getPagination(req);
-        const query = {};
-    
+        const { page, limit, skip} = getPagination(req);
+        
+        const {Department}=req.params
+        const filter={}
+        console.log("Department pri ative",Department)
+        if (Department=== "HSE_dep"){
+              filter.category="HSE_items"
+        }else if(Department==="Environmental_lab_dep"){
+              filter.category="lab_items"
+        }
+        console.log(filter)
     // Example filter by action type
     if (req.query.action) {
       query.action = req.query.action;
@@ -22,8 +30,8 @@ router.get("/",async(req,res)=>{
       };
     }
     const [total, activities] = await Promise.all([
-        Activity.countDocuments(query),
-        Activity.find(query)
+        Activity.countDocuments(filter),
+        Activity.find(filter)
           .sort({ timestamp: -1 })
           .skip(skip)
           .limit(limit)

@@ -13,7 +13,7 @@ const InventoryItemSchema = new Schema({
     type: String,
     required: [true, 'Category is required'],
     enum: {
-      values: ['procurement_items','lab_items'],
+      values: ['procurement_items','lab_items',"HSE_items"],
       message: 'Invalid category'
     }
   },

@@ -12,32 +12,39 @@ function generateSKU(name) {
     const unique = Date.now().toString().slice(-5);    
     return `${prefix}-${unique}`;     
 }  
+ router.get('/categories', auth, async (req, res) => {
+    try {
+      // Return your predefined categories
+      const categories=[{ _id:1,name:'procurement_items'},{ _id:2,name:'lab_items'},{ _id:3,name:'HSE_items'}]
+      
+      res.json({ 
+        success: true, 
+        data: {categories}
+      });
+    } catch (err) {
+      res.status(500).json({ success: false, message: 'Failed to fetch categories' });
+    }
+  });
 
-
-router.get('/', auth, async (req, res) => {
+router.get('/:Department', auth, async (req, res) => {
     try {
         const {page,limit,skip}=getPagination(req);
-        const {query}={}
-        if (req.query.action){
-            query.action=req.query.action;
+        const {Department}=req.params
+        const filter={}
+        console.log("Department pri",Department)
+        if (Department==="HSE_dep"){
+              filter.category="HSE_items"
+        }else if(Department==="Environmental_lab_dep"){
+              filter.category="lab_items"
         }
+        console.log(filter)
 
-        const { category, search } = req.query;
-    
-        const filter = {};
-    
-        if (category && category !== 'All') filter.category = category;
+
         
-        if (search) {
-        filter.$or = [
-          { name: { $regex: search, $options: 'i' } },
-         
-          { sku: { $regex: search, $options: 'i' } }
-        ];
-      }
+      
   
       const [total,items] = await Promise.all([
-        InventoryItem.countDocuments(query),
+        InventoryItem.countDocuments(filter),
         InventoryItem.find(filter)
         .sort({ lastUpdated: -1 })
         .lean()
@@ -56,19 +63,7 @@ router.get('/', auth, async (req, res) => {
     }
   });
 
-  router.get('/categories', auth, async (req, res) => {
-    try {
-      // Return your predefined categories
-      const categories=[{ _id:1,name:'procurement_items'},{ _id:2,name:'lab_items'},{ _id:3,name:'HSE_items'}]
-
-      res.json({ 
-        success: true, 
-        data: {categories}
-      });
-    } catch (err) {
-      res.status(500).json({ success: false, message: 'Failed to fetch categories' });
-    }
-  });
+ 
 
 router.post('/', auth, async (req, res) => {
   try {
