@@ -6,7 +6,9 @@ const { getPagination ,getPagingData} = require("../controllers/pagination")
 const SkipTracking = require("../models/skips_tracking")
 const analytics=require("../controllers/Analytics")
 const router=express.Router()
-
+const ExcelJS = require('exceljs');
+const PDFDocument = require('pdfkit'); // for PDF export
+const { Readable } = require('stream');
 
 router.get("/",auth,async(req,res)=>{
     try{
@@ -52,6 +54,160 @@ router.get("/",auth,async(req,res)=>{
         res.status(500).json({message:"server error"})
     }
 })
+
+
+
+
+
+router.post("/export", auth, async (req, res) => {
+  try {
+    const { startDate, endDate, stream, fileName, fileFormat } = req.body;
+
+    const query = {
+      DeliveryOfEmptySkips: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      }
+    };
+
+    if (stream && stream !== 'All') {
+      query.WasteStream = stream;
+    }
+
+    const skipData = await skipsTracking.find(query).lean();
+
+    const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9-_]/g, '_');
+    const timestamp = Date.now();
+    const validFormats = ['xlsx', 'csv', 'pdf'];
+    const extension = validFormats.includes(fileFormat) ? fileFormat : 'xlsx';
+
+    res.setHeader('Cache-Control', 'no-store');
+
+    // Export logic by format
+    if (extension === 'xlsx') {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Skip Tracking');
+
+      worksheet.columns = [
+        { header: 'Skip ID', key: 'skip_id', width: 20 },
+        { header: 'Delivery Waybill No', key: 'DeliveryWaybillNo', width: 20 },
+        { header: 'Quantity Value', key: 'Quantity_value', width: 15 },
+        { header: 'Quantity Unit', key: 'Quantity_unit', width: 15 },
+        { header: 'Waste Stream', key: 'WasteStream', width: 20 },
+        { header: 'Source Well', key: 'SourceWell', width: 20 },
+        { header: 'Dispatch Manifest No', key: 'DispatchManifestNo', width: 25 },
+        { header: 'Dispatch Truck Reg No', key: 'DispatchTruckRegNo', width: 25 },
+        { header: 'Driver Name', key: 'DriverName', width: 20 },
+        { header: 'Delivery Of Empty Skips', key: 'DeliveryOfEmptySkips', width: 25 },
+        { header: 'Demobilization Of Filled Skips', key: 'DemobilizationOfFilledSkips', width: 30 },
+        { header: 'Date Filled', key: 'DateFilled', width: 20 },
+        { header: 'Last Updated', key: 'lastUpdated', width: 25 },
+        { header: 'Created At', key: 'createdAt', width: 25 },
+        { header: 'Updated At', key: 'updatedAt', width: 25 }
+      ];
+
+      skipData.forEach(entry => {
+        worksheet.addRow({
+          skip_id: entry.skip_id,
+          DeliveryWaybillNo: entry.DeliveryWaybillNo,
+          Quantity_value: entry.Quantity?.value,
+          Quantity_unit: entry.Quantity?.unit,
+          WasteStream: entry.WasteStream,
+          SourceWell: entry.SourceWell,
+          DispatchManifestNo: entry.DispatchManifestNo,
+          DispatchTruckRegNo: entry.DispatchTruckRegNo,
+          DriverName: entry.DriverName,
+          DeliveryOfEmptySkips: entry.DeliveryOfEmptySkips,
+          DemobilizationOfFilledSkips: entry.DemobilizationOfFilledSkips,
+          DateFilled: entry.DateFilled,
+          lastUpdated: entry.lastUpdated,
+          createdAt: entry.createdAt,
+          updatedAt: entry.updatedAt
+        });
+      });
+
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=${sanitizedFileName}-${timestamp}.xlsx`);
+      await workbook.xlsx.write(res);
+      res.end();
+
+    } else if (extension === 'csv') {
+      // Manually build CSV content
+      const headers = [
+        'Skip ID', 'Delivery Waybill No', 'Quantity Value', 'Quantity Unit',
+        'Waste Stream', 'Source Well', 'Dispatch Manifest No', 'Dispatch Truck Reg No',
+        'Driver Name', 'Delivery Of Empty Skips', 'Demobilization Of Filled Skips',
+        'Date Filled', 'Last Updated', 'Created At', 'Updated At'
+      ];
+
+      const rows = skipData.map(entry => ([
+        entry.skip_id,
+        entry.DeliveryWaybillNo,
+        entry.Quantity?.value ?? '',
+        entry.Quantity?.unit ?? '',
+        entry.WasteStream,
+        entry.SourceWell,
+        entry.DispatchManifestNo,
+        entry.DispatchTruckRegNo,
+        entry.DriverName,
+        entry.DeliveryOfEmptySkips,
+        entry.DemobilizationOfFilledSkips,
+        entry.DateFilled,
+        entry.lastUpdated,
+        entry.createdAt,
+        entry.updatedAt
+      ]));
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(r => r.map(field => `"${field ?? ''}"`).join(','))
+      ].join('\n');
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename=${sanitizedFileName}-${timestamp}.csv`);
+      res.send(csvContent);
+
+    } else if (extension === 'pdf') {
+      // Create a PDF
+      const doc = new PDFDocument({ margin: 30, size: 'A4' });
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=${sanitizedFileName}-${timestamp}.pdf`);
+      doc.pipe(res);
+
+      doc.fontSize(14).text('Skip Tracking Report', { align: 'center' }).moveDown();
+
+      skipData.forEach((entry, idx) => {
+        doc
+          .fontSize(10)
+          .text(`Skip ID: ${entry.skip_id}`)
+          .text(`Delivery Waybill No: ${entry.DeliveryWaybillNo}`)
+          .text(`Quantity: ${entry.Quantity?.value ?? ''} ${entry.Quantity?.unit ?? ''}`)
+          .text(`Waste Stream: ${entry.WasteStream}`)
+          .text(`Source Well: ${entry.SourceWell}`)
+          .text(`Dispatch Manifest No: ${entry.DispatchManifestNo}`)
+          .text(`Dispatch Truck Reg No: ${entry.DispatchTruckRegNo}`)
+          .text(`Driver Name: ${entry.DriverName}`)
+          .text(`Delivery Of Empty Skips: ${entry.DeliveryOfEmptySkips}`)
+          .text(`Demobilization Of Filled Skips: ${entry.DemobilizationOfFilledSkips}`)
+          .text(`Date Filled: ${entry.DateFilled}`)
+          .text(`Last Updated: ${entry.lastUpdated}`)
+          .text(`Created At: ${entry.createdAt}`)
+          .text(`Updated At: ${entry.updatedAt}`)
+          .moveDown();
+
+        if ((idx + 1) % 3 === 0) doc.addPage(); // paginate
+      });
+
+      doc.end();
+    }
+
+  } catch (error) {
+    console.error('Export error:', error);
+    res.status(500).json({ message: 'Error exporting skip data.' });
+  }
+});
+
 
 router.get('/categories', auth, async (req, res) => {
   try {

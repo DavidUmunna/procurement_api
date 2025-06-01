@@ -96,6 +96,7 @@ app.use("/api/inventory", InventoryRoute);
 app.use("/api/inventory/activities", activityroute);
 app.use("/api/skiptrack", skiptrackRoutes);
 
+
 // Health check route
 app.get("/", (req, res) => {
   try {
