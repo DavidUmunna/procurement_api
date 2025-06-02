@@ -47,7 +47,7 @@ exports.getSkipAnalytics = async (req, res) => {
   // 1) Filter to your date range on DateFilled
   {
     $match: {
-      DateFilled: { $gte: start, $lte: end }
+      DemobilizationOfFilledSkips: { $gte: start, $lte: end }
     }
   },
 

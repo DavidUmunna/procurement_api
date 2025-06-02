@@ -14,7 +14,7 @@ const {getPagination,getPagingData}=require('../controllers/pagination')
 const notifyAdmins=require("../emailnotification/emailNotification");
 const exportToExcelAndUpload=require("../Uploadexceltodrive")
 const products_=require("../models/Product")
-
+const usemonitor=require("../middlewares/usemonitor")
 
 router.get("/accounts", auth,async (req, res) => {
   try {
@@ -246,7 +246,7 @@ router.get('/department/all', auth,async (req, res) => {
 
 
 // Create a new purchase order
-router.post("/",  async (req, res) => {
+router.post("/", usemonitor, async (req, res) => {
   try {
     const { supplier, orderedBy, products,email,filenames, urgency, remarks, Title,staff } = req.body;
     
