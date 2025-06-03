@@ -17,7 +17,7 @@ const SkipsTrackingSchema=mongoose.Schema({
           
         }
       },
-    WasteStream:{type:String,required:true,enum:["WBM","OBM","WBM_cutting", "OBM_Affluent"]},
+    WasteStream:{type:String,required:true,enum:["WBM_Affluent","OBM_Cutting","WBM_cutting", "OBM_Affluent","Sludge"]},
     SourceWell:{type:String,required:true},
     DispatchManifestNo:{type:String},
     DispatchTruckRegNo:{type:String},

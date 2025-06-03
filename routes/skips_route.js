@@ -212,7 +212,7 @@ router.post("/export", auth, async (req, res) => {
 router.get('/categories', auth, async (req, res) => {
   try {
     // Return your predefined categories
-    const categories=["WBM","OBM","WBM_cutting","OBM_Affluent"]
+    const categories=["WBM_Affluent","OBM_Cutting","WBM_cutting","OBM_Affluent","Sludge"]
     res.json({ 
       success: true, 
       data: {categories}
