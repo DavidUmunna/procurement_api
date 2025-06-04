@@ -84,7 +84,7 @@ router.get("/roles&departments",async(req,res)=>{
 router.post('/', auth,async (req, res) => {
   try {
     const can_approve_roles = ["procurement_officer", "human_resources", "internal_auditor", "global_admin","waste_mnagement_manager","waste_management_supervisor",
-      "PVT_manager","Environmental_lab_manager","Financial_manager","accounts","Director"];
+      "PVT_manager","Environmental_lab_manager","Financial_manager","accounts","Director","Contracts_manager"];
     const { name, email, password, Department, role } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 10);
