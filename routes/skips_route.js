@@ -61,7 +61,7 @@ router.get("/",auth,async(req,res)=>{
 
 router.post("/export", auth, async (req, res) => {
   try {
-    const { startDate, endDate, stream, fileName, fileFormat } = req.body;
+    const { startDate, endDate, stream, fileName, fileFormat, SourceWell } = req.body;
 
     const query = {
       DeliveryOfEmptySkips: {
@@ -72,6 +72,9 @@ router.post("/export", auth, async (req, res) => {
 
     if (stream && stream !== 'All') {
       query.WasteStream = stream;
+    }
+    if (SourceWell ){
+      query.SourceWell=SourceWell
     }
 
     const skipData = await skipsTracking.find(query).lean();
