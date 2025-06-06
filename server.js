@@ -29,6 +29,7 @@ const assetsRoutes = require("./routes/assets_route");
 const InventoryRoute=require("./routes/Inventoy_route")
 const activityroute=require("./routes/activityroute")
 const testDBRoute = require("./routes/test-db");
+const inventorylogs=require("./routes/inventorylogs_route")
 
 // Initialize Express
 const app = express();
@@ -95,6 +96,7 @@ app.use("/api/companydata", companyDataRoutes);
 app.use("/api/inventory", InventoryRoute);
 app.use("/api/inventory/activities", activityroute);
 app.use("/api/skiptrack", skiptrackRoutes);
+app.use("/api/inventorylogs",inventorylogs)
 
 
 // Health check route
