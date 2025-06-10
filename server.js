@@ -39,7 +39,7 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://127.0.0.1:5000",
   "http://localhost:3001",
-  "https://davidumunna.github.io",
+  "http://127.0.0.1:3000",
   "http://192.168.0.185:3000",
   "http://192.168.56.1:3000",
   "http://localhost:3001",

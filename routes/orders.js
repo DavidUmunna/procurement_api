@@ -21,9 +21,7 @@ router.get("/accounts", auth,async (req, res) => {
     const { page, limit, skip } = getPagination(req);
     const query = {status:{$in:["Approved","Completed"]}};
 
-    if (req.query.action) {
-      query.action = req.query.action;
-    }
+    
     console.log(req.user)
     if (req.query.startDate && req.query.endDate) {
       query.timestamp = {
@@ -44,9 +42,11 @@ router.get("/accounts", auth,async (req, res) => {
              
              
          ]);
-    const filteredOrders = orders.filter((order) => order.status?.trim().toLowerCase() === "approved");
-    console.log("Statuses in fetched orders:", orders.map(o => o.status));
-
+    console.log(orders)
+   const filteredOrders = orders.filter((order) => {
+  const status = order.status?.trim().toLowerCase();
+  return ["approved", "completed"].includes(status);
+});
     const response=(filteredOrders.map((order=>{
       const plainOrder=order.toObject()
       if(!global.includes(req.user.role)){
@@ -387,6 +387,35 @@ router.put("/:id/reject", auth, async (req, res) => {
     res.status(500).json({ message: "Error processing rejection", error });
   }
 });
+
+router.put("/:id/completed",auth,async(req,res)=>{
+  try{
+    const { id: orderId } = req.params;
+
+    const user=req.user;
+
+    if (!user.canApprove){
+      return res.status(403).json({message:"you are not authorized"})
+
+    }
+     const order = await PurchaseOrder.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+    order.status="Completed"
+    await order.save()
+    res.status(200).json({message:"request completed"})
+
+
+
+  }catch(error){
+    console.error("Error completing order:", error);
+    res.status(500).json({ message: "Error processing completion", error });
+  
+
+
+  }
+})
 // Update order status
 router.put("/:id", async (req, res) => {
   try {
