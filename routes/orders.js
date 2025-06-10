@@ -19,7 +19,7 @@ const usemonitor=require("../middlewares/usemonitor")
 router.get("/accounts", auth,async (req, res) => {
   try {
     const { page, limit, skip } = getPagination(req);
-    const query = {status:"Approved"};
+    const query = {status:{$in:["Approved","Completed"]}};
 
     if (req.query.action) {
       query.action = req.query.action;
