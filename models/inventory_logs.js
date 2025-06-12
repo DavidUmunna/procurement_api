@@ -4,7 +4,7 @@ const {Schema}=mongoose
 
 
 const InventoryLogsSchema= new Schema({
-    Staff_name:{
+    Staff_Name:{
         type:String,
     },
     quantity:{
@@ -18,7 +18,15 @@ const InventoryLogsSchema= new Schema({
     },
     status:{
         type:String, enum:['pending','returned','completed']
-    }
+    },
+    category:{
+        type:String,
+        required: [true, 'Category is required'],
+        enum: {
+        values: ['procurement_items','lab_items',"HSE_items"],
+        message: 'Invalid category'
+        }
+    } 
 
 
 },{timestamps:true})

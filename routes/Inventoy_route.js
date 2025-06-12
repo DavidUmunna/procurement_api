@@ -12,7 +12,7 @@ function generateSKU(name) {
     const unique = Date.now().toString().slice(-5);    
     return `${prefix}-${unique}`;     
 }  
- router.get('/categories', auth, async (req, res) => {
+router.get('/categories', auth, async (req, res) => {
     try {
       // Return your predefined categories
       const categories=[{ _id:1,name:'procurement_items'},{ _id:2,name:'lab_items'},{ _id:3,name:'HSE_items'}]
@@ -24,7 +24,7 @@ function generateSKU(name) {
     } catch (err) {
       res.status(500).json({ success: false, message: 'Failed to fetch categories' });
     }
-  });
+});
 
 router.get('/:Department', auth, async (req, res) => {
     try {
@@ -61,7 +61,7 @@ router.get('/:Department', auth, async (req, res) => {
       console.error("from inventory get:",err)
       res.status(500).json({ success: false, message: 'Server Error' });
     }
-  });
+});
 
  
 
