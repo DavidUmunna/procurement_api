@@ -9,7 +9,7 @@ const router=express.Router()
 router.get('/categories', auth, async (req, res) => {
     try {
       // Return your predefined categories
-      const categories=[{ _id:1,name:'procurement_items'},{ _id:2,name:'lab_items'},{ _id:3,name:'HSE_items'}]
+      const categories=[{ _id:1,name:'procurement_items'},{ _id:2,name:'lab_items'},{ _id:3,name:'HSE_items'},{_id:4,name:'Office_items'}]
       
       res.json({ 
         success: true, 
@@ -124,11 +124,13 @@ router.get('/:Department', auth, async (req, res) => {
         const filter={}
         console.log("Department pri",Department)
         if (Department==="HSE_dep"){
-              filter.category="HSE_items"
+            filter.category="HSE_items"
         }else if(Department==="Environmental_lab_dep"){
-              filter.category="lab_items"
+            filter.category="lab_items"
+        }else if(Department==="admin"){
+            filter.category="Office_items"
         }
-        console.log(filter)
+       
 
 
         
@@ -165,7 +167,7 @@ router.post("/export", async(req,res)=>{
                 $lte:new Date(endDate)
             }
         }
-        console.log("filename",filename)
+   
         if (status &&  status!=="All"){
             query.status=status
         }
@@ -174,10 +176,10 @@ router.post("/export", async(req,res)=>{
         }
 
         const current_inventory_log=await inventory_logs.find(query)
-        console.log("current inventory lo",current_inventory_log)
+
         const sanitizedFileName=filename.replace(/[^a-zA-Z0-9-_]/g,'_');
         const timestamp=Date.now()
-        const extension='xlsx'
+     
 
         res.setHeader('Cache-Control', 'no-store');
 
