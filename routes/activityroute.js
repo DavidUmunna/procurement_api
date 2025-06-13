@@ -15,6 +15,8 @@ router.get("/:Department",async(req,res)=>{
               filter.category="HSE_items"
         }else if(Department==="Environmental_lab_dep"){
               filter.category="lab_items"
+        }else if(Department==="Administration"){
+            filter.category="Office_items"
         }
         console.log(filter)
     // Example filter by action type

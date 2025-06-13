@@ -127,7 +127,7 @@ router.get('/:Department', auth, async (req, res) => {
             filter.category="HSE_items"
         }else if(Department==="Environmental_lab_dep"){
             filter.category="lab_items"
-        }else if(Department==="admin"){
+        }else if(Department==="Administration"){
             filter.category="Office_items"
         }
        
