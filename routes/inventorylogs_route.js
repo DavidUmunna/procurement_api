@@ -9,7 +9,7 @@ const router=express.Router()
 router.get('/categories', auth, async (req, res) => {
     try {
       // Return your predefined categories
-      const categories=[{ _id:1,name:'procurement_items'},{ _id:2,name:'lab_items'},{ _id:3,name:'HSE_items'},{_id:4,name:'Office_items'}]
+      const categories=[{ _id:1,name:'procurement_items'},{ _id:2,name:'lab_items'},{ _id:3,name:'HSE_materials'},{_id:4,name:'Office_items'}]
       
       res.json({ 
         success: true, 
@@ -124,7 +124,7 @@ router.get('/:Department', auth, async (req, res) => {
         const filter={}
         console.log("Department pri",Department)
         if (Department==="HSE_dep"){
-            filter.category="HSE_items"
+            filter.category="HSE_materials"
         }else if(Department==="Environmental_lab_dep"){
             filter.category="lab_items"
         }else if(Department==="Administration"){

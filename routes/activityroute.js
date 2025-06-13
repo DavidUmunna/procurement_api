@@ -12,7 +12,7 @@ router.get("/:Department",async(req,res)=>{
         const filter={}
         console.log("Department pri ative",Department)
         if (Department=== "HSE_dep"){
-              filter.category="HSE_items"
+              filter.category="HSE_materials"
         }else if(Department==="Environmental_lab_dep"){
               filter.category="lab_items"
         }else if(Department==="Administration"){
