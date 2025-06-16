@@ -1,5 +1,9 @@
 // Using Nodemailer
 const nodemailer = require("nodemailer");
+const Resend=require("resend")
+
+
+//const resend = new Resend();
 
 async function notifyAdmins(request) {
   const transporter = nodemailer.createTransport({
@@ -21,10 +25,25 @@ async function notifyAdmins(request) {
 const transporter = nodemailer.createTransport({
   service: 'Gmail', // or use 'hotmail', 'yahoo', etc.
   auth: {
-    user: 'chimarokeumunna98@gmail.com',
-    pass: 'xruialzgbdhfzzkt', // Use App Password if 2FA is enabled
+    user: 'haldennoreply@gmail.com',
+    pass: 'tsjykudhrubzdlwa ', // Use App Password if 2FA is enabled
   },
 });
+
+const Resend_transporter=async()=>{
+  const { data, error } = await resend.emails.send({
+    from: 'Acme <onboarding@resend.dev>',
+    to: ['delivered@resend.dev'],
+    subject: 'Hello World',
+    html: '<strong>It works!</strong>',}) 
+
+  if (error) {
+    return console.error({ error });
+
+  
+  }
+  console.log({data})
+}
 
 
 module.exports={notifyAdmins,transporter}

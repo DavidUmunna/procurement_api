@@ -123,7 +123,7 @@ router.put("/reset", async (req, res) => {
         const FRONTEND_URL=process.env.FRONTEND_BASED_URL
         const resetLink = `${FRONTEND_URL}/reset-password?token=${token}`;
         const mailOptions = {
-          from: '"Halden Resource management"',
+          from: '"Halden Resource management"<noreply@Haldengroup.ng>',
           to: user.email,
           subject: 'Password Reset Request',
           html: `
