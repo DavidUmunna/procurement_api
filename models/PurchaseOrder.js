@@ -24,6 +24,11 @@ const PurchaseOrderSchema = new Schema({
     ref: 'user',
     
   },
+  fileRefs:{
+    type:Schema.Types.ObjectId,
+    ref:"File"
+
+  },
  
   filenames:{type:[String],default:[]},
   supplier: { type: String,  required: false },

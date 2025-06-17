@@ -98,7 +98,7 @@ const storage = multer.diskStorage({
           downloadLink: driveFile.webContentLink,
         })
 
-        await new_file.save()
+       
         
         return {
           staff:userId,
@@ -112,11 +112,12 @@ const storage = multer.diskStorage({
 
     const newFile = new file_({ files: uploadedFiles });
     await newFile.save();
+    console.log("newfile",newFile)
 
     res.status(200).json({
       success: true,
       message: "Files uploaded to Google Drive",
-      files: uploadedFiles,
+      files: newFile
     });
   } catch (err) {
     console.error("Upload error:", err);
@@ -127,20 +128,25 @@ const storage = multer.diskStorage({
   }
 });
 
- router.get("/download/:filename", async (req, res) => {
+ router.get("/download/:fileId/:filename", async (req, res) => {
   try {
-    const filename = req.params.filename;
+    const fileId= req.params.fileId;
+    const filename=req.params.filename;
     
     // Find the document that contains this file
-    const fileDoc = await file_.findOne({ "files.filename": filename });
+    const fileDoc = await file_.findById(fileId);
+
 
     if (!fileDoc) {
       return res.status(404).json({ error: "File not found in database" });
     }
+    console.log("filedocs",fileDoc)
+    console.log("filename",filename)
 
     // Extract the specific file object from the array
-    const targetFile = fileDoc.files.find(f => f.filename === filename);
-    console.log(targetFile.driveFileId)
+    const targetFile = fileDoc.files.find(f => f.filename===filename);
+    console.log(targetFile)
+    //console.log(targetFile.driveFileId)
     if (!targetFile || !targetFile.driveFileId) {
       return res.status(404).json({ error: "Drive file ID missing" });
     }

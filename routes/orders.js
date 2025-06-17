@@ -5,7 +5,7 @@ const multer = require("multer");
 const path = require("path");
 const user=require("../models/users_")
 const fs = require("fs");
-const file=require("./fileupload")
+const file=require("../models/file")
 const auth=require("../middlewares/check-auth")
 const uploadDir = path.join(__dirname, "../uploads");
 const exporttoexcel=require("../exporttoexcel")
@@ -275,15 +275,17 @@ router.post("/", usemonitor, async (req, res) => {
       remarks,
       products,
       Department,
-      staff
+      staff,
+      fileRefs: req.body.fileRefs,
       
 
     });
-    console.log(newOrder)
     
-
-    await newOrder.save();
-
+    
+    const new_Request=await newOrder.save();
+    console.log(newOrder)
+    // const filename=new_Request.filenames
+    // new_Request.requestfileid=await file.find({})
     const excelexport=await exporttoexcel();
     const exportgoogledrive=await exportToExcelAndUpload(newOrder._id);
     //notifyAdmins(newOrder);
@@ -293,7 +295,7 @@ router.post("/", usemonitor, async (req, res) => {
   } catch (error) {
     console.error("Error creating purchase order:", error);
     res.status(500).json({success:false, message: "Error creating purchase order", error });
-  }
+  };
 });
 router.put("/:id/approve", auth, async (req, res) => {
   const { id: orderId } = req.params;
