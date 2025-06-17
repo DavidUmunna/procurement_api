@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const {v4:uuidv4}=require("uuid")
 const fileSchema = new mongoose.Schema({
     
    files:[ {staff:{
@@ -9,7 +9,7 @@ const fileSchema = new mongoose.Schema({
     storedName: {
         type: String,
         default: function () {
-            return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+            return uuidv4()
         },
     } ,
     filename: String,

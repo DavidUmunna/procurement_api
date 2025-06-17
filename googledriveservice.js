@@ -29,16 +29,28 @@ const uploadFileToDrive = async (filePath, filename, mimeType) => {
 };
 
 const downloadFileFromDrive = async (fileId, res) => {
-  const driveRes = await drive.files.get(
-    { fileId, alt: "media" },
-    { responseType: "stream" }
-  );
+  try {
+    const driveRes = await drive.files.get(
+      { fileId, alt: "media" },
+      { responseType: "stream" }
+    );
 
-  driveRes.data
-    .on("end", () => console.log("Download complete"))
-    .on("error", (err) => console.error("Download error", err))
-    .pipe(res);
+    // Optionally get the MIME type from Drive
+    const meta = await drive.files.get({ fileId, fields: "name, mimeType" });
+
+    res.setHeader("Content-Type", meta.data.mimeType || "application/octet-stream");
+    res.setHeader("Content-Disposition", `attachment; filename="${meta.data.name}"`);
+
+    driveRes.data
+      .on("end", () => console.log("Download complete"))
+      .on("error", (err) => console.error("Stream error", err))
+      .pipe(res);
+  } catch (err) {
+    console.error("Download failed:", err.message);
+    res.status(500).send("Failed to download file");
+  }
 };
+
 
 module.exports = {
   uploadFileToDrive,

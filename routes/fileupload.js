@@ -127,7 +127,33 @@ const storage = multer.diskStorage({
   }
 });
 
+ router.get("/download/:filename", async (req, res) => {
+  try {
+    const filename = req.params.filename;
     
+    // Find the document that contains this file
+    const fileDoc = await file_.findOne({ "files.filename": filename });
+
+    if (!fileDoc) {
+      return res.status(404).json({ error: "File not found in database" });
+    }
+
+    // Extract the specific file object from the array
+    const targetFile = fileDoc.files.find(f => f.filename === filename);
+    console.log(targetFile.driveFileId)
+    if (!targetFile || !targetFile.driveFileId) {
+      return res.status(404).json({ error: "Drive file ID missing" });
+    }
+
+
+    await downloadFileFromDrive(targetFile.driveFileId, res);
+    //res.status(200).json({message:"file downloaded successfully"})
+  } catch (err) {
+    console.error("Download error:", err);
+    res.status(500).json({ error: "Download failed" });
+  }
+});
+   
 
     
 
@@ -183,31 +209,6 @@ const storage = multer.diskStorage({
       }
     })*/
 
- router.get("/download/:filename", async (req, res) => {
-  try {
-    const filename = req.params.filename;
-
-    // Find the document that contains this file
-    const fileDoc = await file_.findOne({ "files.filename": filename });
-
-    if (!fileDoc) {
-      return res.status(404).json({ error: "File not found in database" });
-    }
-
-    // Extract the specific file object from the array
-    const targetFile = fileDoc.files.find(f => f.filename === filename);
-    console.log(targetFile.driveFileId)
-    if (!targetFile || !targetFile.driveFileId) {
-      return res.status(404).json({ error: "Drive file ID missing" });
-    }
-
-    await downloadFileFromDrive(targetFile.driveFileId, res);
-    //res.status(200).json({message:"file downloaded successfully"})
-  } catch (err) {
-    console.error("Download error:", err);
-    res.status(500).json({ error: "Download failed" });
-  }
-});
 
 
     
