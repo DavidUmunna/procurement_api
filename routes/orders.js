@@ -15,7 +15,7 @@ const notifyAdmins=require("../emailnotification/emailNotification");
 const exportToExcelAndUpload=require("../Uploadexceltodrive")
 const products_=require("../models/Product")
 const usemonitor=require("../middlewares/usemonitor")
-
+const ExcelJS=require("exceljs")
 router.get("/accounts", auth,async (req, res) => {
   try {
     const { page, limit, skip } = getPagination(req);
@@ -273,7 +273,6 @@ router.post("/", usemonitor, async (req, res) => {
       urgency,
       filenames,
       remarks,
-      products,
       Department,
       staff,
       fileRefs: req.body.fileRefs,
@@ -296,6 +295,110 @@ router.post("/", usemonitor, async (req, res) => {
     console.error("Error creating purchase order:", error);
     res.status(500).json({success:false, message: "Error creating purchase order", error });
   };
+});
+
+router.post("/export", async (req, res) => {
+  try {
+    const { startDate, endDate, status, filename } = req.body;
+
+    // Input validation
+    if (!startDate || !endDate || !filename) {
+      return res.status(400).json({ message: "startDate, endDate, and filename are required" });
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({ message: "Invalid date format" });
+    }
+
+    if (start > end) {
+      return res.status(400).json({ message: "startDate must be before endDate" });
+    }
+
+    const query = {
+      createdAt: {
+        $gte: start,
+        $lte: end
+      }
+    };
+
+    if (status && status !== "All") {
+      query.status = status;
+    }
+
+    const request_items = await PurchaseOrder.find(query)
+      .populate("staff", "name Department email")
+      .lean();
+
+    const sanitizedFileName = filename.replace(/[^a-zA-Z0-9-_]/g, '_');
+    const timestamp = Date.now();
+
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=${sanitizedFileName}-${timestamp}.xlsx`);
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Purchase Requests');
+    
+    // Define headers
+    worksheet.columns = [
+      { header: "Request Title", key: "title", width: 20 },
+      { header: "Ordered By", key: "orderedBy", width: 20 },
+      { header: "Email", key: "email", width: 30 },
+      { header: "Product Name", key: "productName", width: 20 },
+      { header: "Product Quantity", key: "productQuantity", width: 20 },
+      { header: "Product Price", key: "productPrice", width: 20 },
+      { header: "Urgency", key: "urgency", width: 20 },
+      { header: "Status", key: "status", width: 20 },
+      { header: "Department", key: "department", width: 20 },
+      { header: "Date Created", key: "createdAt", width: 20 },
+    ];
+
+    // Add rows for each product in each request
+    request_items.forEach((item) => {
+      if (item.products && item.products.length > 0) {
+        item.products.forEach((product) => {
+          
+          worksheet.addRow({
+            title: item.Title,
+            orderedBy: item.staff?.name || '',
+            email: item.staff?.email || '',
+            productName: product.name || '',
+            productQuantity: product.quantity || 0,
+            productPrice: product.price || 0,
+            urgency: item.urgency,
+            status: item.status,
+            department: item.staff?.Department || '',
+            createdAt:item.createdAt instanceof Date
+            ? item.createdAt.toISOString().slice(0, 10)
+            : (item.createdAt?.slice(0, 10) || '')
+          });
+          console.log("created AT:",item.createdAt)
+        });
+      } else {
+        // Add row even if no products (with empty product fields)
+        worksheet.addRow({
+          title: item.Title,
+          orderedBy: item.staff?.name || '',
+          email: item.staff?.email || '',
+          productName: '',
+          productQuantity: '',
+          productPrice: '',
+          urgency: item.urgency,
+          status: item.status,
+          department: item.staff?.Department || ''
+        });
+      }
+    });
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error("Error exporting orders:", error);
+    res.status(500).json({ message: "Server error during export" });
+  }
 });
 router.put("/:id/approve", auth, async (req, res) => {
   const { id: orderId } = req.params;
