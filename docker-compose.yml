@@ -1,25 +1,17 @@
 version: "3.8"
 
 services:
-  mongo:
-    image: mongo:5.0
-    container_name: mongo
+  mongodb:
+    image: mongo:latest
+    container_name: Halden_1
+    restart: always
     ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-
-  procurement_api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: procurement_api
-    ports:
-      - "5000:5000"
+      - "28000:27017"
     environment:
-      - MONGO_URI=mongodb://mongo:27017/Haldenresources
-    depends_on:
-      - mongo
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: Halden
+    volumes:
+      - Halden_data_1:/data/db
 
 volumes:
-  mongo_data:
+  Halden_data_1:
