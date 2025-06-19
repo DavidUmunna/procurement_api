@@ -177,17 +177,22 @@ router.put("/reset-password", async (req, res) => {
 
 router.put("/:id/updateuser",async(req,res)=>{
   try{
-    const {Department,canApprove,name,password,role}=req.body
+    const {Department,canApprove,name,email,password,role}=req.body
     const {id}=req.params
     const user_update=await User.findById(id)
     if (!user_update) {
       return res.status(404).json({ message: "User not found" });
     }
     
+    
     console.log("these are some values",canApprove,role)
     
     if (Department){
       user_update.Department=Department
+    }
+    if (email){
+      user_update.email=email
+
     }
     if (canApprove){
       user_update.canApprove=canApprove
