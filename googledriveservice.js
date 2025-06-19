@@ -30,21 +30,42 @@ const uploadFileToDrive = async (filePath, filename, mimeType) => {
 
 const downloadFileFromDrive = async (fileId, res) => {
   try {
+    // Get the file content as a stream
     const driveRes = await drive.files.get(
       { fileId, alt: "media" },
       { responseType: "stream" }
     );
 
-    // Optionally get the MIME type from Drive
+    // Get the file metadata (name and MIME type)
     const meta = await drive.files.get({ fileId, fields: "name, mimeType" });
 
-    res.setHeader("Content-Type", meta.data.mimeType || "application/octet-stream");
-    res.setHeader("Content-Disposition", `attachment; filename="${meta.data.name}"`);
+    const mimeType = meta.data.mimeType || "application/octet-stream";
+    const fileName = meta.data.name || "downloaded_file";
 
+    // List of types to be displayed inline instead of downloaded
+    const inlineTypes = [
+      "image/png",
+      "image/jpeg",
+      "image/gif",
+      "image/webp",
+      "application/pdf"
+    ];
+
+    const dispositionType = inlineTypes.includes(mimeType) ? "inline" : "attachment";
+
+    // Set response headers
+    res.setHeader("Content-Type", mimeType);
+    res.setHeader("Content-Disposition", `${dispositionType}; filename="${fileName}"`);
+
+    // Pipe the file stream to the client
     driveRes.data
       .on("end", () => console.log("Download complete"))
-      .on("error", (err) => console.error("Stream error", err))
+      .on("error", (err) => {
+        console.error("Stream error:", err);
+        res.status(500).send("Error during file stream");
+      })
       .pipe(res);
+
   } catch (err) {
     console.error("Download failed:", err.message);
     res.status(500).send("Failed to download file");
