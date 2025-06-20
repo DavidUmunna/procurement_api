@@ -102,12 +102,11 @@ router.put("/:id",async(req,res)=>{
 
 router.delete("/:id",async(req,res)=>{
     try{
-
-        const id =req.params.id
-        console.log("id",id)
-        const inventorylog=await inventorylogs.findOneAndDelete(id)
+        const DeletedInventoryLog=await inventorylogs.findByIdAndDelete(req.params.id)
         
-        await inventorylog.save()
+        if (!DeletedInventoryLog) {
+              return res.status(404).json({ message: "Order not found" });
+            }
         res.status(200).json({success:true,message:"delete was successful"})
     }catch(error){
         console.error("error from delete end:",error)
