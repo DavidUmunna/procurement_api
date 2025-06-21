@@ -22,7 +22,7 @@ router.get('/categories', auth, async (req, res) => {
 router.post('/create', async(req,res)=>{
   try{
 
-    const {Staff_Name, quantity, inventory_item, purpose,status,category}=req.body
+    const {Staff_Name, quantity, inventory_item, purpose,status,category,Department}=req.body
 
     const new_log=new inventorylogs({
       Staff_Name,
@@ -30,7 +30,8 @@ router.post('/create', async(req,res)=>{
       inventory_item,
       purpose,
       status,
-      category
+      category,
+      Department
     })
     console.log(new_log)
 
@@ -75,7 +76,7 @@ router.get("/",async(req,res)=>{
 router.put("/:id",async(req,res)=>{
    try{
     const id=req.params.id
-    const {Staff_Name, quantity, inventory_item,purpose ,status,category}=req.body
+    const {Staff_Name, quantity, inventory_item,purpose ,status,category,Department}=req.body
     const inventory_log_item=await inventory_logs.findById(id)
     if (Staff_Name){
       inventory_log_item.Staff_Name=Staff_Name
@@ -89,6 +90,8 @@ router.put("/:id",async(req,res)=>{
       inventory_log_item.purpose=purpose
     }else if (category){
       inventory_log_item.category=category
+    }else if(Department){
+      inventory_log_item.Department=Department
     }
 
     await inventory_log_item.save()
@@ -190,6 +193,7 @@ router.post("/export", async(req,res)=>{
 
           worksheet.columns=[
             {header: 'Staff Name', key:'Staff_Name',width:20},
+            {header: 'Department', key:'Department',width:26},
             {header: 'Inventory Item', key:'inventory_item',width:20},
             {header: 'Quantity', key:'quantity',width:20},
             {header: 'Status', key:'status',width:20},
@@ -201,6 +205,7 @@ router.post("/export", async(req,res)=>{
           current_inventory_log.forEach(entry=>{
             worksheet.addRow({
               Staff_Name:entry.Staff_Name,
+              Department:entry.Department,
               inventory_item:entry.inventory_item,
               quantity:entry.quantity,
               status:entry.status,
