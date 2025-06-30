@@ -26,7 +26,7 @@ const transporter = nodemailer.createTransport({
   service: 'Gmail', // or use 'hotmail', 'yahoo', etc.
   auth: {
     user: 'haldennoreply@gmail.com',
-    pass: 'tsjykudhrubzdlwa ', // Use App Password if 2FA is enabled
+    pass: process.env.APP_PASS, // Use App Password if 2FA is enabled
   },
 });
 

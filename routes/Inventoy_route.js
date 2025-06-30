@@ -8,6 +8,7 @@ const { getPagination, getPagingData } = require('../controllers/pagination');
 
 
 function generateSKU(name) {
+    if (name&& typeof name !== "string") return
     const prefix = name.substring(0, 3).toUpperCase(); 
     const unique = Date.now().toString().slice(-5);    
     return `${prefix}-${unique}`;     

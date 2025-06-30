@@ -3,11 +3,16 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const AdminUser = require('../models/users_');
 const admin_middle=require('./admin_test')
+const { rateLimit } = require('express-rate-limit');
 
+var loginRateLimiter = rateLimit({
+  windowMs: 30 * 60 * 1000, // 30 minutes
+  limit: 5, // Limit each IP to 5 requests per windowMs
+});
 const router = Router();
 
 // Login route
-router.post('/login',admin_middle, async (req, res) => {
+router.post('/login',loginRateLimiter, async (req, res) => {
  
 
   try {
@@ -15,6 +20,7 @@ router.post('/login',admin_middle, async (req, res) => {
 
      const { username, password } = req.body;
      const email=username
+     console.log(email)
     const user_data = await AdminUser.findOne({ email });
     if (!user_data) {
       return res.status(401).json({ message: "Invalid email or password" });
@@ -38,10 +44,10 @@ router.post('/login',admin_middle, async (req, res) => {
     }, process.env.JWT_SECRET, {
       expiresIn: "14m"
     });
-
+ 
     res.cookie("authToken",token,{
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      httpOnly: false,
+      secure:process.env.NODE_ENV==='production',
       maxAge: (14* 60 * 1000), // 1 hour
       sameSite: "Strict",
   },

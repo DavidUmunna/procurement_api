@@ -7,7 +7,8 @@ const upload = multer({ dest: "tempUploads/" });
 const { uploadFileToDrive } = require("../googledriveservice");
 const router = express.Router();
 const { downloadFileFromDrive } = require("../googledriveservice")
-
+const sanitize=require("sanitize-filename")
+const {verifyCSRFToken}=require("../controllers/csrf_utils")
 
 //console.log("path variable",path)
 const uploadDir = path.join("../uploads");
@@ -15,7 +16,7 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-const storage = multer.diskStorage({
+/*const storage = multer.diskStorage({
     destination: (req, file, cb) => {
 
         
@@ -47,7 +48,7 @@ const storage = multer.diskStorage({
         driveFileId: driveFile.id,
         viewLink: driveFile.webViewLink,
         downloadLink: driveFile.webContentLink
-    });}
+    });}*/
 
 
     /*router.post("/", upload.array("files", 5), saveFileInfo, async (req, res) => {
@@ -78,14 +79,32 @@ const storage = multer.diskStorage({
       }
     });*/
 
-  router.post("/", upload.array("files", 5), async (req, res) => {
+  router.post("/create"
+    , upload.array("files", 5), async (req, res) => {
   try {
     const { userId } = req.body;
     console.log("This id just uploaded a file:", userId);
+    const allowedTypes = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.oasis.opendocument.text"
+];
 
+
+    
     const uploadedFiles = await Promise.all(
       req.files.map(async (file) => {
-        const driveFile = await uploadFileToDrive(file.path, file.originalname, file.mimetype);
+
+
+        if (!allowedTypes.includes(file.mimetype)) {
+              return res.status(400).json({ message: "Unsupported file type" });
+            }
+
+        const driveFile = await uploadFileToDrive(file.path, sanitize(file.originalname), file.mimetype);
         console.log("fiel path",file.path)
         // Optional: remove temp file
         fs.unlinkSync(file.path);

@@ -16,6 +16,7 @@ const exportToExcelAndUpload=require("../Uploadexceltodrive")
 const products_=require("../models/Product")
 const usemonitor=require("../middlewares/usemonitor")
 const ExcelJS=require("exceljs")
+const monitorLogger=require("../middlewares/monitorLogger")
 router.get("/accounts", auth,async (req, res) => {
   try {
     const { page, limit, skip } = getPagination(req);
@@ -63,7 +64,7 @@ router.get("/accounts", auth,async (req, res) => {
     //res.status(500).json({ message: "Server error", error });
   }
 });
-router.get("/all", auth,async (req, res) => {
+router.get("/all", auth,monitorLogger,async (req, res) => {
   try {
    
 
@@ -87,7 +88,7 @@ router.get("/all", auth,async (req, res) => {
   }
 });
 // Get all purchase orders
-router.get("/", auth,async (req, res) => {
+router.get("/", auth,monitorLogger,async (req, res) => {
   try {
     const { page, limit, skip } = getPagination(req);
     const query = {};
@@ -331,8 +332,10 @@ router.post("/export", async (req, res) => {
     const request_items = await PurchaseOrder.find(query)
       .populate("staff", "name Department email")
       .lean();
+    if (filename && typeof filename==="string"){
 
-    const sanitizedFileName = filename.replace(/[^a-zA-Z0-9-_]/g, '_');
+      const sanitizedFileName = filename.replace(/[^a-zA-Z0-9-_]/g, '_');
+    }
     const timestamp = Date.now();
 
     res.setHeader('Cache-Control', 'no-store');

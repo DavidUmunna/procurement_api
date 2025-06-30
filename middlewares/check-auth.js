@@ -6,7 +6,7 @@ const router = express.Router();
 router.use((req, res, next) => {
   try {
     const authheaders = req.headers.authorization;
-
+    
     if (!authheaders || !authheaders.startsWith("Bearer ")) {
       return res.status(401).json({
         authenticated: false,
@@ -15,7 +15,7 @@ router.use((req, res, next) => {
     }
 
     const token = authheaders.split(" ")[1];
-    console.log("Token:", token);
+    //console.log("Token:", token);
 
     const secretKey = process.env.JWT_SECRET; // Replace with your actual secret key
     if (token!="null"){

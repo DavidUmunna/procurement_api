@@ -178,8 +178,10 @@ router.post("/export", async(req,res)=>{
         }
 
         const current_inventory_log=await inventory_logs.find(query)
+        if (filename && typeof filename==="string"){
 
-        const sanitizedFileName=filename.replace(/[^a-zA-Z0-9-_]/g,'_');
+          const sanitizedFileName=filename.replace(/[^a-zA-Z0-9-_]/g,'_');
+        }
         const timestamp=Date.now()
      
 

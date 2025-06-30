@@ -31,6 +31,7 @@ const activityroute=require("./routes/activityroute")
 const testDBRoute = require("./routes/test-db");
 const inventorylogs=require("./routes/inventorylogs_route")
 const roles_departments=require("./routes/roles&departments")
+const monitoring=require("./routes/Monitoring_route")
 // Initialize Express
 const app = express();
 
@@ -98,7 +99,7 @@ app.use("/api/inventory/activities", activityroute);
 app.use("/api/skiptrack", skiptrackRoutes);
 app.use("/api/inventorylogs",inventorylogs)
 app.use("/api/roles&departments",roles_departments)
-
+app.use("/api/monitoring",monitoring)
 
 // Health check route
 app.get("/", (req, res) => {

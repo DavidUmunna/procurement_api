@@ -5,6 +5,7 @@ const auth = require('../middlewares/check-auth');
 const { getPagination,getPagingData } = require('../controllers/pagination');
 
 function generateSKU(name) {
+  if (name && typeof name !=="string") return
   const prefix = name.substring(0, 3).toUpperCase(); 
   const unique = Date.now().toString().slice(-5);    
   return `${prefix}-${unique}`;     
@@ -14,10 +15,11 @@ router.get('/', auth, async (req, res) => {
     const {page,limit,skip}=getPagination(req);
     const { category, condition, search } = req.query;
     const filter = {};
-
+    
     if (category && category !== 'All') filter.category = category;
     if (condition) filter.condition = condition;
-    if (search) {
+
+    if (search && typeof search ==="string") {
       filter.$or = [
         { name: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } },

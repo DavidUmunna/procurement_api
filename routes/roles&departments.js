@@ -1,13 +1,14 @@
 const express=require("express")
-const auth=require("../middlewares/check-auth")
+const auth=require("../middlewares/check-auth");
+const monitorLogger = require("../middlewares/monitorLogger");
 const router=express.Router()
 
-router.post("/",auth,async(req,res)=>{
+router.post("/",auth,monitorLogger,async(req,res)=>{
     try{
 
         const item=req.body
         const rbac_object={};
-        console.log(item)
+       
         if (item.ADMIN_ROLES_ASSET_MANAGEMENT){
                 
             rbac_object["ADMIN_ROLES_ASSET_MANAGEMENT"]=['global_admin','human_resources','internal_auditor',"financial_manager"]
@@ -43,7 +44,7 @@ router.post("/",auth,async(req,res)=>{
         if (item.APPROVALS_LIST){
             rbac_object["APPROVALS_LIST"]=["accounts_dep"]
         }
-        console.log(rbac_object)  
+        
         res.status(200).json({message:"items Delivered",data:rbac_object})
     }catch(error){
         console.error("from roles&department:",error)
