@@ -5,6 +5,8 @@ const {getPagination,getPagingData}=require("../controllers/pagination")
 const ExcelJS=require("exceljs")
 const auth = require('../middlewares/check-auth');
 const router=express.Router()
+const csrf=require("csurf")
+const csrfProtection=csrf({cookie:true})
 
 router.get('/categories', auth, async (req, res) => {
     try {
@@ -19,7 +21,7 @@ router.get('/categories', auth, async (req, res) => {
       res.status(500).json({ success: false, message: 'Failed to fetch categories' });
     }
 });
-router.post('/create', async(req,res)=>{
+router.post('/create',csrfProtection, async(req,res)=>{
   try{
 
     const {Staff_Name, quantity, inventory_item, purpose,status,category,Department}=req.body
@@ -73,7 +75,7 @@ router.get("/",async(req,res)=>{
   
 })
 
-router.put("/:id",async(req,res)=>{
+router.put("/:id",csrfProtection,async(req,res)=>{
    try{
     const id=req.params.id
     const {Staff_Name, quantity, inventory_item,purpose ,status,category,Department}=req.body
@@ -103,7 +105,7 @@ router.put("/:id",async(req,res)=>{
    }
 })
 
-router.delete("/:id",async(req,res)=>{
+router.delete("/:id",csrfProtection,async(req,res)=>{
     try{
         const DeletedInventoryLog=await inventorylogs.findByIdAndDelete(req.params.id)
         

@@ -102,19 +102,12 @@ router.post('/',logging, async (req, res) => {
         return res.status(500).json({ success: false, message: 'Server error' });
     }
 });
-router.post("/logout", async (req, res) => {
-    try {
-        req.session.destroy(()=>{
-                res.clearCookie("sessionId")
-
-        })
-        res.clearCookie("authToken"); // ✅ Ensure cookie name matches login route
-        return res.json({ message: "Logout successful" });
-    } catch (error) {
-        console.error("Logout Error:", error);
-        res.status(500).json({ error: "Server error during logout" });
-    }
+router.post('/logout', async (req, res) => {
+  const { userId, deviceId } = req.body;
+  await redisClient.del(`session:${userId}:${deviceId}`);
+  res.json({ message: "Logged out from this device" });
 });
+
 
 
 

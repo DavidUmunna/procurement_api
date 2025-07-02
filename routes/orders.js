@@ -17,6 +17,9 @@ const products_=require("../models/Product")
 const usemonitor=require("../middlewares/usemonitor")
 const ExcelJS=require("exceljs")
 const monitorLogger=require("../middlewares/monitorLogger")
+const csrf=require("csurf")
+const csrfProtection=csrf({cookie:true})
+
 router.get("/accounts", auth,async (req, res) => {
   try {
     const { page, limit, skip } = getPagination(req);
@@ -247,7 +250,7 @@ router.get('/department/all', auth,async (req, res) => {
 
 
 // Create a new purchase order
-router.post("/", usemonitor, async (req, res) => {
+router.post("/", usemonitor,csrfProtection, async (req, res) => {
   try {
     const { supplier, orderedBy, products,email,filenames, urgency, remarks, Title,staff } = req.body;
     

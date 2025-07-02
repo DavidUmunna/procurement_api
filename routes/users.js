@@ -6,7 +6,8 @@ const bcrypt=require("bcrypt")
 const auth=require("../middlewares/check-auth")
 const crypto=require("crypto")
 const {transporter} = require('../emailnotification/emailNotification');
-
+const csrf=require("csurf")
+const csrfProtection=csrf({cookie:true})
 const router=Router()
 
 router.get("/", async (req, res) => {
@@ -81,7 +82,7 @@ router.get("/roles&departments",async(req,res)=>{
   }
 })
 //create the user
-router.post('/', auth,async (req, res) => {
+router.post('/', auth,csrfProtection,async (req, res) => {
   try {
     const can_approve_roles = ["procurement_officer", "human_resources", "internal_auditor", "global_admin","waste_mnagement_manager","waste_management_supervisor",
       "PVT_manager","Environmental_lab_manager","Financial_manager","accounts","Director","Contracts_manager"];
@@ -108,7 +109,7 @@ router.post('/', auth,async (req, res) => {
 });
 
 
-router.put("/reset", async (req, res) => {
+router.put("/reset" ,async (req, res) => {
   try {
       const { email } = req.body;
       console.log(email) // Get email from URL params
@@ -175,7 +176,7 @@ router.put("/reset-password", async (req, res) => {
   }
 });
 
-router.put("/:id/updateuser",async(req,res)=>{
+router.put("/:id/updateuser",csrfProtection,async(req,res)=>{
   try{
     const {Department,canApprove,name,email,password,role}=req.body
     const {id}=req.params
@@ -217,7 +218,7 @@ router.put("/:id/updateuser",async(req,res)=>{
   }
 })
 //delete User
-router.delete('/:id',async (req,res)=>{
+router.delete('/:id',csrfProtection,async (req,res)=>{
   try{
       const deleteuser=await User.findByIdAndDelete(req.params.id)
       if (!deleteuser){

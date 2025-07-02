@@ -1,50 +1,46 @@
 const express = require("express");
-const jwt = require("jsonwebtoken");
+const redis = require("redis");
+const cookieParser = require("cookie-parser");
 
 const router = express.Router();
 
-router.use((req, res, next) => {
+const redisClient = redis.createClient();
+redisClient.connect().catch(console.error); // Redis v4+
+
+router.use(cookieParser()); // Ensure this is added in your main app.js
+
+router.use(async (req, res, next) => {
   try {
-    const authheaders = req.headers.authorization;
-    
-    if (!authheaders || !authheaders.startsWith("Bearer ")) {
+    const sessionId = req.cookies.sessionId
+    console.log("sessionId",sessionId)
+    if (!sessionId) {
       return res.status(401).json({
         authenticated: false,
-        message: "No token provided",
+        message: "No session ID found",
       });
     }
 
-    const token = authheaders.split(" ")[1];
-    //console.log("Token:", token);
+    const sessionData = await redisClient.get(`session:${sessionId}`);
 
-    const secretKey = process.env.JWT_SECRET; // Replace with your actual secret key
-    if (token!="null"){
-
-      jwt.verify(token, secretKey, (err, decoded) => {
-        if (err) {
-          console.error(err)
-          return res.status(401).json({
-            authenticated: false,
-            message: "Invalid token",
-          });
-          
-        }
-        
-        // Attach the decoded user information to the request object
-        console.log(req.user)
-        req.user = decoded;
-        
-        
-        // Token is valid, proceed to the next middleware or route handler
-        next();
+    if (!sessionData) {
+      return res.status(401).json({
+        authenticated: false,
+        message: "Session expired or invalid",
       });
-    }else{console.error("token is null or malformed(check-AUtth):")}
+    }
+
+    const user = JSON.parse(sessionData);
+
+    // Optional: refresh TTL on every request
+    await redisClient.expire(`session:${sessionId}`, 900); // Extend 15 min TTL
+
+    req.user = user; // Attach user session data to req
+    next();
   } catch (error) {
-    console.error("Error in authentication middleware:", error);
-    res.clearCookie("authToken"); // Clear expired/invalid token
-    return res.status(401).json({
+    console.error("Error in Redis auth middleware:", error);
+    res.status(500).json({
       authenticated: false,
-      message: "Invalid or expired token",
+      message: "Internal server error",
     });
   }
 });

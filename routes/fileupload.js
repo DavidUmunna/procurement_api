@@ -8,7 +8,8 @@ const { uploadFileToDrive } = require("../googledriveservice");
 const router = express.Router();
 const { downloadFileFromDrive } = require("../googledriveservice")
 const sanitize=require("sanitize-filename")
-const {verifyCSRFToken}=require("../controllers/csrf_utils")
+const csrf=require("csurf")
+const csrfProtection=csrf({cookie:true})
 
 //console.log("path variable",path)
 const uploadDir = path.join("../uploads");
@@ -79,7 +80,7 @@ if (!fs.existsSync(uploadDir)) {
       }
     });*/
 
-  router.post("/create"
+  router.post("/create",csrfProtection
     , upload.array("files", 5), async (req, res) => {
   try {
     const { userId } = req.body;

@@ -2,7 +2,8 @@ const { Router } = require("express");
 const Supplier = require("../models/Supplier");
 const order=require("./orders")
 const router = Router();
-
+const csrf=require("csurf")
+const csrfProtection=csrf({cookie:true})
 // Get all suppliers
 router.get("/", async (req, res) => {
   try {
@@ -28,12 +29,12 @@ router.get('/:supplier/requests', async (req, res) => {
   
 });
 // Create a new supplier
-router.post("/", async (req, res) => {
+router.post("/",csrfProtection, async (req, res) => {
   try {
     const {name,email,phone,address,description,status}=req.body.form
     const supplier = new Supplier({name,email,phone,address,description,status});
     await supplier.save();
-    res.status(201).json(supplier);
+    res.status(201).json({message:"supplier added successfully"});
   } catch (error) {
     console.log("error originated from supplier post:",error)
     res.status(400).json({ message: "Error creating supplier" });

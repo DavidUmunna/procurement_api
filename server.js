@@ -1,7 +1,7 @@
 
 // Core modules
 const path = require("path");
-
+const csrf=require("csurf")
 // Third-party packages
 const express = require("express");
 const cors = require("cors");
@@ -56,18 +56,19 @@ const allowedOrigins = [
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+const csrfProtection=csrf({cookie:true})
 
 // CORS setup
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.log("❌ Disallowed request from:", origin);
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: [
+  "http://localhost:3000",
+  "http://127.0.0.1:5000",
+  "http://localhost:3001",
+  "http://127.0.0.1:3000",
+  "http://localhost:3001",
+  "https://erp.haldengroup.ng"
+  ],
     credentials: true,
   })
 );
@@ -101,6 +102,28 @@ app.use("/api/inventorylogs",inventorylogs)
 app.use("/api/roles&departments",roles_departments)
 app.use("/api/monitoring",monitoring)
 
+
+app.use((req, res, next) => {
+  const csrfExcludedPaths = [
+    "/api/admin-user/login",
+    "/api/fileupload"
+  ];
+
+  const isUnsafeMethod = ["POST", "PUT", "PATCH", "DELETE"].includes(req.method);
+  const isExcludedPath = csrfExcludedPaths.includes(req.path);
+
+  if (isUnsafeMethod && !isExcludedPath) {
+    console.log("this csrf middle was hit before :",req.originalUrl)
+    return csrfProtection(req, res, next);
+  }
+  next();
+})
+
+app.get("/api/csrf-token", csrfProtection, (req, res) => {
+  res.cookie("XSRF-TOKEN", req.csrfToken());
+  console.log(res.cookie)
+  res.status(200).json({ message: "CSRF token set" });
+});
 // Health check route
 app.get("/", (req, res) => {
   try {
