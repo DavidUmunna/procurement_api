@@ -17,7 +17,8 @@ const products_=require("../models/Product")
 const usemonitor=require("../middlewares/usemonitor")
 const ExcelJS=require("exceljs")
 const monitorLogger=require("../middlewares/monitorLogger")
-const csrf=require("csurf")
+const csrf=require("csurf");
+const { IncomingRequest, RequestActivity } = require("../controllers/notification");
 const csrfProtection=csrf({cookie:true})
 
 router.get("/accounts", auth,async (req, res) => {
@@ -286,7 +287,7 @@ router.post("/", usemonitor,csrfProtection, async (req, res) => {
     
     
     const new_Request=await newOrder.save();
-    console.log(newOrder)
+    IncomingRequest(new_Request._id)
     // const filename=new_Request.filenames
     // new_Request.requestfileid=await file.find({})
     const excelexport=await exporttoexcel();
@@ -338,12 +339,12 @@ router.post("/export", async (req, res) => {
     if (filename && typeof filename==="string"){
 
       const sanitizedFileName = filename.replace(/[^a-zA-Z0-9-_]/g, '_');
+      const timestamp = Date.now();
+      
+      res.setHeader('Cache-Control', 'no-store');
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=${sanitizedFileName}-${timestamp}.xlsx`);
     }
-    const timestamp = Date.now();
-
-    res.setHeader('Cache-Control', 'no-store');
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename=${sanitizedFileName}-${timestamp}.xlsx`);
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Purchase Requests');
@@ -364,6 +365,7 @@ router.post("/export", async (req, res) => {
 
     // Add rows for each product in each request
     request_items.forEach((item) => {
+      
       if (item.products && item.products.length > 0) {
         item.products.forEach((product) => {
           
@@ -394,7 +396,10 @@ router.post("/export", async (req, res) => {
           productPrice: '',
           urgency: item.urgency,
           status: item.status,
-          department: item.staff?.Department || ''
+          department: item.staff?.Department || '',
+          createdAt:item.createdAt instanceof Date
+            ? item.createdAt.toISOString().slice(0, 10)
+            : (item.createdAt?.slice(0, 10) || '')
         });
       }
     });
@@ -435,7 +440,8 @@ router.put("/:id/approve", auth, async (req, res) => {
     };
     order.Approvals.push(newApproval);
 
-    await order.save();
+    const prev_Request=await order.save();
+    RequestActivity(prev_Request._id)
     return res.status(200).json({ 
       message: "Approval recorded successfully", 
       order,
