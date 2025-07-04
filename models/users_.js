@@ -1,7 +1,5 @@
-
 const {Schema, model}=require('mongoose')
-const timestamp=require('timestamp')
-
+const Joi=require('joi')
 
 const UserSchema = new Schema({
   name: { type: String, required: true },
@@ -19,9 +17,8 @@ const UserSchema = new Schema({
   resetToken:String,
   resetTokenExpiration:Date
   
-}, { timestamps: true });
+}, { timestamps: true },{strict:true});
 
-UserSchema.plugin(timestamp);
 
 
 

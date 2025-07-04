@@ -8,7 +8,7 @@ const SupplierSchema = new Schema({
   description:{type:String},
   status: { type: String, enum: ["active", "inactive"], default: "active" },
 
-}, { timestamps: true });
+}, { timestamps: true },{strict:true});
 
 SupplierSchema.plugin(timestamps);
 module.exports = model("Supplier", SupplierSchema);

@@ -26,7 +26,7 @@ const router = Router();
 router.post('/login', loginRateLimiter, async (req, res) => {
   try {
     const { username, password } = req.body;
-    const user_data = await AdminUser.findOne({ email: username });
+    const user_data = await AdminUser.findOne({ email: username }).lean();
 
     if (!user_data || !(await bcrypt.compare(password, user_data.password))) {
       return res.status(401).json({ message: "Invalid email or password" });

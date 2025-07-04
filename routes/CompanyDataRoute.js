@@ -21,19 +21,20 @@ router.get("/company",async(req,res)=>{
 
 router.post("/CreateCompanyData",async(req,res)=>{
     try{
-        const {CompanyName, OrganizationalStructure,
+        const {CompanyName, OrganizationStructure,
             ResourcesToStreamline,Workflow}=req.body
-        if(!CompanyName || !OrganizationalStructure || !ResourcesToStreamline || !Workflow){
-            res.status(401).json({message:"please enter all fields"})
+        //console.log(CompanyName,OrganizationStructure,ResourcesToStreamline,Workflow)
+        if(!CompanyName || !OrganizationStructure || !ResourcesToStreamline || !Workflow){
+            return res.status(401).json({message:"please enter all fields"})
         }
         const newCompanyData=new CompanyData({
-            CompanyData,
-            OrganizationalStructure,
+            CompanyName,
+            OrganizationStructure,
             ResourcesToStreamline,
             Workflow
         })
         await newCompanyData.save()
-        res.status(200).json({message:"Company Data saved successfully"})
+        res.status(200).json({success:true,message:"Company Data saved successfully"})
     }catch(error){
         console.error("error from create company data",error)
         res.status(500).json({message:"server error"})

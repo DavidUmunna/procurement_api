@@ -85,7 +85,7 @@ router.get("/all", auth,monitorLogger,async (req, res) => {
       }
       return plainOrder
     })))
-    res.json({data:response});
+    res.status(200).json({data:response});
   } catch (error) {
     console.error(error)
     //res.status(500).json({ message: "Server error", error });
@@ -488,7 +488,8 @@ router.put("/:id/reject", auth, async (req, res) => {
       timestamp: new Date()
     });
 
-    await order.save();
+    const prev_Request=await order.save();
+    RequestActivity(prev_Request._id)
     return res.status(200).json({ 
       message: "Rejection recorded successfully", 
       order,
@@ -520,7 +521,8 @@ router.put("/:id/completed",auth,async(req,res)=>{
       return res.status(404).json({ message: "Order not found" });
     }
     order.status="Completed"
-    await order.save()
+    const prev_Request=await order.save()
+    RequestActivity(prev_Request._id)
     res.status(200).json({message:"request completed"})
 
 

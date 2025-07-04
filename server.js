@@ -6,7 +6,7 @@ const csrf=require("csurf")
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-
+const helmet=require("helmet")
 // Custom modules
 const connectDB = require("./db");
 
@@ -56,6 +56,7 @@ const allowedOrigins = [
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(helmet());
 const csrfProtection=csrf({cookie:true})
 
 // CORS setup
@@ -106,7 +107,8 @@ app.use("/api/monitoring",monitoring)
 app.use((req, res, next) => {
   const csrfExcludedPaths = [
     "/api/admin-user/login",
-    "/api/fileupload"
+    "/api/fileupload",
+    "/api/companydata"
   ];
 
   const isUnsafeMethod = ["POST", "PUT", "PATCH", "DELETE"].includes(req.method);
@@ -140,3 +142,6 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, "0.0.0.0", () =>
   console.log(`🚀 Server running on port ${PORT}`)
 );
+
+
+module.exports=app

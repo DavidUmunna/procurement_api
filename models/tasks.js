@@ -35,6 +35,6 @@ const taskSchema = new mongoose.Schema({
     default: 'Pending',
   },
   
-},{timestamps:true});
+},{timestamps:true},{strict:true});
 
 module.exports = mongoose.model('Task', taskSchema);
