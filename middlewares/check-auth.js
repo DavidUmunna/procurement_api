@@ -32,9 +32,9 @@ router.use(async (req, res, next) => {
     const user = JSON.parse(sessionData);
 
     // Optional: refresh TTL on every request
-    await redisClient.expire(`session:${sessionId}`, 900); // Extend 15 min TTL
+    await redisClient.expire(`session:${sessionId}`, 1000); // Extend 15 min TTL
 
-    req.user = user; // Attach user session data to req
+    req.user = user; 
     next();
   } catch (error) {
     console.error("Error in Redis auth middleware:", error);

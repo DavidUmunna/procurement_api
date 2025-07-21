@@ -45,3 +45,10 @@ userdataa ttracking almost fully inplemented
 ## email functionality:
 - when a user makes a request an email containing the users name and request title is sent to the users superior that are involved in the approval of the request
 - when an approval has been made an email will be sent to the user telling him that a change has been made with the details ofthe request that thechange was made on
+
+## More Information Decision functionality
+when the admin needs more info concerning a particular request he can update the status of the request to more information required then an email will be sent to the staff that more info is needed concerning his or her request
+
+
+## Response per Request functionality
+when the the staff wants to respond to his request that has a "More INformation" status

@@ -12,7 +12,7 @@ const csrf=require("csurf")
 const csrfProtection=csrf({cookie:true})
 
 //console.log("path variable",path)
-const uploadDir = path.join("../uploads");
+const uploadDir = path.join("uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }

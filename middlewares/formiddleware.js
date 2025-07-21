@@ -13,7 +13,7 @@ function formidableMiddleware(req, res, next) {
 function formidableMiddlewarefiles(fieldName, maxFiles) {
   return (req, res, next) => {
     const form = new IncomingForm({
-      uploadDir: path.join(__dirname, "../tempUploads"),
+      uploadDir: path.join(__dirname, "tempUploads"),
       keepExtensions: true,
       multiples: true,
       maxFiles

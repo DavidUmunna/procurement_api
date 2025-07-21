@@ -68,12 +68,17 @@ app.use(
   "http://localhost:3001",
   "http://127.0.0.1:3000",
   "http://localhost:3001",
+  "http://localhost:5000",
+  "http://192.168.137.108:3000",
+  "http://192.168.137.108:5000",
   "https://erp.haldengroup.ng"
   ],
     credentials: true,
   })
 );
 app.use(testDBRoute);
+
+
 
 // Static file serving
 app.use("/uploads", express.static(path.join("uploads")));
@@ -108,7 +113,9 @@ app.use((req, res, next) => {
   const csrfExcludedPaths = [
     "/api/admin-user/login",
     "/api/fileupload",
-    "/api/companydata"
+    "/api/companydata",
+    "/api/orders/memo"
+    
   ];
 
   const isUnsafeMethod = ["POST", "PUT", "PATCH", "DELETE"].includes(req.method);

@@ -14,9 +14,9 @@ router.get("/",auth,async(req,res)=>{
     try{
         const {page,limit,skip}=getPagination(req)
         const filter={}
-        const {SourceWell,startDate, EndDate,search}=req.filter;
+        const {WasteSource,startDate, EndDate,search}=req.filter;
 
-        if (SourceWell && SourceWell!=='All') filter.SourceWell=SourceWell
+        if (WasteSource && WasteSource!=='All') filter.WasteSource=WasteSource
 
         if (search){
             filter.$or=[
@@ -61,7 +61,7 @@ router.get("/",auth,async(req,res)=>{
 
 router.post("/export", auth, async (req, res) => {
   try {
-    const { startDate, endDate, stream, fileName, fileFormat, SourceWell } = req.body;
+    const { startDate, endDate, stream, fileName, fileFormat, WasteSource } = req.body;
 
     const query = {
       DeliveryOfEmptySkips: {
@@ -73,8 +73,8 @@ router.post("/export", auth, async (req, res) => {
     if (stream && stream !== 'All') {
       query.WasteStream = stream;
     }
-    if (SourceWell ){
-      query.SourceWell=SourceWell
+    if (WasteSource ){
+      query.WasteSource=WasteSource
     }
 
     const skipData = await skipsTracking.find(query).lean();
@@ -94,14 +94,17 @@ router.post("/export", auth, async (req, res) => {
       worksheet.columns = [
         { header: 'Skip ID', key: 'skip_id', width: 20 },
         { header: 'Delivery Waybill No', key: 'DeliveryWaybillNo', width: 20 },
+        { header: 'Date Mobilized', key: 'DateMobilized', width: 20 },
+        { header: 'Date Recieved On Location', key: 'DateReceivedOnLocation', width: 20 },
+        { header: 'Skips Truck Reg No', key: 'SkipsTruckRegNo', width: 20 },
+        { header: 'Skips Truck Driver', key: 'SkipsTruckDriver', width: 20 },
         { header: 'Quantity Value', key: 'Quantity_value', width: 15 },
         { header: 'Quantity Unit', key: 'Quantity_unit', width: 15 },
         { header: 'Waste Stream', key: 'WasteStream', width: 20 },
-        { header: 'Source Well', key: 'SourceWell', width: 20 },
+        { header: 'Waste Source', key: 'WasteSource', width: 20 },
         { header: 'Dispatch Manifest No', key: 'DispatchManifestNo', width: 25 },
         { header: 'Dispatch Truck Reg No', key: 'DispatchTruckRegNo', width: 25 },
         { header: 'Driver Name', key: 'DriverName', width: 20 },
-        { header: 'Delivery Of Empty Skips', key: 'DeliveryOfEmptySkips', width: 25 },
         { header: 'Demobilization Of Filled Skips', key: 'DemobilizationOfFilledSkips', width: 30 },
         { header: 'Date Filled', key: 'DateFilled', width: 20 },
         { header: 'Last Updated', key: 'lastUpdated', width: 25 },
@@ -113,13 +116,17 @@ router.post("/export", auth, async (req, res) => {
         worksheet.addRow({
           skip_id: entry.skip_id,
           DeliveryWaybillNo: entry.DeliveryWaybillNo,
+          DateMobilized:entry.DateMobilized,
+          DateReceivedOnLocation:entry.DateReceivedOnLocation,
+          SkipsTruckReqNo:entry.SkipsTruckRegNo,
+          SkipsTruckDriver:entry.SkipsTruckDriver,
           Quantity_value: entry.Quantity?.value,
           Quantity_unit: entry.Quantity?.unit,
           WasteStream: entry.WasteStream,
-          SourceWell: entry.SourceWell,
+          WasteSource: entry.WasteSource,
           DispatchManifestNo: entry.DispatchManifestNo,
-          DispatchTruckRegNo: entry.DispatchTruckRegNo,
-          DriverName: entry.DriverName,
+          WasteTruckRegNo: entry.DispatchTruckRegNo,
+          WasteTruckDriverName: entry.DriverName,
           DeliveryOfEmptySkips: entry.DeliveryOfEmptySkips,
           DemobilizationOfFilledSkips: entry.DemobilizationOfFilledSkips,
           DateFilled: entry.DateFilled,
@@ -137,22 +144,26 @@ router.post("/export", auth, async (req, res) => {
     } else if (extension === 'csv') {
       // Manually build CSV content
       const headers = [
-        'Skip ID', 'Delivery Waybill No', 'Quantity Value', 'Quantity Unit',
-        'Waste Stream', 'Source Well', 'Dispatch Manifest No', 'Dispatch Truck Reg No',
-        'Driver Name', 'Delivery Of Empty Skips', 'Demobilization Of Filled Skips',
+        'Skip ID', 'Delivery Waybill No','Date Mobilized','Date Recieved','Skips Truck Reg No','Skips Truck Driver', 'Quantity Value', 'Quantity Unit',
+        'Waste Stream', 'Source Well', 'Dispatch Manifest No', 'Waste Truck Reg No',
+        'Waste Driver Name', 'Delivery Of Empty Skips', 'Demobilization Of Filled Skips',
         'Date Filled', 'Last Updated', 'Created At', 'Updated At'
       ];
 
       const rows = skipData.map(entry => ([
         entry.skip_id,
         entry.DeliveryWaybillNo,
+        entry.DateMobilized,
+        entry.DateReceivedOnLocation,
+        entry.SkipsTruckRegNo,
+        entry.SkipsTruckDriver,
         entry.Quantity?.value ?? '',
         entry.Quantity?.unit ?? '',
         entry.WasteStream,
-        entry.SourceWell,
+        entry.WasteSource,
         entry.DispatchManifestNo,
-        entry.DispatchTruckRegNo,
-        entry.DriverName,
+        entry.WasteTruckRegNo,
+        entry.WasteDriverName,
         entry.DeliveryOfEmptySkips,
         entry.DemobilizationOfFilledSkips,
         entry.DateFilled,
@@ -187,7 +198,7 @@ router.post("/export", auth, async (req, res) => {
           .text(`Delivery Waybill No: ${entry.DeliveryWaybillNo}`)
           .text(`Quantity: ${entry.Quantity?.value ?? ''} ${entry.Quantity?.unit ?? ''}`)
           .text(`Waste Stream: ${entry.WasteStream}`)
-          .text(`Source Well: ${entry.SourceWell}`)
+          .text(`Source Well: ${entry.WasteSource}`)
           .text(`Dispatch Manifest No: ${entry.DispatchManifestNo}`)
           .text(`Dispatch Truck Reg No: ${entry.DispatchTruckRegNo}`)
           .text(`Driver Name: ${entry.DriverName}`)
@@ -230,11 +241,14 @@ router.post("/create",auth,async(req,res)=>{
 
         const {skip_id,
             DeliveryWaybillNo,
+            DateMobilized,
+            DateReceivedOnLocation,
+            SkipsTruckRegNo,
+            SkipsTruckDriver,
             Quantity,WasteStream,
-            SourceWell,DispatchManifestNo,
-            DispatchTruckRegNo,
-            DeliveryOfEmptySkips,
-            DemobilizationOfFilledSkips,DriverName,
+            WasteSource,DispatchManifestNo,
+            WasteTruckRegNo,
+            DemobilizationOfFilledSkips,WasteDriverName,
             DateFilled}=req.body
             if (!skip_id){
                 res.status(403).json({message:"missing values in query"})
@@ -242,12 +256,15 @@ router.post("/create",auth,async(req,res)=>{
             new_skipItem=new skipsTracking({
                 skip_id,
                 DeliveryWaybillNo,
+                DateMobilized,
+                DateReceivedOnLocation,
+                SkipsTruckRegNo,
+                SkipsTruckDriver,
                 Quantity,WasteStream,
-                SourceWell,DispatchManifestNo,
-                DispatchTruckRegNo,
-                DeliveryOfEmptySkips,
+                WasteSource,DispatchManifestNo,
+                WasteTruckRegNo,
                 DemobilizationOfFilledSkips,
-                DateFilled,DriverName
+                DateFilled,WasteDriverName
             })
             
             await new_skipItem.save()
@@ -268,8 +285,8 @@ router.put("/:id", async (req, res) => {
       DeliveryWaybillNo,
       Quantity,
       DispatchManifestNo,
-      DispatchTruckRegNo,
-      DriverName, // make sure this matches your schema
+      WasteTruckRegNo,
+      WasteDriverName, // make sure this matches your schema
       DemobilizationOfFilledSkips,
       DateFilled
     } = req.body;
@@ -279,8 +296,8 @@ router.put("/:id", async (req, res) => {
       DeliveryWaybill: DeliveryWaybillNo, // assuming your schema uses `DeliveryWaybill`
       Quantity,
       DispatchManifestNo,
-      DispatchTruckRegNo,
-      DriverName,
+      WasteTruckRegNo,
+      WasteDriverName,
       DemobilizationOfFilledSkips,
       DateFilled
     };

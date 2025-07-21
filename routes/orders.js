@@ -18,9 +18,13 @@ const usemonitor=require("../middlewares/usemonitor")
 const ExcelJS=require("exceljs")
 const monitorLogger=require("../middlewares/monitorLogger")
 const csrf=require("csurf");
-const { IncomingRequest, RequestActivity } = require("../controllers/notification");
+const {RequestActivity } = require("../controllers/notification");
 const csrfProtection=csrf({cookie:true})
-
+const { Document, Packer, Paragraph,AlignmentType,BorderStyle,ImageRun,Table,TableRow,TableBorders, TableCell,HeadingLevel,WidthType } = require('docx');
+const MoreInformation = require("../controllers/RequestController");
+router.get("/reviewed",auth,MoreInformation.ReviewedRequests)
+router.delete("/:id",auth,MoreInformation.DeleteStaffResponse)
+router.get("/staffresponses",auth,MoreInformation.GetStaffResponses)
 router.get("/accounts", auth,async (req, res) => {
   try {
     const { page, limit, skip } = getPagination(req);
@@ -94,12 +98,11 @@ router.get("/all", auth,monitorLogger,async (req, res) => {
 // Get all purchase orders
 router.get("/", auth,monitorLogger,async (req, res) => {
   try {
+    const {role}=req.query
     const { page, limit, skip } = getPagination(req);
     const query = {};
-
-    if (req.query.action) {
-      query.action = req.query.action;
-    }
+    console.log("role",role)
+  
     console.log(req.user)
     if (req.query.startDate && req.query.endDate) {
       query.timestamp = {
@@ -107,28 +110,32 @@ router.get("/", auth,monitorLogger,async (req, res) => {
         $lte: new Date(req.query.endDate)
       };
     }
-
+    
     const global=[ "procurement_officer","human_resources","internal_auditor","global_admin","admin"]
     //const isAdmin= req.user.role==="admin"
- 
-   const [total, orders] = await Promise.all([
+    const managers=["waste_management_manager","PVT_manager","Environmental_lab_manager","Financial_manager"]
+    /*if (role!=="global_admin"){
+      query.role={$nin:managers}
+    }*/
+    const [total, orders] = await Promise.all([
            PurchaseOrder.countDocuments(query),
            PurchaseOrder.find(query)
              .sort({ createdAt: -1 })
              .skip(skip)
-             .limit(limit).populate("staff", "-password -__v -role -canApprove -_id")
+             .limit(limit).populate("staff", "-password -__v  -canApprove -_id")
              
              
-         ]);
-      
-    const response=(orders.map((order=>{
-      const plainOrder=order.toObject()
-      if(!global.includes(req.user.role)){
-        const plainOrder = order.toObject();
-        delete  plainOrder.Approvals
-      }
-      return plainOrder
-    })))
+    ]);
+     const response = orders.map(order => {
+      const plainOrder = order.toObject();
+      /*if (!globalRoles.includes(req.user.role)) {
+        delete plainOrder.Approvals;
+      }*/
+      return plainOrder;
+    });
+    
+  
+    
     res.json({data:response,
       Pagination:getPagingData(total,page,limit)});
   } catch (error) {
@@ -250,12 +257,13 @@ router.get('/department/all', auth,async (req, res) => {
 
 
 
-// Create a new purchase order
-router.post("/", usemonitor,csrfProtection, async (req, res) => {
+// Create a new purchase Request
+router.post("/", auth,csrfProtection, async (req, res) => {
   try {
-    const { supplier, orderedBy, products,email,filenames, urgency, remarks, Title,staff } = req.body;
+    const { supplier, orderedBy, products,email,filenames,
+       urgency, remarks, Title,staff,role } = req.body;
     
-    //console.log(req.body);
+   
 
     // Ensure products is an array and destructure its fields
     if (!Array.isArray(products)) {
@@ -280,6 +288,7 @@ router.post("/", usemonitor,csrfProtection, async (req, res) => {
       remarks,
       Department,
       staff,
+      role,
       fileRefs: req.body.fileRefs,
       
 
@@ -287,13 +296,10 @@ router.post("/", usemonitor,csrfProtection, async (req, res) => {
     
     
     const new_Request=await newOrder.save();
-    IncomingRequest(new_Request._id)
-    // const filename=new_Request.filenames
-    // new_Request.requestfileid=await file.find({})
+    //IncomingRequest(new_Request._id)
+
     const excelexport=await exporttoexcel();
-    const exportgoogledrive=await exportToExcelAndUpload(newOrder._id);
-    //notifyAdmins(newOrder);
-    
+    const exportgoogledrive=await exportToExcelAndUpload(newOrder._id);  
     console.log(exportgoogledrive)
     res.status(200).json({success:true, newOrder });
   } catch (error) {
@@ -357,6 +363,7 @@ router.post("/export", async (req, res) => {
       { header: "Product Name", key: "productName", width: 20 },
       { header: "Product Quantity", key: "productQuantity", width: 20 },
       { header: "Product Price", key: "productPrice", width: 20 },
+      { header: "Remarks", key: "remarks", width: 25 },
       { header: "Urgency", key: "urgency", width: 20 },
       { header: "Status", key: "status", width: 20 },
       { header: "Department", key: "department", width: 20 },
@@ -376,6 +383,7 @@ router.post("/export", async (req, res) => {
             productName: product.name || '',
             productQuantity: product.quantity || 0,
             productPrice: product.price || 0,
+            remarks:item.remarks || '',
             urgency: item.urgency,
             status: item.status,
             department: item.staff?.Department || '',
@@ -383,7 +391,7 @@ router.post("/export", async (req, res) => {
             ? item.createdAt.toISOString().slice(0, 10)
             : (item.createdAt?.slice(0, 10) || '')
           });
-          console.log("created AT:",item.createdAt)
+          console.log("created AT:",item.remarks)
         });
       } else {
         // Add row even if no products (with empty product fields)
@@ -394,6 +402,7 @@ router.post("/export", async (req, res) => {
           productName: '',
           productQuantity: '',
           productPrice: '',
+          remarks:item.remarks||'',
           urgency: item.urgency,
           status: item.status,
           department: item.staff?.Department || '',
@@ -411,6 +420,284 @@ router.post("/export", async (req, res) => {
     res.status(500).json({ message: "Server error during export" });
   }
 });
+
+router.post("/memo",async(req,res)=>{
+
+  try {
+    const { requestId } = req.body;
+    console.log("requestId",requestId)
+
+    const request = await PurchaseOrder.findById(requestId)
+      .populate("staff", "name Department email")
+      .lean();
+
+    if (!request) return res.status(404).json({ message: 'Request not found' });
+    const imagePath = path.join(__dirname, "assets", "haldenlogo_1.png");
+    // Create Word Document
+    const doc = new Document({
+  sections: [
+    {
+      properties: {
+        page: {
+          margin: {
+            top: 1440,    // 1 inch
+            right: 1440,
+            bottom: 1440,
+            left: 1440,
+          }
+        }
+      },
+      children: [
+        // Company Header with Logo
+        new Paragraph({
+          children: [
+            new ImageRun({
+              
+              data: fs.readFileSync(imagePath),
+              transformation: {
+                width: 50,
+                height: 50,
+              },
+            }),
+          ],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 200 },
+        
+
+        // Company Name and Address
+       
+          /*text: "HALDEN NIGERIA LIMITED",
+          heading: HeadingLevel.HEADING_1,
+          alignment: AlignmentType.CENTER,
+          style: "header",
+          spacing: { after: 200 }*/
+        }),
+        
+
+        // Memo Title
+        new Paragraph({
+          text: "INTERNAL MEMORANDUM",
+          heading: HeadingLevel.TITLE,
+          alignment: AlignmentType.CENTER,
+          border: {
+            bottom: {
+              color: "000000",
+              space: 20,
+              style: BorderStyle.SINGLE,
+              size: 8
+            }
+          },
+          spacing: { after: 600 }
+        }),
+
+        // Memo Metadata Table
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          borders: {
+            top: { style: BorderStyle.NONE },
+            bottom: { style: BorderStyle.NONE },
+            left: { style: BorderStyle.NONE },
+            right: { style: BorderStyle.NONE },
+          },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [new Paragraph({ text: "TO:", bold: true })],
+                  width: { size: 15, type: WidthType.PERCENTAGE }
+                }),
+                new TableCell({
+                  children: [new Paragraph({ text: "MANAGEMENT" })],
+                  width: { size: 85, type: WidthType.PERCENTAGE }
+                })
+              ]
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [new Paragraph({ text: "FROM:", bold: true })]
+                }),
+                new TableCell({
+                  children: [new Paragraph({ text: `${request.staff?.name} (${request.staff?.Department})` })],
+                  width: { size: 85, type: WidthType.PERCENTAGE }
+                })
+              ]
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [new Paragraph({ text: "DATE:", bold: true })]
+                }),
+                new TableCell({
+                  children: [new Paragraph({ text: new Date(request.createdAt).toLocaleDateString('en-NG', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  }) })]
+                })
+              ]
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [new Paragraph({ text: "SUBJECT:", bold: true })]
+                }),
+                new TableCell({
+                  children: [new Paragraph({ 
+                    text: `Purchase Request - ${request.Title}`,
+                    color: "0000FF" // Blue color for subject
+                  })]
+                })
+              ]
+            })
+          ],
+          spacing: { after: 1500,
+            line:500
+            
+           }
+        }),
+        new Paragraph({
+          text: "",
+          spacing: { after: 400 }  // Adds another 0.28 inches
+        }),
+
+        // Memo Body
+        new Paragraph({
+          text: "REQUEST DETAILS",
+          heading: HeadingLevel.HEADING_2,
+          border: {
+            bottom: {
+              color: "000000",
+              space: 20,
+              style: BorderStyle.SINGLE,
+              size: 4
+            }
+          },
+          spacing: { 
+            before:200,
+            after: 800,
+            line:300
+           }
+        }),
+
+        // Urgency and Remarks
+        new Paragraph({
+          text: `Urgency Level: ${request.urgency}`,
+          bullet: { level: 0 }
+        }),
+        new Paragraph({
+          text: `Remarks: ${request.remarks || 'Not specified'}`,
+          bullet: { level: 0 },
+          spacing: { after: 400 }
+        }),
+
+        // Products Table
+        new Paragraph({
+          text: "Requested Items:",
+          bold: true,
+          spacing: { after: 200 }
+        }),
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          borders: TableBorders.ALL,
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [new Paragraph({ text: "Item", bold: true })],
+                  shading: { fill: "F2F2F2" }
+                }),
+                new TableCell({
+                  children: [new Paragraph({ text: "Quantity", bold: true })],
+                  shading: { fill: "F2F2F2" }
+                }),
+                new TableCell({
+                  children: [new Paragraph({ text: "Unit Price (₦)", bold: true })],
+                  shading: { fill: "F2F2F2" }
+                }),
+                new TableCell({
+                  children: [new Paragraph({ text: "Total (₦)", bold: true })],
+                  shading: { fill: "F2F2F2" }
+                })
+              ]
+            }),
+            ...request.products?.map(p => new TableRow({
+              children: [
+                new TableCell({ children: [new Paragraph({ text: p?.name })] }),
+                new TableCell({ children: [new Paragraph({ text: p?.quantity.toString() })] }),
+                new TableCell({ children: [new Paragraph({ text: `₦${p?.price.toLocaleString()}` })] }),
+                new TableCell({ children: [new Paragraph({ 
+                  text: `₦${(p?.quantity * p?.price).toLocaleString()}` 
+                })] })
+              ]
+            }))
+          ],
+          spacing: { after: 600 }
+        }),
+
+        // Status and Footer
+        new Paragraph({
+          text: `Current Status: ${request.status.toUpperCase()}`,
+          bold: true,
+          color: request.status === "Approved" ? "008000" : 
+                request.status === "Rejected" ? "FF0000" : "000000",
+          spacing: { after: 2000 }
+        }),
+
+    
+        
+       
+
+        // Confidential Footer
+        new Paragraph({
+          text: "CONFIDENTIAL - This document is intended solely for the use of the individual or entity to which it is addressed",
+          alignment: AlignmentType.CENTER,
+          
+          size: 18,
+          color: "808080",
+          border: {
+            top: {
+              color: "000000",
+              space: 10,
+              style: BorderStyle.SINGLE,
+              size: 2
+            }
+          }
+        })
+      ]
+    }
+  ],
+  styles: {
+    paragraphStyles: [
+      {
+        id: "header",
+        name: "Header",
+        run: {
+          size: 32,
+          bold: true,
+          color: "002060" // Halden brand blue
+        },
+        paragraph: {
+          spacing: { line: 200 }
+        }
+      }
+    ]
+  }
+});
+
+    const buffer = await Packer.toBuffer(doc);
+
+    const filename = `memo-${request._id}.docx`;
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+
+    res.send(buffer);
+  } catch (error) {
+    console.error("Memo generation error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 router.put("/:id/approve", auth, async (req, res) => {
   const { id: orderId } = req.params;
   const { adminName ,comment} = req.body;
@@ -444,13 +731,12 @@ router.put("/:id/approve", auth, async (req, res) => {
     RequestActivity(prev_Request._id)
     return res.status(200).json({ 
       message: "Approval recorded successfully", 
-      order,
-      yourDecision: newApproval
+     
     });
 
   } catch (error) {
     console.error("Error approving order:", error);
-    res.status(500).json({ message: "Error processing approval", error });
+    res.status(500).json({ message: "Error processing approval"});
   }
 });
 
@@ -492,20 +778,16 @@ router.put("/:id/reject", auth, async (req, res) => {
     RequestActivity(prev_Request._id)
     return res.status(200).json({ 
       message: "Rejection recorded successfully", 
-      order,
-      yourDecision: {
-        admin: adminName,
-        status: "Rejected",
-        timestamp: new Date()
-      }
+     
     });
 
   } catch (error) {
     console.error("Error rejecting order:", error);
-    res.status(500).json({ message: "Error processing rejection", error });
+    res.status(500).json({ message: "Error processing rejection"});
   }
 });
-
+router.put("/:id/MoreInfo",auth,MoreInformation.MoreInformation)
+router.put("/:id/staffResponse",auth,MoreInformation.StaffResponse)
 router.put("/:id/completed",auth,async(req,res)=>{
   try{
     const { id: orderId } = req.params;
@@ -539,7 +821,7 @@ router.put("/:id/completed",auth,async(req,res)=>{
 router.put("/:id", async (req, res) => {
   try {
     const { status } = req.body;
-    const validStatuses = ["Pending", "Completed", "Rejected","Approved"];
+    const validStatuses = ["Pending", "Completed", "Rejected","Approved","More Information"];
 
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: "Invalid status value" });

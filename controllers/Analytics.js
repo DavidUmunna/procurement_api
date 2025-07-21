@@ -19,21 +19,21 @@ exports.getSkipAnalytics = async (req, res) => {
     switch (groupBy) {
       case 'day':
         groupQuery = {
-          year: { $year: "$createdAt" },
-          month: { $month: "$createdAt" },
-          day: { $dayOfMonth: "$createdAt" }
+          year: { $year: "$DemobilizationOfFilledSkips" },
+          month: { $month: "$DemobilizationOfFilledSkips" },
+          day: { $dayOfMonth: "$DemobilizationOfFilledSkips" }
         };
         break;
       case 'week':
         groupQuery = {
-          year: { $year: "$createdAt" },
-          week: { $week: "$createdAt" }
+          year: { $year: "$DemobilizationOfFilledSkips" },
+          week: { $week: "$DemobilizationOfFilledSkips" }
         };
         break;
       case 'month':
         groupQuery = {
-          year: { $year: "$createdAt" },
-          month: { $month: "$createdAt" }
+          year: { $year: "$DemobilizationOfFilledSkips" },
+          month: { $month: "$DemobilizationOfFilledSkips" }
         };
         break;
       default:

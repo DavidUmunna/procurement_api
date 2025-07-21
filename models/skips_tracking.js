@@ -9,6 +9,10 @@ const timestamp = require("timestamp")
 const SkipsTrackingSchema=mongoose.Schema({
     skip_id:{type:String,required:true},
     DeliveryWaybillNo:{type:Number},
+    DateMobilized:{type:Date},
+    DateReceivedOnLocation:{type:Date},
+    SkipsTruckRegNo:{type:String},
+    SkipsTruckDriver:{type:String},
     Quantity: {
         value: { type: Number,  }, // e.g., 1500
         unit: {
@@ -18,11 +22,11 @@ const SkipsTrackingSchema=mongoose.Schema({
         }
       },
     WasteStream:{type:String,required:true,enum:["WBM_Affluent","OBM_Cutting","WBM_cutting", "OBM_Affluent","Sludge"]},
-    SourceWell:{type:String,required:true},
+    WasteSource:{type:String,required:true},
     DispatchManifestNo:{type:String},
-    DispatchTruckRegNo:{type:String},
-    DriverName:{type:String},
-    DeliveryOfEmptySkips:{type:Date,required:true},
+    WasteTruckRegNo:{type:String},
+    WasteTruckDriverName:{type:String},
+    
     DemobilizationOfFilledSkips:{type:Date},
     DateFilled:{type:Date},
     lastUpdated: {
