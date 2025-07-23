@@ -203,76 +203,79 @@ const StaffResponseAlert = async (requestId) => {
         const prev_Request = await order.findById(requestId)
             .populate("staff", "-password -__v -role -canApprove -_id")
             .populate("staffResponse.admin", "name email"); // Populate admin details if needed
-
+        all_users=await users.find()
+        //console.log("all the users of the app",all_users)
+        const admin_Decision=prev_Request.Approvals.filter(a=>a.status==="More Information") //get the approvals data for the request
+        const admin_names=admin_Decision.map(a=>(a.admin))
+        const admin_users=all_users.filter(user=>admin_names.includes(user.name))
+        const admin_emails=admin_users.map(a=>(a.email))
+        console.log("admin_users",admin_emails)
         if (!prev_Request) {
             throw new Error("Request not found");
         }
 
         const FRONTEND_URL = process.env.FRONTEND_BASED_URL;
-        const staff_emails = [prev_Request.staff.email];
+        const staff_emails = [prev_Request.staff?.email];
         const staffResponse = prev_Request.staffResponse || [];
 
+
         const mailOptions = {
-            from: "Halden Resources Management <noreply@haldenresources.com>",
-            to: staff_emails,
-            subject: `Response Received for Request: "${prev_Request.Title}"`,
-            html: `
-            <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto;">
-                <div style="background-color: #2c3e50; padding: 25px; text-align: center; color: white;">
-                    <h2 style="margin: 0; font-size: 22px;">Admin Response Received</h2>
-                    <p style="margin: 5px 0 0; opacity: 0.9; font-size: 14px;">Halden Resources Management</p>
-                </div>
-                
-                <div style="padding: 25px;">
-                    <p style="margin-bottom: 20px;">Dear ${prev_Request.staff.name},</p>
-                    
-                    <p style="margin-bottom: 15px;">The following administrators have responded to your request:</p>
-                    
-                    <div style="background-color: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; padding: 15px; margin-bottom: 20px;">
-                        <p style="margin: 0 0 10px; font-weight: bold; color: #2c3e50;">Request Details:</p>
-                        <table style="width: 100%;">
-                            <tr>
-                                <td style="width: 30%; padding: 5px 0; color: #7f8c8d;">Request Title:</td>
-                                <td style="padding: 5px 0; font-weight: 500;">${prev_Request.Title}</td>
-                            </tr>
-                            <tr>
-                                <td style="width: 30%; padding: 5px 0; color: #7f8c8d;">Request ID:</td>
-                                <td style="padding: 5px 0;">${prev_Request._id}</td>
-                            </tr>
-                        </table>
-                    </div>
-                    
-                    <p style="margin-bottom: 15px;">Admin Responses:</p>
-                    
-                    <ul style="padding-left: 20px; margin-bottom: 25px;">
-                        ${staffResponse.map(decision => `
-                            <li style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #eee;">
-                                <strong>${decision.admin?.name || 'Admin'}</strong>
-                                <p style="margin: 5px 0; color: #555;">${decision.comment || 'No additional comment provided'}</p>
-                                <small style="color: #7f8c8d;">${new Date(decision.timestamp).toLocaleString()}</small>
-                            </li>
-                        `).join('')}
-                    </ul>
-                    
-                    <div style="text-align: center; margin: 30px 0;">
-                        <a href="${FRONTEND_URL}/requests/${prev_Request._id}" 
-                           style="background-color: #2c3e50; color: white; padding: 12px 24px; 
-                                  text-decoration: none; border-radius: 4px; display: inline-block;
-                                  font-weight: bold; letter-spacing: 0.5px;">
-                            View Full Request Details
-                        </a>
-                    </div>
-                    
-                    <p style="margin-bottom: 0;">Thank you for using Halden Resources Management System.</p>
-                </div>
-                
-                <div style="background-color: #f8f9fa; padding: 15px; text-align: center; 
-                            font-size: 12px; color: #7f8c8d; border-top: 1px solid #e0e0e0;">
-                    <p style="margin: 0;">This is an automated notification. Please do not reply directly to this email.</p>
-                    <p style="margin: 5px 0 0;">© ${new Date().getFullYear()} Halden Resources Management. All rights reserved.</p>
-                </div>
+        from: "Halden Resources Management <noreply@haldenresources.com>",
+        to: admin_emails.map(a=>(a)), // Changed to admin emails instead of staff emails
+        subject: `Staff Response Received for Request: "${prev_Request.Title}"`,
+        html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+            <div style="background-color: #2c3e50; padding: 25px; text-align: center; color: white;">
+                <h2 style="margin: 0; font-size: 22px;">Staff Response Notification</h2>
+                <p style="margin: 5px 0 0; opacity: 0.9; font-size: 14px;">Halden Resources Management</p>
             </div>
-            `
+            
+            <div style="padding: 25px;">
+                <p style="margin-bottom: 20px;">Dear Admin,</p>
+                
+                <p style="margin-bottom: 15px;">A staff member has responded to your request for additional information:</p>
+                
+                <div style="background-color: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; padding: 15px; margin-bottom: 20px;">
+                    <p style="margin: 0 0 10px; font-weight: bold; color: #2c3e50;">Request Details:</p>
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="width: 30%; padding: 5px 0; color: #7f8c8d;">Request Title:</td>
+                            <td style="padding: 5px 0; font-weight: 500;">${prev_Request.Title}</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 30%; padding: 5px 0; color: #7f8c8d;">Request ID:</td>
+                            <td style="padding: 5px 0;">${prev_Request.orderNumber}</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 30%; padding: 5px 0; color: #7f8c8d;">Staff Member:</td>
+                            <td style="padding: 5px 0;">${prev_Request.staff.name}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+              
+                
+               
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${FRONTEND_URL}" 
+                       style="background-color: #2c3e50; color: white; padding: 12px 24px; 
+                              text-decoration: none; border-radius: 4px; display: inline-block;
+                              font-weight: bold; letter-spacing: 0.5px;">
+                        Review Full Request
+                    </a>
+                </div>
+                
+                <p style="margin-bottom: 0;">You may now proceed with the next steps in the approval process.</p>
+            </div>
+            
+            <div style="background-color: #f8f9fa; padding: 15px; text-align: center; 
+                        font-size: 12px; color: #7f8c8d; border-top: 1px solid #e0e0e0;">
+                <p style="margin: 0;">This is an automated notification. Please do not reply directly to this email.</p>
+                <p style="margin: 5px 0 0;">© ${new Date().getFullYear()} Halden Resources Management. All rights reserved.</p>
+            </div>
+        </div>
+        `
         };
 
         // Send the email (implementation depends on your email service)

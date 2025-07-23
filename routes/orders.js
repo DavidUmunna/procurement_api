@@ -23,7 +23,7 @@ const csrfProtection=csrf({cookie:true})
 const { Document, Packer, Paragraph,AlignmentType,BorderStyle,ImageRun,Table,TableRow,TableBorders, TableCell,HeadingLevel,WidthType } = require('docx');
 const MoreInformation = require("../controllers/RequestController");
 router.get("/reviewed",auth,MoreInformation.ReviewedRequests)
-router.delete("/:id",auth,MoreInformation.DeleteStaffResponse)
+router.delete("/:id/staffresponse",auth,MoreInformation.DeleteStaffResponse)
 router.get("/staffresponses",auth,MoreInformation.GetStaffResponses)
 router.get("/accounts", auth,async (req, res) => {
   try {
@@ -155,7 +155,8 @@ router.get('/department', auth, async (req, res) => {
 
     // Filter by Department (after population)
     const filteredOrders = allOrders.filter(order => 
-      order.staff?.Department === Department
+      order.staff?.Department === Department ||
+      order.targetDepartment===Department
     );
 
     const total = filteredOrders.length;
@@ -261,7 +262,7 @@ router.get('/department/all', auth,async (req, res) => {
 router.post("/", auth,csrfProtection, async (req, res) => {
   try {
     const { supplier, orderedBy, products,email,filenames,
-       urgency, remarks, Title,staff,role } = req.body;
+       urgency, remarks, Title,staff,role,targetDepartment } = req.body;
     
    
 
@@ -289,9 +290,8 @@ router.post("/", auth,csrfProtection, async (req, res) => {
       Department,
       staff,
       role,
-      fileRefs: req.body.fileRefs,
-      
-
+      fileRefs: req.body.fileRefs,    
+      targetDepartment
     });
     
     

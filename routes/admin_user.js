@@ -46,12 +46,12 @@ router.post('/login', loginRateLimiter, async (req, res) => {
         createdAt:user_data.createdAt
       }),
       'EX',
-      900 // 15 minutes TTL
+      1200 // 15 minutes TTL
     );
 
     res.cookie("sessionId", sessionId, {
       httpOnly: true,
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      maxAge: 20 * 60 * 1000, // 15 minutes
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       secure: process.env.NODE_ENV === "production"
     });

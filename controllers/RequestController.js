@@ -99,7 +99,7 @@ const StaffResponse = async (req, res) => {
     const savedResponse = await response.save();
 
     // Trigger alert or notification
-    StaffResponseAlert(savedResponse._id);
+    StaffResponseAlert(response._id);
 
     // Send response
     return res.status(200).json({

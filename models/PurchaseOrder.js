@@ -46,6 +46,7 @@ const PurchaseOrderSchema = new Schema({
      }
     ]
   ,
+  targetDepartment:{type:String},
   remarks:{type:String,required:true}
 }, { timestamps: true });
 
