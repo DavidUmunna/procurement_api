@@ -148,15 +148,20 @@ router.get('/department', auth, async (req, res) => {
     const { Department } = req.query;
     const { page, limit, skip } = getPagination(req);
 
-    // Use populate first, then filter using JS
+   
+    
     const allOrders = await PurchaseOrder.find()
       .populate("staff", "Department email name ").populate("products","name quantity price")
       .sort({ createdAt: -1 });
+    
 
     // Filter by Department (after population)
     const filteredOrders = allOrders.filter(order => 
-      order.staff?.Department === Department ||
-      order.targetDepartment===Department
+     {if (!order.targetDepartment){
+
+        return order.staff?.Department === Department
+      }
+      return order.targetDepartment===Department}
     );
 
     const total = filteredOrders.length;
@@ -238,7 +243,11 @@ router.get('/department/all', auth,async (req, res) => {
               
   
     const filteredOrders = orders.filter(order => 
-      order.staff?.Department === Department
+     {if (!order.targetDepartment){
+
+        return order.staff?.Department === Department
+      }
+      return order.targetDepartment===Department}
     );
 
 
