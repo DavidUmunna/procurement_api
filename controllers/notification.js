@@ -27,7 +27,7 @@ const IncomingRequest=async (requestId)=>{
         const test_emails=['david.umunna@haldengroup.ng']
         const new_request=await order.findById(requestId).populate("staff","-password -__v -role -canApprove -_id")
         const users_list=(await users.find()).filter(user=>((user.canApprove===true && user.Department===new_request.staff.Department) || 
-            user.Department==="Human resources"||user.role==="internal_auditor" ||user.role==="global_admin"||user.role==="accounts"))
+            user.Department==="Human resources"||user.role==="internal_auditor" ||user.role==="global_admin"||user.role==="accounts" || user.role==="Financial_manager"))
         const emails=users_list.map(user=>(user.email))
         console.log("the emails :",emails)
         const FRONTEND_URL=process.env.FRONTEND_BASED_URL
