@@ -42,7 +42,10 @@ const MoreInformation=async(req,res)=>{
         if (!request){
             return res.status(404).json({message:"request not found"})
         }
-
+        const approvingUser = await users.findOne({ name: adminName });
+        if (!approvingUser) {
+          return res.status(404).json({ message: "Approving user not found" });
+        }
         request.Approvals=(request.Approvals||[]).filter(
             a=>a.admin!==adminName
         )
@@ -55,6 +58,10 @@ const MoreInformation=async(req,res)=>{
         }
 
         request.Approvals.push(newDecision)
+        if(!request.PendingApprovals.includes(approvingUser._id)){
+
+          request.PendingApprovals.push(approvingUser._id)
+        }
         const prev_Request=await request.save()
         MoreInformationAlert(prev_Request._id)
         return res.status(200).json({
@@ -86,7 +93,7 @@ const StaffResponse = async (req, res) => {
     if (!response) {
       return res.status(404).json({ success: false, message: "Purchase order not found" });
     }
-
+   
     // Add the staff response
     const newStaffResponse = {
       admin,
@@ -95,7 +102,7 @@ const StaffResponse = async (req, res) => {
     };
 
     response.staffResponse.push(newStaffResponse);
-
+  
     // Save updated document
     const savedResponse = await response.save();
 

@@ -792,6 +792,10 @@ router.put("/:id/reject", auth, async (req, res) => {
     order.Approvals = (order.Approvals || []).filter(
       a => a.admin !== adminName
     );
+    const approvingUser = await users_.findOne({ name: adminName });
+    if (!approvingUser) {
+      return res.status(404).json({ message: "Approving user not found" });
+    }
 
     // Add new rejection (keeping any previous decisions)
     order.Approvals.push({
@@ -800,6 +804,10 @@ router.put("/:id/reject", auth, async (req, res) => {
       comment:comment,
       timestamp: new Date()
     });
+    if(!order.PendingApprovals.includes(approvingUser._id)){
+
+      order.PendingApprovals.push(approvingUser._id)
+    }
 
     const prev_Request=await order.save();
     RequestActivity(prev_Request._id)
