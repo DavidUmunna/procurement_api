@@ -108,20 +108,62 @@ const RequestActivity=async(requestId)=>{
         console.log("staff emails:",staff_emails)
         
         const decisions=prev_Request.Approvals.map(approval=>{return approval})
-        const mailOptions={
-            from: "Halden Resources Management",
-            to:test_emails,
-            subject:`Request Title:${prev_Request.Title}`,
-            html:`
-            <p>there has been some some recent activity on this request</p>
-            <p>the request was made by ${prev_Request.staff.name}</p>
-            <p>${decisions.map(decision=>(
-                `${decision.admin}  ${decision.status} the request on ${decision.timestamp.toLocaleString()}`
-            ))}</p>
-            <p>do well to check their contents ${FRONTEND_URL}</p> 
-
-            `
-        }
+      const mailOptions = {
+     from: `"Halden Resources Management" <${process.env.EMAIL_FROM}>`,
+     to: staff_emails,
+     subject: `[Action Required] Update on Request: ${prev_Request.Title}`,
+     html: `
+       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+         <div style="background-color: #2c3e50; padding: 20px; color: white; text-align: center;">
+           <h1 style="margin: 0;">Request Update Notification</h1>
+         </div>
+         
+         <div style="padding: 20px; border: 1px solid #e5e7eb; border-top: none;">
+           <h2 style="color: #2563eb; margin-top: 0;">${prev_Request.Title}</h2>
+           
+           <div style="background-color: #f9fafb; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+             <p style="margin: 0;"><strong>Requested by:</strong> ${prev_Request.staff.name} (${prev_Request.staff.Department})</p>
+             <p style="margin: 5px 0 0 0;"><strong>Request ID:</strong> ${prev_Request.orderNumber}</p>
+             <p style="margin: 5px 0 0 0;"><strong>Date submitted:</strong> ${new Date(prev_Request.createdAt).toLocaleString()}</p>
+           </div>
+           
+           <h3 style="color: #2563eb; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px;">Recent Activity</h3>
+           <ul style="padding-left: 20px;">
+             ${decisions.map(decision => `
+               <li style="margin-bottom: 10px;">
+                 <strong>${decision.admin}</strong> 
+                 <span style="color: ${
+                   decision.status === "Approved" ? "#16a34a" : 
+                   decision.status === "Rejected" ? "#dc2626" : 
+                   "#d97706"
+                 };">${decision.status}</span> 
+                 the request
+                 <div style="color: #6b7280; font-size: 0.9em;">
+                   ${new Date(decision.timestamp).toLocaleString()}
+                   ${decision.comment ? `<div style="background-color: #f3f4f6; padding: 5px 10px; margin-top: 5px; border-radius: 4px;">
+                     <strong>Comment:</strong> ${decision.comment}
+                   </div>` : ''}
+                 </div>
+               </li>
+             `).join('')}
+           </ul>
+           
+           <div style="text-align: center; margin: 25px 0;">
+             <a href="${FRONTEND_URL}" 
+                style="background-color: #2c3e50; color: white; padding: 10px 20px; 
+                       text-decoration: none; border-radius: 5px; display: inline-block;">
+               View Full Request Details
+             </a>
+           </div>
+           
+           <div style="font-size: 0.9em; color: #6b7280; border-top: 1px solid #e5e7eb; padding-top: 15px;">
+             <p>This is an automated notification. Please do not reply to this email.</p>
+             <p>© ${new Date().getFullYear()} Halden Resources Management</p>
+           </div>
+         </div>
+       </div>
+     `
+        };
         await transporter.sendMail(mailOptions)
 
     }catch(error){
