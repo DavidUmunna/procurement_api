@@ -244,7 +244,7 @@ const StaffResponseAlert = async (requestId) => {
     try {
         const prev_Request = await order.findById(requestId)
             .populate("staff", "-password -__v -role -canApprove -_id")
-            .populate("staffResponse.admin", "name email"); // Populate admin details if needed
+     
         all_users=await users.find()
         //console.log("all the users of the app",all_users)
         const admin_Decision=prev_Request.Approvals.filter(a=>a.status==="More Information") //get the approvals data for the request
