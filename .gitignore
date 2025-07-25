@@ -12,3 +12,4 @@ dump
 google-service-account.json
 /__tests__
 Haldenbackend.log
+ecosystem.config.js

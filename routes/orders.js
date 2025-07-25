@@ -18,7 +18,7 @@ const usemonitor=require("../middlewares/usemonitor")
 const ExcelJS=require("exceljs")
 const monitorLogger=require("../middlewares/monitorLogger")
 const csrf=require("csurf");
-const {RequestActivity } = require("../controllers/notification");
+const {RequestActivity,IncomingRequest } = require("../controllers/notification");
 const csrfProtection=csrf({cookie:true})
 const { Document, Packer, Paragraph,AlignmentType,BorderStyle,ImageRun,Table,TableRow,TableBorders, TableCell,HeadingLevel,WidthType } = require('docx');
 const MoreInformation = require("../controllers/RequestController");
@@ -161,6 +161,7 @@ router.get('/department', auth, async (req, res) => {
     
 
     // Filter by Department (after population)
+    
     const filteredOrders = allOrders.filter(order => 
      {if (!order.targetDepartment){
 
@@ -311,8 +312,8 @@ router.post("/", auth,csrfProtection, async (req, res) => {
     
     
     const new_Request=await newOrder.save();
-    //IncomingRequest(new_Request._id)
-    ValidatePendingApprovals(new_Request._id)
+    IncomingRequest(new_Request._id)
+
     const excelexport=await exporttoexcel();
     const exportgoogledrive=await exportToExcelAndUpload(newOrder._id);  
     console.log(exportgoogledrive)
