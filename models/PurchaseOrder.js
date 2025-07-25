@@ -14,7 +14,9 @@ const PurchaseOrderSchema = new Schema({
       default: Date.now
     }
   }],
-
+  PendingApprovals:[
+    {type:Schema.Types.ObjectId, ref:"user"}
+  ],
   products: [{name: { type: String, required: true }, 
   quantity:{ type:Number , required:true},
   price: { type: Number, required: true },

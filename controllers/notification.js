@@ -110,7 +110,7 @@ const RequestActivity=async(requestId)=>{
         const decisions=prev_Request.Approvals.map(approval=>{return approval})
         const mailOptions={
             from: "Halden Resources Management",
-            to:staff_emails,
+            to:test_emails,
             subject:`Request Title:${prev_Request.Title}`,
             html:`
             <p>there has been some some recent activity on this request</p>

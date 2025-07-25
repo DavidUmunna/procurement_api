@@ -1,4 +1,5 @@
-const { response } = require("express")
+const mongoose=require("mongoose")
+const users=require("../models/users_")
 const PurchaseOrder = require("../models/PurchaseOrder")
 const {  StaffResponseAlert,MoreInformationAlert } = require("./notification")
 //const requests=require("../models/PurchaseOrder")
@@ -134,6 +135,43 @@ const GetStaffResponses=async(req,res)=>{
 
     }
 }
+const ValidatePendingApprovals=async(requestId)=>{
+    try{
+        const Approval_roles=["human_resources","internal_auditor"]
+        const NewRequest=await  PurchaseOrder.findById(requestId).populate("staff" )
+        const Users=await users.find()
+        let required_approvers;
+        const MD_id="6830789898ef43e5803ea02c"
+        if(NewRequest.targetDepartment){
+               required_approvers=Users.filter(user=>(
+                
+                (user.canApprove===true&&
+                    user.Department===NewRequest.targetDepartment &&
+                user.name!==NewRequest.staff.name&& user.role!=="global_admin")
+                    || Approval_roles.includes(user.role) || String(user._id)===String(MD_id)
+                ))
+            }else{
+
+                required_approvers=Users.filter(user=>(
+                    
+                    
+                    (user.canApprove===true&&
+                    user.Department===NewRequest.staff.Department && 
+                    user.name!==NewRequest.staff.name && user.role!=="global_admin")
+                    || Approval_roles.includes(user.role) || String(user._id)===String(MD_id)
+                    ))
+                } 
+            NewRequest.PendingApprovals = required_approvers.map(user => ({
+              _id: user._id,
+            }))
+            await NewRequest.save()
+
+
+    }catch(error){
+        console.error("an error occured in the validation of approvers",error)
+
+    }
+}
 const DeleteStaffResponse = async (req, res) => {
     try {
         const { id } = req.params;
@@ -183,4 +221,5 @@ const DeleteStaffResponse = async (req, res) => {
         });
     }
 };
-module.exports={StaffResponse,MoreInformation,ReviewedRequests,DeleteStaffResponse,GetStaffResponses};
+module.exports={StaffResponse,MoreInformation,ReviewedRequests,DeleteStaffResponse,
+    GetStaffResponses,ValidatePendingApprovals};

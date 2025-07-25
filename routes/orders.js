@@ -22,6 +22,8 @@ const {RequestActivity } = require("../controllers/notification");
 const csrfProtection=csrf({cookie:true})
 const { Document, Packer, Paragraph,AlignmentType,BorderStyle,ImageRun,Table,TableRow,TableBorders, TableCell,HeadingLevel,WidthType } = require('docx');
 const MoreInformation = require("../controllers/RequestController");
+const {ValidatePendingApprovals}=require("../controllers/RequestController");
+const users_ = require("../models/users_");
 router.get("/reviewed",auth,MoreInformation.ReviewedRequests)
 router.delete("/:id/staffresponse",auth,MoreInformation.DeleteStaffResponse)
 router.get("/staffresponses",auth,MoreInformation.GetStaffResponses)
@@ -44,7 +46,7 @@ router.get("/accounts", auth,async (req, res) => {
     
    const [total, orders] = await Promise.all([
            PurchaseOrder.countDocuments(query),
-           PurchaseOrder.find(query).populate("staff", "-password -__v -role -canApprove -_id")
+           PurchaseOrder.find(query).populate("staff", "-password -__v -role -canApprove -_id").populate("PendingApprovals")
              .sort({ createdAt: -1 })
              .skip(skip)
              .limit(limit)
@@ -81,6 +83,7 @@ router.get("/all", auth,monitorLogger,async (req, res) => {
     const global=[ "procurement_officer","human_resources","internal_auditor","global_admin","admin"]
     //const isAdmin= req.user.role==="admin"
     const orders=await PurchaseOrder.find().populate("staff",  "-password -__v -role -canApprove -_id")
+    .populate("PendingApprovals")
       
     const response=(orders.map((order=>{
       const plainOrder=order.toObject()
@@ -122,7 +125,8 @@ router.get("/", auth,monitorLogger,async (req, res) => {
            PurchaseOrder.find(query)
              .sort({ createdAt: -1 })
              .skip(skip)
-             .limit(limit).populate("staff", "-password -__v  -canApprove -_id")
+             .limit(limit).populate("staff", "-password -__v  -canApprove -_id").populate("PendingApprovals")
+
              
              
     ]);
@@ -152,6 +156,7 @@ router.get('/department', auth, async (req, res) => {
     
     const allOrders = await PurchaseOrder.find()
       .populate("staff", "Department email name ").populate("products","name quantity price")
+      .populate("PendingApprovals")
       .sort({ createdAt: -1 });
     
 
@@ -209,6 +214,7 @@ router.get("/:id", auth,async (req, res) => {
 
     // Fetch user orders
     const userRequests = await PurchaseOrder.find({ staff:id }).sort({createdAt:-1}).populate("staff", "-password -__v -role -canApprove -_id")
+    .populate("PendingApprovals")
     .populate("products","name quantity price")
     
     const response=(userRequests.map((order=>{
@@ -238,7 +244,7 @@ router.get('/department/all', auth,async (req, res) => {
     //const { page, limit, skip } = getPagination(req);
     const query = {Department:Department};
     // Fetch orders for the department
-    const orders = await PurchaseOrder.find().populate("staff", "Department")
+    const orders = await PurchaseOrder.find().populate("staff", "Department").populate("PendingApprovals")
         .sort({ createdAt: -1 })
               
   
@@ -306,7 +312,7 @@ router.post("/", auth,csrfProtection, async (req, res) => {
     
     const new_Request=await newOrder.save();
     //IncomingRequest(new_Request._id)
-
+    ValidatePendingApprovals(new_Request._id)
     const excelexport=await exporttoexcel();
     const exportgoogledrive=await exportToExcelAndUpload(newOrder._id);  
     console.log(exportgoogledrive)
@@ -726,6 +732,10 @@ router.put("/:id/approve", auth, async (req, res) => {
     order.Approvals = (order.Approvals || []).filter(
       a => a.admin !== adminName
     );
+    const approvingUser = await users_.findOne({ name: adminName });
+    if (!approvingUser) {
+      return res.status(404).json({ message: "Approving user not found" });
+    }
 
     // Add new approval
     const newApproval = {
@@ -736,6 +746,13 @@ router.put("/:id/approve", auth, async (req, res) => {
     };
     order.Approvals.push(newApproval);
 
+    console.log(order.PendingApprovals)
+    console.log(approvingUser)
+    if (order.PendingApprovals && order.PendingApprovals.length > 0) {
+      order.PendingApprovals = order.PendingApprovals.filter(
+        userId => userId.toString() !== approvingUser._id.toString()
+      );
+    }
     const prev_Request=await order.save();
     RequestActivity(prev_Request._id)
     return res.status(200).json({ 
