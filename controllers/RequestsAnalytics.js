@@ -39,7 +39,6 @@ exports.getPOAnalytics = async (req, res) => {
     if (urgency) filter.urgency = urgency;
     if (Department) AggregationFilter.Department=Department;
 
-    console.log("this is the department:",Department)
     // Get the raw data first for detailed analytics
     const orders = await PurchaseOrder.find(filter)
       .populate('staff', 'name email Department')
@@ -55,8 +54,7 @@ exports.getPOAnalytics = async (req, res) => {
     }
 
     );
-      console.log("filter",AggregationFilter)
-    console.log("the orders indicated",filteredOrders)
+     
     // Then get aggregated data for the chart
 
    
@@ -151,7 +149,7 @@ pipeline.push({ $sort: { _id: 1 } });
 // 7. Run the aggregation
 const aggregatedData = await PurchaseOrder.aggregate(pipeline);
 
-  console.log("Aggregated Data",aggregatedData)
+  
     
     // Process status distribution
     const processedData = aggregatedData.map(item => {
