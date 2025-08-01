@@ -27,8 +27,90 @@ const ReviewedRequests = async (req, res) => {
     res.status(500).json({ success: false, message: "Error in processing" });
   }
 };
+const GetOverallMonthlyRequests = async (req, res) => {
+    try {
+        const {Department}=req.query
+        const query={}
+        if (Department){
+            query.Department=Department
+        }
+        const now = new Date();
+        const startOfDay = new Date(Date.UTC(
+            now.getUTCFullYear(),
+            now.getUTCMonth(),
+        
+            0, 0, 0, 0
+        ));
+        console.log("start of query",startOfDay)
+        
+        const endOfDay = new Date(Date.UTC(
+            now.getUTCFullYear(),
+            now.getUTCMonth(),
+            23, 59, 59, 999
+        ));
+        console.log("end of query",endOfDay)
+        query.createdAt = {
+            $gte: startOfDay,
+            $lte: endOfDay,
+        };
+        const Requests = await PurchaseOrder.find(
+            query);
+        const totalDailyRequests=Requests.length
+        console.log("totalDaily",totalDailyRequests)
+
+        res.status(200).json({
+            message: "Total requests for today",
+            data: Requests,
+        });
+    } catch (error) {
+        console.error("An error occurred", error);
+        res.status(500).json({ message: "Server Error" });
+    }
+};
+
+const MonthlyStaffRequest=async(req,res)=>{
+    try{
+        const {userId}=req.query
+        
+        const query={}
+        if (userId){
+            query._id=userId
+        }
+      
+        const now = new Date();
+        const startOfDay = new Date(Date.UTC(
+            now.getUTCFullYear(),
+            now.getUTCMonth(),
+            0, 0, 0, 0
+        ));
+        console.log("start of query",startOfDay)
+        const endOfDay = new Date(Date.UTC(
+            now.getUTCFullYear(),
+            now.getUTCMonth(),
+
+            23, 59, 59, 999
+        ));
+        console.log("end of query",endOfDay)
+        query.createdAt = {
+            $gte: startOfDay,
+            $lte: endOfDay,
+        };
+        const Requests = await PurchaseOrder.find(
+            query);
+        
+
+        res.status(200).json({
+            message: "Total requests for today",
+            data: Requests,
+        });
 
 
+    }catch(error){
+        console.error("An error occurred staff Requests", error);
+        res.status(500).json({ message: "Server Error" });
+ 
+    }
+}
 
 const MoreInformation=async(req,res)=>{
     const {id:orderId}=req.params
@@ -179,6 +261,8 @@ const ValidatePendingApprovals=async(requestId)=>{
 
     }
 }
+
+
 const DeleteStaffResponse = async (req, res) => {
     try {
         const { id } = req.params;
@@ -229,4 +313,4 @@ const DeleteStaffResponse = async (req, res) => {
     }
 };
 module.exports={StaffResponse,MoreInformation,ReviewedRequests,DeleteStaffResponse,
-    GetStaffResponses,ValidatePendingApprovals};
+    GetStaffResponses,ValidatePendingApprovals,GetOverallMonthlyRequests,MonthlyStaffRequest};

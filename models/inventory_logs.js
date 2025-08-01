@@ -21,7 +21,7 @@ const InventoryLogsSchema= new Schema({
     },
     category:{
         type:String,
-        required: [true, 'Category is required'],
+        
         enum: {
         values: ['procurement_items','lab_items',"HSE_materials","Office_items"],
         message: 'Invalid category'
@@ -29,7 +29,7 @@ const InventoryLogsSchema= new Schema({
     },
     Department:{
         type:String,
-        required:[true,"Department needed"],
+        
         enum:{
             values:["waste_management_dep","PVT","Environmental_lab_dep","accounts_dep","Human resources","Administration","IT","HSE_dep","Procurement_department","Contracts_Department","BD_Department","Engineering_Department"],
             message:"Department is invalid"

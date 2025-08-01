@@ -32,6 +32,7 @@ const testDBRoute = require("./routes/test-db");
 const inventorylogs=require("./routes/inventorylogs_route")
 const roles_departments=require("./routes/roles&departments")
 const monitoring=require("./routes/Monitoring_route")
+const Scheduling=require("./controllers/SchedulingRoutes")
 // Initialize Express
 const app = express();
 
@@ -107,6 +108,7 @@ app.use("/api/skiptrack", skiptrackRoutes);
 app.use("/api/inventorylogs",inventorylogs)
 app.use("/api/roles&departments",roles_departments)
 app.use("/api/monitoring",monitoring)
+app.use("/api/scheduling",Scheduling)
 
 
 app.use((req, res, next) => {
@@ -114,11 +116,12 @@ app.use((req, res, next) => {
     "/api/admin-user/login",
     "/api/fileupload",
     "/api/companydata",
-    "/api/orders/memo"
+    "/api/orders/memo",
+    "/api/disbursement-schedules/:id/submit"
     
   ];
 
-  const isUnsafeMethod = ["POST", "PUT", "PATCH", "DELETE"].includes(req.method);
+  const isUnsafeMethod = ["POST", "PUT", "DELETE"].includes(req.method);
   const isExcludedPath = csrfExcludedPaths.includes(req.path);
 
   if (isUnsafeMethod && !isExcludedPath) {

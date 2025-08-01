@@ -15,8 +15,8 @@ router.post("/",auth,monitorLogger,async(req,res)=>{
         }
         if(item.ADMIN_ROLES_DASHBOARD){
             rbac_object["ADMIN_ROLES_DASHBOARD"]=["procurement_officer", "human_resources", "internal_auditor", "global_admin","lab_supervisor",
-           "Financial_manager","waste_management_manager","accounts","waste_management_supervisor","Environmental_lab_manager","PVT_manager",
-           "QHSE_coordinator","Contracts_manager","Engineering_manager"];
+           "Financial_manager","Waste Management Manager","accounts","Waste Management Supervisor","Environmental_lab_manager","PVT_manager","Logistics Manager",
+           "QHSE Coordinator","Contracts_manager","Engineering_manager"];
     
         }
         if(item.GENERAL_ACCESS){
@@ -30,14 +30,19 @@ router.post("/",auth,monitorLogger,async(req,res)=>{
             
         }
         if (item.DEPARTMENTAL_ACCESS){
-            rbac_object["DEPARTMENTAL_ACCESS"]=["waste_management_manager","waste_management_supervisor","PVT_manager","Environmental_lab_manager","PVT_manager","lab_supervisor","QHSE_coordinator",
+            rbac_object["DEPARTMENTAL_ACCESS"]=["Waste Management Manager","Waste Management Supervisor","PVT_manager","Environmental_lab_manager","PVT_manager","lab_supervisor","QHSE Coordinator","Logistics Manager",
                 "Contracts_manager","Engineering_manager"]
                 
         }if(item.ADMIN_ROLES_GENERAL){
                 rbac_object["ADMIN_ROLES_GENERAL"]=["procurement_officer", "human_resources", "internal_auditor", "global_admin","admin","lab_supervisor",
-                    "Financial_manager","waste_management_manager","accounts","waste_management_supervisor","Environmental_lab_manager","PVT_manager",
-                    "QHSE_coordinator","Contracts_manager","Engineering_manager","admin"];
-                    
+                    "Financial_manager","Waste Management Manager","accounts","Waste Management Supervisor","Environmental_lab_manager","PVT_manager","Logistics Manager",
+                    "QHSE Coordinator","Contracts_manager","Engineering_manager","admin"];
+        if (item.PROTECTED_USERS){
+            console.log("was hit")
+            rbac_object["PROTECTED_USERS"]=[
+                "6830789898ef43e5803ea02c","68306b205302544582c59f35"
+            ]
+        }
         }if (item.ADMIN_ROLES_DEPARTMENT){
                 rbac_object["ADMIN_ROLES_DEPARTMENT"]=["admin","global_admin","human_resources"]
         }

@@ -79,20 +79,27 @@ router.put("/:id",csrfProtection,async(req,res)=>{
    try{
     const id=req.params.id
     const {Staff_Name, quantity, inventory_item,purpose ,status,category,Department}=req.body
+    console.log("request body inventory",req.body)
     const inventory_log_item=await inventory_logs.findById(id)
     if (Staff_Name){
       inventory_log_item.Staff_Name=Staff_Name
-    }else if(quantity){
+    }
+    if(quantity){
       inventory_log_item.quantity=quantity
-    }else if(inventory_item){
+    }
+    if(inventory_item){
+      console.log("inventory item",inventory_item)
       inventory_log_item.inventory_item=inventory_item
     }else if(status){
       inventory_log_item.status=status
     }else if(purpose){
       inventory_log_item.purpose=purpose
-    }else if (category){
+    }
+    if (category){
       inventory_log_item.category=category
-    }else if(Department){
+    }
+    if(Department){
+      console.log(Department)
       inventory_log_item.Department=Department
     }
 

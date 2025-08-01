@@ -35,7 +35,7 @@ const PurchaseOrderSchema = new Schema({
   filenames:{type:[String],default:[]},
   supplier: { type: String,  required: false },
   role:{type:String},
-  status: { type: String, enum: ["Pending", "Approved", "Completed", "Rejected","More Information"], default: "Pending" },
+  status: { type: String, enum: ["Pending", "Approved", "Completed", "Rejected","More Information", "Awaiting Funding"], default: "Pending" },
   urgency:{type:String, enum:["VeryUrgent","Urgent","NotUrgent"],default:"NotUrgent"},
   staffResponse:
     [{      

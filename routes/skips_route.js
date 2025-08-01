@@ -64,7 +64,7 @@ router.post("/export", auth, async (req, res) => {
     const { startDate, endDate, stream, fileName, fileFormat, WasteSource } = req.body;
 
     const query = {
-      DeliveryOfEmptySkips: {
+      DateMobilized: {
         $gte: new Date(startDate),
         $lte: new Date(endDate)
       }
@@ -73,12 +73,13 @@ router.post("/export", auth, async (req, res) => {
     if (stream && stream !== 'All') {
       query.WasteStream = stream;
     }
-    if (WasteSource ){
+    if (WasteSource && WasteSource !=="All" ){
       query.WasteSource=WasteSource
     }
-
+    console.log("stream and wastesource",stream,WasteSource)
+    console.log("query",query)
     const skipData = await skipsTracking.find(query).lean();
-
+    console.log(skipData)
     const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9-_]/g, '_');
     const timestamp = Date.now();
     const validFormats = ['xlsx', 'csv', 'pdf'];
@@ -279,21 +280,28 @@ router.post("/create",auth,async(req,res)=>{
 
 router.put("/:id", async (req, res) => {
   try {
-    const { id } = req.params; // lowercase `id`, must match route parameter
+    const { id } = req.params; 
 
     const {
       DeliveryWaybillNo,
+      DateMobilized,
+      DateReceivedOnLocation,
+      SkipsTruckDriver,
       Quantity,
       DispatchManifestNo,
       WasteTruckRegNo,
-      WasteDriverName, // make sure this matches your schema
+      WasteDriverName,
       DemobilizationOfFilledSkips,
       DateFilled
     } = req.body;
-
+    console.log("request body",req.body)
+    
     // Build the update payload
     const payload = {
-      DeliveryWaybill: DeliveryWaybillNo, // assuming your schema uses `DeliveryWaybill`
+      DeliveryWaybillNo,
+      SkipsTruckDriver,
+      DateReceivedOnLocation,
+      DateMobilized, 
       Quantity,
       DispatchManifestNo,
       WasteTruckRegNo,
@@ -308,6 +316,7 @@ router.put("/:id", async (req, res) => {
         delete payload[key];
       }
     });
+    console.log(payload)
 
     if (!id) {
       return res.status(400).json({ message: "Id not provided in URL" });

@@ -22,11 +22,20 @@ const {RequestActivity,IncomingRequest } = require("../controllers/notification"
 const csrfProtection=csrf({cookie:true})
 const { Document, Packer, Paragraph,AlignmentType,BorderStyle,ImageRun,Table,TableRow,TableBorders, TableCell,HeadingLevel,WidthType } = require('docx');
 const MoreInformation = require("../controllers/RequestController");
-const {ValidatePendingApprovals}=require("../controllers/RequestController");
+const {ValidatePendingApprovals,GetOverallMonthlyRequests,MonthlyStaffRequest}=require("../controllers/RequestController");
 const users_ = require("../models/users_");
+const poAnalyticsController=require("../controllers/RequestsAnalytics")
+
 router.get("/reviewed",auth,MoreInformation.ReviewedRequests)
 router.delete("/:id/staffresponse",auth,MoreInformation.DeleteStaffResponse)
 router.get("/staffresponses",auth,MoreInformation.GetStaffResponses)
+router.get('/analytics/purchase-orders', poAnalyticsController.getPOAnalytics);
+router.get('/DailyRequests',auth,GetOverallMonthlyRequests)
+router.get("/StaffRequests",MonthlyStaffRequest)
+// Specialized analytics endpoints
+router.get('/analytics/purchase-orders/status-distribution', poAnalyticsController.getPOStatusDistribution);
+router.get('/analytics/purchase-orders/urgency-stats', poAnalyticsController.getPOUrgencyStats);
+
 router.get("/accounts", auth,async (req, res) => {
   try {
     const { page, limit, skip } = getPagination(req);
@@ -202,6 +211,8 @@ router.get('/department', auth, async (req, res) => {
   }
 });
 
+
+
 //if user not admin order.Approvals is removed from document
 router.get("/:id", auth,async (req, res) => {
   try {
@@ -313,7 +324,7 @@ router.post("/", auth,csrfProtection, async (req, res) => {
     
     const new_Request=await newOrder.save();
     IncomingRequest(new_Request._id)
-
+    ValidatePendingApprovals(new_Request._id)
     const excelexport=await exporttoexcel();
     const exportgoogledrive=await exportToExcelAndUpload(newOrder._id);  
     console.log(exportgoogledrive)
@@ -766,6 +777,51 @@ router.put("/:id/approve", auth, async (req, res) => {
     res.status(500).json({ message: "Error processing approval"});
   }
 });
+router.put("/:id/funding", auth, async (req, res) => {
+  const { id: orderId } = req.params;
+  const { adminName ,comment} = req.body;
+  const user = req.user;
+
+  if (!user.canApprove) {
+    return res.status(403).json({ message: 'You are not authorized to review requests' });
+  }
+
+  try {
+    const order = await PurchaseOrder.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Remove any previous decisions from this admin
+    order.Approvals = (order.Approvals || []).filter(
+      a => a.admin !== adminName
+    );
+    
+
+    // Add new approval
+    const newApproval = {
+      admin: adminName,
+      status: "Awaiting Funding",
+      comment:comment,
+      timestamp: new Date()
+    };
+    order.Approvals.push(newApproval);
+
+    
+    
+    
+    const prev_Request=await order.save();
+    //RequestActivity(prev_Request._id)
+    return res.status(200).json({ 
+      message: "Awaiting Funding recorded successfully", 
+     
+    });
+
+  } catch (error) {
+    console.error("Error Updating order:", error);
+    res.status(500).json({ message: "Error processing approval"});
+  }
+});
 
 router.put("/:id/reject", auth, async (req, res) => {
   const { id: orderId } = req.params;
@@ -856,7 +912,7 @@ router.put("/:id/completed",auth,async(req,res)=>{
 router.put("/:id", async (req, res) => {
   try {
     const { status } = req.body;
-    const validStatuses = ["Pending", "Completed", "Rejected","Approved","More Information"];
+    const validStatuses = ["Pending", "Completed", "Rejected","Approved","More Information","Awaiting Funding"];
 
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: "Invalid status value" });

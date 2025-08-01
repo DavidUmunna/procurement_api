@@ -37,11 +37,15 @@ const downloadFileFromDrive = async (fileId, res) => {
     );
 
     // Get the file metadata (name and MIME type)
-    const meta = await drive.files.get({ fileId, fields: "name, mimeType" });
+    const meta = await drive.files.get({ fileId, fields: "name, mimeType, size" });
 
     const mimeType = meta.data.mimeType || "application/octet-stream";
     const fileName = meta.data.name || "downloaded_file";
-
+     
+    const fileSize = meta.data.size;
+    if (fileSize) {
+      res.setHeader("Content-Length", fileSize);
+    }
     // List of types to be displayed inline instead of downloaded
     const inlineTypes = [
       "image/png",

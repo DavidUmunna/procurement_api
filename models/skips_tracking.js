@@ -1,6 +1,4 @@
 
-
-
 const mongoose=require("mongoose")
 const timestamp = require("timestamp")
 
@@ -17,7 +15,7 @@ const SkipsTrackingSchema=mongoose.Schema({
         value: { type: Number,  }, // e.g., 1500
         unit: {
           type: String,
-          enum: ['kg', 'tonne'],
+          enum: ['kg', 'tonne','liters'],
           
         }
       },
