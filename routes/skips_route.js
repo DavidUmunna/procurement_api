@@ -290,7 +290,7 @@ router.put("/:id", async (req, res) => {
       Quantity,
       DispatchManifestNo,
       WasteTruckRegNo,
-      WasteDriverName,
+      WasteTruckDriverName,
       DemobilizationOfFilledSkips,
       DateFilled
     } = req.body;
@@ -305,7 +305,7 @@ router.put("/:id", async (req, res) => {
       Quantity,
       DispatchManifestNo,
       WasteTruckRegNo,
-      WasteDriverName,
+      WasteTruckDriverName,
       DemobilizationOfFilledSkips,
       DateFilled
     };
