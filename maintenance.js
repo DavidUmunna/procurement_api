@@ -1,10 +1,8 @@
 const mongoose = require("mongoose");
-const PurchaseOrder = require('./src/models/PurchaseOrder'); 
+
 //const orders=require("./models/PurchaseOrder")// Ensure you require the PurchaseOrder model
-const tasks=require("./src/models/tasks");
-const Department = require("./src/models/Department");
-const invetoryItem=require("./src/models/inventory");
-const InventoryItem = require("./src/models/inventory");
+
+const Activity=require("./models/Activity")
 // MongoDB connection URI
 const mongoURI = "mongodb://127.0.0.1:27017/procurement";
 
@@ -35,7 +33,10 @@ mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
             {"status":"Pending"}
 
           )*/
-         await InventoryItem.deleteMany()
+         //await InventoryItem.deleteMany()
+         const new_doc=await Activity.deleteMany()
+
+         await new_doc.save()
       console.log("All items deleted  successfully");
     } catch (error) {
       console.error("Error migrating all orders", error);

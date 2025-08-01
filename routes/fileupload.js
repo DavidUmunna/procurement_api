@@ -152,7 +152,7 @@ if (!fs.existsSync(uploadDir)) {
   try {
     const fileId= req.params.fileId;
     const filename=req.params.filename;
-    
+    console.log("checking for type error in fiileuploads:",fileId)
     // Find the document that contains this file
     const fileDoc = await file_.findById(fileId);
 

@@ -269,8 +269,6 @@ router.get('/department/all', auth,async (req, res) => {
     );
 
 
-    const global=[ "procurement_officer","human_resources","internal_auditor","global_admin","admin","waste_management"]
-    
     
     
 
