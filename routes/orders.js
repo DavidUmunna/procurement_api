@@ -712,7 +712,7 @@ router.post("/memo",async(req,res)=>{
 
     const buffer = await Packer.toBuffer(doc);
 
-    const filename = `memo-${request._id}.docx`;
+    const filename = `memo-${request.orderNumber}.docx`;
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
 
