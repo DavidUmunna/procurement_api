@@ -31,36 +31,42 @@ const GetOverallMonthlyRequests = async (req, res) => {
     try {
         const {Department}=req.query
         const query={}
-        if (Department){
-            query.Department=Department
-        }
         const now = new Date();
         const startOfDay = new Date(Date.UTC(
             now.getUTCFullYear(),
             now.getUTCMonth(),
         
-            0, 0, 0, 0
+            1, 0, 0, 0
         ));
         console.log("start of query",startOfDay)
         
         const endOfDay = new Date(Date.UTC(
             now.getUTCFullYear(),
-            now.getUTCMonth(),
-            23, 59, 59, 999
+            now.getUTCMonth()+1,
+            0,23, 59, 59, 999
         ));
         console.log("end of query",endOfDay)
         query.createdAt = {
             $gte: startOfDay,
             $lte: endOfDay,
         };
-        const Requests = await PurchaseOrder.find(
-            query);
-        const totalDailyRequests=Requests.length
+        const Requests = await PurchaseOrder.find(query).populate("staff")
+        const filteredRequests=Requests.filter((request)=>{
+            const plainRequest=request.toObject()
+            if(Department){
+                return plainRequest.staff.Department===Department
+            }
+            return true
+        }
+        
+        )
+        const totalDailyRequests=filteredRequests.length
         console.log("totalDaily",totalDailyRequests)
 
         res.status(200).json({
             message: "Total requests for today",
-            data: Requests,
+            total: filteredRequests.length,
+            data: Department? filteredRequests:Requests
         });
     } catch (error) {
         console.error("An error occurred", error);
@@ -74,8 +80,9 @@ const MonthlyStaffRequest=async(req,res)=>{
         
         const query={}
         if (userId){
-            query._id=userId
+            query.staff=userId
         }
+        console.log(query)
       
         const now = new Date();
         const startOfDay = new Date(Date.UTC(
@@ -95,9 +102,9 @@ const MonthlyStaffRequest=async(req,res)=>{
             $gte: startOfDay,
             $lte: endOfDay,
         };
-        const Requests = await PurchaseOrder.find(
-            query);
-        
+        const Requests = await PurchaseOrder.find(query)
+
+        console.log("Monthly:",Requests)
 
         res.status(200).json({
             message: "Total requests for today",
