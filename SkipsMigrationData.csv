@@ -1,4 +1,4 @@
-skip_id,DeliveryWaybillNo,DateMobilized,DateReceivedOnLocation,SkipsTruckReg No,SkipsTruckDriver,WasteStream,WasteSource
+skip_id,DeliveryWaybillNo,DateMobilized,DateReceivedOnLocation,SkipsTruckRegNo,SkipsTruckDriver,WasteStream,WasteSource
 "DM-039","03063","2025-03-05","NA","GBB 15 XB","JUDE ARINZE",Sludge,SEPNU
 "DM-032","03063","2025-03-05","NA","GBB 15 XB","JUDE ARINZE",Sludge,SEPNU
 "DM-028","03063","2025-03-05","NA","GBB 15 XB","JUDE ARINZE",Sludge,SEPNU
