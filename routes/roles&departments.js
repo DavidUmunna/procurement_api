@@ -31,12 +31,12 @@ router.post("/",auth,monitorLogger,async(req,res)=>{
         }
         if (item.DEPARTMENTAL_ACCESS){
             rbac_object["DEPARTMENTAL_ACCESS"]=["Waste Management Manager","Waste Management Supervisor","PVT_manager","Environmental_lab_manager","PVT_manager","lab_supervisor",
-                "Contracts_manager","Engineering_manager"]
+                "Contracts_manager","Engineering_manager","Facility Manager"]
                 
         }if(item.ADMIN_ROLES_GENERAL){
                 rbac_object["ADMIN_ROLES_GENERAL"]=["procurement_officer", "human_resources", "internal_auditor", "global_admin","admin","lab_supervisor",
                     "Financial_manager","Waste Management Manager","accounts","Waste Management Supervisor","Environmental_lab_manager","PVT_manager","Logistics Manager",
-                    "QHSE Coordinator","Contracts_manager","Engineering_manager","admin"];
+                    "QHSE Coordinator","Contracts_manager","Engineering_manager","admin","Facility Manager"];
         if (item.PROTECTED_USERS){
             console.log("was hit")
             rbac_object["PROTECTED_USERS"]=[
@@ -48,6 +48,11 @@ router.post("/",auth,monitorLogger,async(req,res)=>{
         }
         if (item.APPROVALS_LIST){
             rbac_object["APPROVALS_LIST"]=["accounts_dep"]
+        }
+        if (item.ALLROLES){
+            rbac_object["ALL_ROLES"]=["procurement_officer", "human_resources", "internal_auditor", "global_admin","admin",
+         "Financial_manager","Waste Management Manager","Waste Management Supervisor","lab_supervisor","Director","Environmental_lab_manager","PVT_manager","staff",
+         "Contracts_manager","Documentation_officer","Engineering_manager","QHSE Coordinator", "Logistics Manager", "Facility Manager"]
         }
         
         res.status(200).json({message:"items Delivered",data:rbac_object})

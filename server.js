@@ -117,7 +117,8 @@ app.use((req, res, next) => {
     "/api/fileupload",
     "/api/companydata",
     "/api/orders/memo",
-    "/api/disbursement-schedules/:id/submit"
+    "/api/disbursement-schedules/:id/submit",
+    "/api/scheduling/disbursement-schedules/:id"
     
   ];
 

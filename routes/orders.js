@@ -156,15 +156,20 @@ router.get("/", auth,monitorLogger,async (req, res) => {
     //res.status(500).json({ message: "Server error", error });
   }
 });
+
+
 router.get('/department', auth, async (req, res) => {
   try {
     const { Department } = req.query;
     const { page, limit, skip } = getPagination(req);
-
+    let total;
+    let paginatedOrders;
    
+    const Managers=["Waste Management Manager","Contracts_manager",
+    "Financial_manager","Environmental_lab_manager"]
     
     const allOrders = await PurchaseOrder.find()
-      .populate("staff", "Department email name ").populate("products","name quantity price")
+      .populate("staff", "Department email name  role").populate("products","name quantity price")
       .populate("PendingApprovals")
       .sort({ createdAt: -1 });
     
@@ -178,20 +183,23 @@ router.get('/department', auth, async (req, res) => {
       }
       return order.targetDepartment===Department}
     );
+    if (!Managers.includes(req.user.role)){
+      const NewFilteredOrders= filteredOrders.filter(order=>
+        !Managers.includes(order.staff.role)
+      )
+      console.log("New filtered orders",NewFilteredOrders,req.user.role)
+      total=NewFilteredOrders.length
+      paginatedOrders=NewFilteredOrders.slice(skip,skip+limit)
+    }else{
 
-    const total = filteredOrders.length;
+      
+      total = filteredOrders.length;
+      paginatedOrders = filteredOrders.slice(skip, skip + limit);
+    }
 
     // Paginate filtered orders manually
-    const paginatedOrders = filteredOrders.slice(skip, skip + limit);
 
-    const globalRoles = [
-      "procurement_officer",
-      "human_resources",
-      "internal_auditor",
-      "global_admin",
-      "admin",
-      "waste_management"
-    ];
+  
 
     const response = paginatedOrders.map(order => {
       const plainOrder = order.toObject();

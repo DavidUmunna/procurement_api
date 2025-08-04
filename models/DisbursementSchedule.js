@@ -15,11 +15,10 @@ const disbursementScheduleSchema = new mongoose.Schema({
     {
       requestId: { type: mongoose.Schema.Types.ObjectId, ref: "PurchaseOrder" },
       included: { type: Boolean, default: true }, // false if MD removed it
-      PaymentDetails:[
-        {type:mongoose.Schema.Types.ObjectId, ref:"paymentdetails"}
-      ]
+      
     },
   ],
+  AccountsComment:{type:String},
   mdComments: { type: String }, // optional comment by MD
   reviewedByMDAt: { type: Date },
   createdAt: { type: Date, default: Date.now },

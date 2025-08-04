@@ -227,5 +227,19 @@ router.patch('/disbursement-schedules/:id/submit', async (req, res) => {
 });
 
 
+router.delete("/disbursement-schedules/:id",auth,async(req,res)=>{
+  try{
+    const {id}=req.params
+
+    await DisbursementSchedule.findByIdAndDelete(id)
+   
+    res.status(200).json({message:"schedule deleted successfully"})
+  }catch(error){
+    console.error("An error occurrred",error)
+    res.status(500).json({message:"there was an error Deleting"})
+  }
+})
+
+
 
 module.exports=router;
