@@ -674,10 +674,41 @@ router.post("/memo",async(req,res)=>{
           bold: true,
           color: request.status === "Approved" ? "008000" : 
                 request.status === "Rejected" ? "FF0000" : "000000",
-          spacing: { after: 2000 }
+          spacing: { after: 1500 }
         }),
-
-    
+        new Table({
+          
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          borders: TableBorders.ALL,
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  children: [new Paragraph({ text: "Reviewer ", bold: true })],
+                  shading: { fill: "F2F2F2" }
+                }),
+                new TableCell({
+                  children: [new Paragraph({ text: "Status", bold: true })],
+                  shading: { fill: "F2F2F2" }
+                }),
+                new TableCell({
+                  children: [new Paragraph({ text: "Time/Date", bold: true })],
+                  shading: { fill: "F2F2F2" }
+                })
+              ]
+            }),
+            ...request.Approvals?.map(Admin => new TableRow({
+              children: [
+                new TableCell({ children: [new Paragraph({ text: Admin?.admin })] }),
+                new TableCell({ children: [new Paragraph({ text: Admin?.status.toString() })] }),
+                new TableCell({ children: [new Paragraph({ text: `${Admin.timestamp.toLocaleString()}` 
+                })] })
+              ]
+            }))
+          ],
+          spacing: { after: 600 }
+        }),
+        
         
        
 
