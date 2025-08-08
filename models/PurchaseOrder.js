@@ -6,9 +6,9 @@ const PurchaseOrderSchema = new Schema({
   orderNumber: { type: String, unique: true, default: () => `PO-${Date.now()}` },
   Title:{type:String,required:false},
   Approvals: [{
-    admin: String,      // e.g., "John Doe"
-    status: String,   
-    comment:String,  // e.g., "Approved" or "Rejected"
+    admin: String,     
+    status: String,  
+    comment:String,  
     timestamp: {        // When the action occurred
       type: Date,
       default: Date.now
