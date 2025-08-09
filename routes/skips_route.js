@@ -278,7 +278,7 @@ router.post("/create",auth,async(req,res)=>{
 
 
 
-router.put("/:id", async (req, res) => {
+router.put("/:id",auth, async (req, res) => {
   try {
     const { id } = req.params; 
 
