@@ -64,7 +64,7 @@ router.post("/export", auth, async (req, res) => {
     const { startDate, endDate, stream, fileName, fileFormat, WasteSource } = req.body;
 
     const query = {
-      DateMobilized: {
+      createdAt: {
         $gte: new Date(startDate),
         $lte: new Date(endDate)
       }
