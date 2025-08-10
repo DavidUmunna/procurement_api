@@ -1,6 +1,7 @@
 const express=require("express")
 const PurchaseOrder=require("../models/PurchaseOrder")
 const router=express.Router()
+const Exceljs=require("exceljs")
 const mongoose=require("mongoose")
 const auth=require("../middlewares/check-auth")
 const DisbursementSchedule=require("../models/DisbursementSchedule")
@@ -8,12 +9,50 @@ const { getPagination, getPagingData } = require("./pagination")
 // Get approved purchase orders
 router.get('/purchase-orders', async (req, res) => {
   const { status } = req.query;
-  const query = status ? { status } : {};
+  const query = status ? { 
+     $or: [
+    {
+      // Approved > 2
+      $expr: {
+        $gt: [
+          {
+            $size: {
+              $filter: {
+                input: "$Approvals",
+                as: "admin",
+                cond: { $eq: ["$$admin.status", "Approved"] }
+              }
+            }
+          },
+          2
+        ]
+      }
+    },
+    {
+      // At least 1 awaiting funding
+      $expr: {
+        $gte: [
+          {
+            $size: {
+              $filter: {
+                input: "$Approvals",
+                as: "admin",
+                cond: { $eq: ["$$admin.status", "Awaiting Funding"] }
+              }
+            }
+          },
+          1
+        ]
+      }
+    }
+  ]
+   } : {};
   
-  try {
-    const orders = await PurchaseOrder.find(query)
-      .sort({ createdAt: -1 }).populate("staff")
-    res.json(orders);
+   try {
+     const orders = await PurchaseOrder.find(query)
+     .sort({ createdAt: -1 }).populate("staff")
+   
+     res.json(orders);
   } catch (error) {
     console.error("an error occurred in get schedule",error)
     res.status(500).json({ message:"an error occured"});
@@ -93,7 +132,13 @@ router.get('/disbursement-schedules-unpaged', async (req, res) => {
     const schedules = await 
       DisbursementSchedule.find(query)
       .sort({ createdAt: -1 })
-      .populate('requests.requestId')
+      .populate({path:'requests.requestId',
+        populate: { // Nested population for staff reference
+          path: 'staff',
+          model: 'user', 
+          select: 'name email Department role' // Only include necessary staff fields
+        }
+      })
     
    
     res.json(schedules);
@@ -109,10 +154,10 @@ router.get('/disbursement-schedules/:id', async (req, res) => {
         path: 'requests.requestId',
         populate: { // Nested population for staff reference
           path: 'staff',
-          model: 'user', // Make sure this matches your User model name
+          model: 'user', 
           select: 'name email Department role' // Only include necessary staff fields
         },
-         // Only include necessary fields
+         
       })
       .lean(); // Convert to plain JS object
 
@@ -211,6 +256,93 @@ router.patch('/disbursement-schedules/:id/review', async (req, res) => {
     });
   } 
 });
+
+
+router.get("/accounts/export-schedule/:id", async (req, res) => {
+  try {
+    const schedule = await DisbursementSchedule.findById(req.params.id)
+      .populate({path: 'requests.requestId',
+        populate: { // Nested population for staff reference
+          path: 'staff',
+          model: 'user', 
+          select: 'name email Department role' // Only include necessary staff fields
+        },}).lean();
+
+    if (!schedule) {
+      return res.status(404).json({ message: "Schedule not found" });
+    }
+
+    // Create workbook & sheet
+    const workbook = new Exceljs.Workbook();
+    const worksheet = workbook.addWorksheet("Disbursement Schedule");
+
+    // Title row
+    worksheet.mergeCells("A1", "E1");
+    worksheet.getCell("A1").value = "Accounts Department - Disbursement Schedule";
+    worksheet.getCell("A1").font = { size: 16, bold: true };
+    worksheet.getCell("A1").alignment = { horizontal: "center" };
+
+    // Basic info
+    worksheet.addRow([]);
+    worksheet.addRow(["Name", schedule.name]);
+    worksheet.addRow(["Created By", schedule.createdBy]);
+    worksheet.addRow(["Total Amount", schedule.totalAmount]);
+    worksheet.addRow(["Status", schedule.status]);
+    worksheet.addRow(["Created At", schedule.createdAt.toDateString()]);
+    worksheet.addRow([]);
+
+    // Requests table header
+    worksheet.addRow(["#", "Order Number", "Title", "Requested By","Department", "Total Price"]).font = { bold: true };
+
+    // Requests table data
+    schedule.requests.filter((reqItem, index) => (reqItem.included===true &&(
+
+      worksheet.addRow([
+        index + 1,
+        reqItem.requestId?.orderNumber || reqItem.requestId,
+        reqItem.requestId?.Title,
+        reqItem.requestId?.staff.name,
+        reqItem.requestId?.staff.Department,
+        reqItem.requestId?.products.reduce(
+          (sum,product)=>(
+            sum+(product.price*product.quantity)
+          ),0
+        )
+      ])
+    )
+    ));
+
+    // Auto-fit columns
+    worksheet.columns.forEach(column => {
+      let maxLength = 0;
+      column.eachCell({ includeEmpty: true }, cell => {
+        const cellLength = cell.value ? cell.value.toString().length : 0;
+        if (cellLength > maxLength) {
+          maxLength = cellLength;
+        }
+      });
+      column.width = maxLength < 10 ? 10 : maxLength;
+    });
+
+    // Send Excel to client
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=schedule_${schedule._id}.xlsx`
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
+
 
 // Submit schedule to MD
 router.patch('/disbursement-schedules/:id/submit', async (req, res) => {
