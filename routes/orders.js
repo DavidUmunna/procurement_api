@@ -18,7 +18,7 @@ const usemonitor=require("../middlewares/usemonitor")
 const ExcelJS=require("exceljs")
 const monitorLogger=require("../middlewares/monitorLogger")
 const csrf=require("csurf");
-const {RequestActivity,IncomingRequest } = require("../controllers/notification");
+const {RequestActivity,IncomingRequest,ApprovedRequests } = require("../controllers/notification");
 const csrfProtection=csrf({cookie:true})
 const { Document, Packer, Paragraph,AlignmentType,BorderStyle,ImageRun,Table,TableRow,TableBorders, TableCell,HeadingLevel,WidthType } = require('docx');
 const MoreInformation = require("../controllers/RequestController");
@@ -39,7 +39,20 @@ router.get('/analytics/purchase-orders/urgency-stats', poAnalyticsController.get
 router.get("/accounts", auth,async (req, res) => {
   try {
     const { page, limit, skip } = getPagination(req);
-    const query = {status:{$in:["Approved","Completed"]}};
+    const query = { $expr: {
+        $gte: [
+          {
+            $size: {
+              $filter: {
+                input: "$Approvals",
+                as: "admin",
+                cond: { $eq: ["$$admin.status", "Approved"] }
+              }
+            }
+          },
+          2
+        ]
+      }};
 
     
     console.log(req.user)
@@ -62,19 +75,17 @@ router.get("/accounts", auth,async (req, res) => {
              
              
          ]);
-    console.log(orders)
-   const filteredOrders = orders.filter((order) => {
+   console.log(orders)
+  /*const filteredOrders = orders.filter((order) => {
   const status = order.status?.trim().toLowerCase();
   return ["approved", "completed"].includes(status);
-});
-    const response=(filteredOrders.map((order=>{
+  });*/
+    const response=(orders.map((order=>{
       const plainOrder=order.toObject()
-      if(!global.includes(req.user.role)){
-        delete  plainOrder.Approvals
-      }
+     
       return plainOrder
     })))
-    console.log(filteredOrders)
+    
 
     res.json({data:response,
       Pagination:getPagingData(total,page,limit)});
@@ -803,7 +814,10 @@ router.put("/:id/approve", auth, async (req, res) => {
       );
     }
     const prev_Request=await order.save();
-    RequestActivity(prev_Request._id)
+    if(prev_Request.Approvals.length>=3){
+      ApprovedRequests(prev_Request._id)
+    }
+    //RequestActivity(prev_Request._id)
     return res.status(200).json({ 
       message: "Approval recorded successfully", 
      

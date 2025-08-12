@@ -3,37 +3,50 @@ const Skip = require('../models/skips_tracking'); // Your Skip model
 
 exports.getSkipAnalytics = async (req, res) => {
   try {
-    const { startDate, endDate, groupBy = 'day' } = req.query;
+    const { startDate, endDate,DateField, groupBy = 'day' } = req.query;
     
     // Validate dates
     if (!startDate || !endDate) {
       return res.status(400).json({ error: 'Both startDate and endDate are required' });
     }
+    console.log(req.query)
 
     // Parse dates
     const start = new Date(startDate);
     const end = new Date(endDate);
+    const fieldMap = {
+      DM:"DateMobilized",
+      DRL:"DateReceivedOnLocation",
+      DD:"DemobilizationOfFilledSkips",
+      DF:"DateFilled"
+    };
     
+    // Get actual schema field name
+    const fieldName = fieldMap[DateField];
+
+    if (!fieldName) {
+      return res.status(400).json({ error: "Invalid date field" });
+    }
     // Group skips by time period
     let groupQuery;
     switch (groupBy) {
       case 'day':
         groupQuery = {
-          year: { $year: "$DemobilizationOfFilledSkips" },
-          month: { $month: "$DemobilizationOfFilledSkips" },
-          day: { $dayOfMonth: "$DemobilizationOfFilledSkips" }
+          year: { $year: `$${fieldName}` },
+          month: { $month: `$${fieldName}`},
+          day: { $dayOfMonth: `$${fieldName}`}
         };
         break;
       case 'week':
         groupQuery = {
-          year: { $year: "$DemobilizationOfFilledSkips" },
-          week: { $week: "$DemobilizationOfFilledSkips" }
+          year: { $year: `$${fieldName}` },
+          week: { $week: `$${fieldName}`}
         };
         break;
       case 'month':
         groupQuery = {
-          year: { $year: "$DemobilizationOfFilledSkips" },
-          month: { $month: "$DemobilizationOfFilledSkips" }
+          year: { $year: `$${fieldName}` },
+          month: { $month: `$${fieldName}` }
         };
         break;
       default:
@@ -47,7 +60,7 @@ exports.getSkipAnalytics = async (req, res) => {
   // 1) Filter to your date range on DateFilled
   {
     $match: {
-      DemobilizationOfFilledSkips: { $gte: start, $lte: end }
+      [fieldName]: { $gte: start, $lte: end }
     }
   },
 
@@ -57,7 +70,7 @@ exports.getSkipAnalytics = async (req, res) => {
       // Truncate DateFilled to midnight of that day
       day: {
         $dateTrunc: {
-          date: "$DemobilizationOfFilledSkips",
+          date: `$${fieldName}`,
           unit: "day"
         }
       },
@@ -125,7 +138,7 @@ function fillMissingDates(data, startDate, endDate, groupBy) {
   data.forEach(item => {
     const dateKey = groupBy === 'week' 
       ? `${new Date(item.date).getFullYear()}-${getWeekNumber(new Date(item.date))}`
-      : item.date.split('T')[0];
+      : item.date
     dataMap.set(dateKey, item);
   });
 

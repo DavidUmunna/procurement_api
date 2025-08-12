@@ -22,14 +22,87 @@ const notifications=async (Requests)=>{
     }
 
 }
+const ApprovedRequests=async(requestId)=>{
+    try{
+        const test_emails=['david.umunna@haldengroup.ng']
+        const new_request=await order.findById(requestId).populate("staff","-password -__v -role -canApprove -_id")
+        const users_list=(await users.find()).filter(user=>(
+            (user.role==="accounts"|| user.role==="Financial_manager")
+        ))
+        const emails=users_list.map(user=>(user.email))
+    
+        const FRONTEND_URL=process.env.FRONTEND_BASED_URL
+        const mailOptions = {
+        from: "Halden Resources Management <noreply@haldenresources.com>",
+        to: test_emails,
+        subject: `New Request Submitted: ${new_request.Title}`,
+        html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+            <div style="background-color: #2c3e50; padding: 25px; text-align: center; color: white;">
+                <h2 style="margin: 0; font-size: 22px;">New Request Notification</h2>
+                <p style="margin: 5px 0 0; opacity: 0.9; font-size: 14px;">Halden Resources Management</p>
+            </div>
+            
+            <div style="padding: 25px;">
+                <p style="margin-bottom: 20px;">Dear Team,</p>
+                
+                <p style="margin-bottom: 15px;">A new request has been submitted requiring your attention:</p>
+                
+                <div style="background-color: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; padding: 15px; margin-bottom: 20px;">
+                    <p style="margin: 0 0 10px; font-weight: bold; color: #2c3e50;">Request Details:</p>
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="width: 30%; padding: 5px 0; color: #7f8c8d;">Submitted By:</td>
+                            <td style="padding: 5px 0;">${new_request.staff.name}</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 30%; padding: 5px 0; color: #7f8c8d;">Title:</td>
+                            <td style="padding: 5px 0; font-weight: 500;">${new_request.Title}</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 30%; padding: 5px 0; color: #7f8c8d;">Date Submitted:</td>
+                            <td style="padding: 5px 0;">${new Date().toLocaleString()}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <p style="margin-bottom: 25px;">Please review this request at your earliest convenience:</p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${FRONTEND_URL}" 
+                       style="background-color: #2c3e50; color: white; padding: 12px 24px; 
+                              text-decoration: none; border-radius: 4px; display: inline-block;
+                              font-weight: bold; letter-spacing: 0.5px;">
+                        View Full Request Details
+                    </a>
+                </div>
+                
+                <p style="margin-bottom: 0;">Thank you for your prompt attention to this matter.</p>
+            </div>
+            
+            <div style="background-color: #f8f9fa; padding: 15px; text-align: center; 
+                        font-size: 12px; color: #7f8c8d; border-top: 1px solid #e0e0e0;">
+                <p style="margin: 0;">This is an automated notification. Please do not reply directly to this email.</p>
+                <p style="margin: 5px 0 0;">© ${new Date().getFullYear()} Halden Resources Management. All rights reserved.</p>
+            </div>
+        </div>
+        `
+        };
+        await transporter.sendMail(mailOptions)
+
+
+    }catch(error){
+        console.error("error originated from notification controller:",error)
+
+    }
+}
 const IncomingRequest=async (requestId)=>{
     try{
         const test_emails=['david.umunna@haldengroup.ng']
         const new_request=await order.findById(requestId).populate("staff","-password -__v -role -canApprove -_id")
         const users_list=(await users.find()).filter(user=>((user.canApprove===true && user.Department===new_request.staff.Department) || 
-            user.Department==="Human resources"||user.role==="internal_auditor" ||user.role==="global_admin"||user.role==="accounts" || user.role==="Financial_manager"))
+            user.Department==="Human resources"||user.role==="internal_auditor" ||user.role==="global_admin"))
         const emails=users_list.map(user=>(user.email))
-        console.log("the emails :",emails)
         const FRONTEND_URL=process.env.FRONTEND_BASED_URL
         const mailOptions = {
         from: "Halden Resources Management <noreply@haldenresources.com>",
@@ -329,4 +402,4 @@ const StaffResponseAlert = async (requestId) => {
        
     }
 };
-module.exports={notifications,IncomingRequest,RequestActivity,MoreInformationAlert,StaffResponseAlert};
+module.exports={notifications,IncomingRequest,RequestActivity,MoreInformationAlert,StaffResponseAlert,ApprovedRequests};

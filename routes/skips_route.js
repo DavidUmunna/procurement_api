@@ -14,22 +14,22 @@ router.get("/",auth,async(req,res)=>{
     try{
         const {page,limit,skip}=getPagination(req)
         const filter={}
-        const {WasteSource,startDate, EndDate,search}=req.filter;
+        const {WasteSource,startDate,endDate,search}=req.query;
 
         if (WasteSource && WasteSource!=='All') filter.WasteSource=WasteSource
-
+        
         if (search){
             filter.$or=[
                 {skip_id:{$regex:search, $option:'i'}},
 
             ]
         }
-        if (startDate && EndDate) {
+        if (startDate!=='' && endDate!=='') {
             const start = new Date(startDate);
-            const end = new Date(EndDate);
+            const end = new Date(endDate);
             end.setHours(23, 59, 59, 999); // include full end day
-        
-            filter.DeliveryOfEmptySkips = {
+            console.log("date still hit for some reason")
+            filter.DateMobilized = {
                 $gte: start,
                 $lte: end
             };
@@ -44,7 +44,7 @@ router.get("/",auth,async(req,res)=>{
         .lean()
         .skip(skip)
         .limit(limit)])
-        
+      
         if (!items){
             res.status(404).json({success:false,message:"file not found"})
         }
@@ -363,11 +363,12 @@ router.delete('/:id', auth, async (req, res) => {
 
 router.get('/stats', auth, async (req, res) => {
   try {
-    const { startDate, endDate } = req.query;
+    let { startDate, endDate } = req.query;
 
     // Validate dates
     if (!startDate || !endDate) {
-      return res.status(400).json({ success: false, message: 'Both startDate and endDate are required' });
+      startDate=new Date(new Date().setDate(1))
+      endDate=new Date()
     }
 
     // Create date filter (ensure dates are in proper format)

@@ -26,7 +26,7 @@ router.post("/",auth,monitorLogger,async(req,res)=>{
         }
         if (item.GENERAL_ACCESS_ORDERS){
             rbac_object["GENERAL_ACCESS_ORDERS"]=["procurement_officer", "human_resources", "internal_auditor", "global_admin",
-            "Financial_manager","Director",];
+            "Director",];
             
         }
         if (item.DEPARTMENTAL_ACCESS){
