@@ -222,11 +222,11 @@ router.patch('/disbursement-schedules/:id/review', async (req, res) => {
       return res.status(404).json({ error: 'Schedule not found' });
     }
 
-    // 2. Update removed requests to "On Hold" status (in transaction)
+    // 2. Update removed requests to "Awaitng Funding" status (in transaction)
     if (removedRequests.length > 0) {
       await PurchaseOrder.updateMany(
         { _id: { $in: removedRequests } },
-        { $set: { status: 'On Hold' } },
+        { $set: { status: 'Awaiting Funding' } },
         
       );
     }

@@ -8,18 +8,22 @@ const PurchaseOrderSchema = new Schema({
   Approvals: [{
     admin: String,     
     status: String,  
-    comment:String,  
+    comment:String,
+    role:String,  
     timestamp: {        // When the action occurred
       type: Date,
       default: Date.now
     }
   }],
-  PendingApprovals:[
-    {type:Schema.Types.ObjectId, ref:"user"}
+  PendingApprovals: [
+  {
+    Reviewer: { type: Schema.Types.ObjectId, ref: "user", required: false },
+    Level: { type: Number, enum: [1, 2, 3, 4], required: false }
+  }
   ],
-  products: [{name: { type: String, required: true }, 
-  quantity:{ type:Number , required:true},
-  price: { type: Number, required: true },
+  products: [{name: { type: String }, 
+  quantity:{ type:Number },
+  price: { type: Number },
   }],
   staff: {
     type: Schema.Types.ObjectId,

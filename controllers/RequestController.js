@@ -119,6 +119,10 @@ const MonthlyStaffRequest=async(req,res)=>{
     }
 }
 
+
+const ValidateToken=async()=>{
+    
+}
 const MoreInformation=async(req,res)=>{
     const {id:orderId}=req.params
     const {adminName,comment}=req.body
@@ -231,47 +235,49 @@ const GetStaffResponses=async(req,res)=>{
 
     }
 }
-const ValidatePendingApprovals=async(requestId)=>{
-    try{
-        const Approval_roles=["human_resources","internal_auditor"]
-        const NewRequest=await  PurchaseOrder.findById(requestId).populate("staff" )
-        const Users=await users.find()
-        const Managers=["Waste Management Manager","Contracts_manager",
-            "Financial_manager","Environmental_lab_manager"]
-        let required_approvers;
-        const MD_id="6830789898ef43e5803ea02c"
-        if(NewRequest.targetDepartment){
-               required_approvers=Users.filter(user=>(
-                
-                (user.canApprove===true&&
-                    user.Department===NewRequest.targetDepartment &&
-                user.name!==NewRequest.staff.name&& user.role!=="global_admin")||(user.canApprove===true && 
-                    !Managers.includes(user.role) && user.Department===NewRequest.targetDepartment
-                )
-                    || Approval_roles.includes(user.role) || String(user._id)===String(MD_id)
-                ))
-            }else{
+const ValidatePendingApprovals = async (requestId) => {
+  try {
+      const SecondLevel = ["human_resources", "internal_auditor"];
+      const Managers = ["Waste Management Manager", "Contracts_manager", "Financial_manager", "Environmental_lab_manager","Facility Manager"];
+    const DepartmentsWithManagers = ["waste_management_dep", "PVT", "Environmental_lab_dep"];
+    const MD_id = "6830789898ef43e5803ea02c";
 
-                required_approvers=Users.filter(user=>(
-                    
-                    
-                    (user.canApprove===true&&
-                    user.Department===NewRequest.staff.Department && 
-                    user.name!==NewRequest.staff.name && user.role!=="global_admin"&& Managers.includes(user.role))
-                    || Approval_roles.includes(user.role) || String(user._id)===String(MD_id)
-                    ))
-                } 
-            NewRequest.PendingApprovals = required_approvers.map(user => ({
-              _id: user._id,
-            }))
-            await NewRequest.save()
+    const NewRequest = await PurchaseOrder.findById(requestId).populate("staff");
+    if (!NewRequest) throw new Error("Request not found");
+
+    const allUsers = await users.find().lean();
+
+    const filterApprovers = (department) => allUsers.filter(user =>
+      (
+        user._id.toString() !== NewRequest.staff._id.toString() || // allow only if MD
+        user._id.toString() === MD_id
+      ) &&
+      (
+        (user.canApprove && user.Department === department && user.role !== "global_admin") ||
+        (user.canApprove && !Managers.includes(user.role) && user.Department === department &&user.role !== "global_admin") ||
+        SecondLevel.includes(user.role) ||
+        user._id.toString() === MD_id
+      )
+    );
 
 
-    }catch(error){
-        console.error("an error occured in the validation of approvers",error)
+    const requiredApprovers = NewRequest.targetDepartment
+      ? filterApprovers(NewRequest.targetDepartment)
+      : filterApprovers(NewRequest.staff.Department);
 
-    }
-}
+    NewRequest.PendingApprovals = requiredApprovers.map(user => {
+      let level = 1;
+      if (SecondLevel.includes(user.role)) level = 2;
+      if (user._id.toString() === MD_id) level = 3;
+      return { Reviewer: user._id, Level: level };
+    });
+
+    await NewRequest.save();
+  } catch (error) {
+    console.error("Error validating approvers", error);
+  }
+};
+
 
 
 const DeleteStaffResponse = async (req, res) => {

@@ -99,7 +99,7 @@ router.get("/all", auth,monitorLogger,async (req, res) => {
    
 
     
-
+    
     const global=[ "procurement_officer","human_resources","internal_auditor","global_admin","admin"]
     //const isAdmin= req.user.role==="admin"
     const orders=await PurchaseOrder.find().populate("staff",  "-password -__v -role -canApprove -_id")
@@ -127,37 +127,60 @@ router.get("/", auth,monitorLogger,async (req, res) => {
     console.log("role",role)
   
     console.log(req.user)
-    if (req.query.startDate && req.query.endDate) {
-      query.timestamp = {
-        $gte: new Date(req.query.startDate),
-        $lte: new Date(req.query.endDate)
-      };
-    }
+   
     
-    const global=[ "procurement_officer","human_resources","internal_auditor","global_admin","admin"]
+    const global=["procurement_officer","human_resources","internal_auditor","global_admin"]
+
     //const isAdmin= req.user.role==="admin"
-    const managers=["waste_management_manager","PVT_manager","Environmental_lab_manager","Financial_manager"]
+    const managers=["waste_management_manager","PVT_manager","Environmental_lab_manager","Facility Manager"]
     /*if (role!=="global_admin"){
       query.role={$nin:managers}
     }*/
-    const [total, orders] = await Promise.all([
-           PurchaseOrder.countDocuments(query),
-           PurchaseOrder.find(query)
-             .sort({ createdAt: -1 })
-             .skip(skip)
-             .limit(limit).populate("staff", "-password -__v  -canApprove -_id").populate("PendingApprovals")
+   let queryWithApprovals
+    if (req.user.userId==='6830789898ef43e5803ea02c'){
+      queryWithApprovals = {
+      ...query,
+      $or:[
+        {"staff":req.user.userId},
+        {"status":"Completed"},
+        {
+          PendingApprovals: { 
+            $not: { $elemMatch: { Level: {$in:[1,2]} } }
+          }
+        }
+        
+      ]
+    };
+    }else{
 
-             
-             
+      queryWithApprovals = {
+        ...query,
+        $or:[
+          {"staff":req.user.userId},
+          {"status":{$in:["Completed","Approved"]}},
+          {
+            PendingApprovals: { 
+              $not: { $elemMatch: { Level: 1 } }
+            }
+          }
+          
+        ]
+      };
+    }
+    const [total, orders] = await Promise.all([
+           PurchaseOrder.countDocuments(queryWithApprovals),
+           PurchaseOrder.find(queryWithApprovals)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .populate("staff", "-password -__v  -canApprove -_id")
+          .populate("PendingApprovals.Reviewer")
     ]);
-     const response = orders.map(order => {
-      const plainOrder = order.toObject();
-      /*if (!globalRoles.includes(req.user.role)) {
-        delete plainOrder.Approvals;
-      }*/
-      return plainOrder;
-    });
-    
+
+    const response = orders
+    .map(order => order.toObject())
+  
+    console.log("response count",orders.length,response.length)
   
     
     res.json({data:response,
@@ -175,13 +198,20 @@ router.get('/department', auth, async (req, res) => {
     const { page, limit, skip } = getPagination(req);
     let total;
     let paginatedOrders;
-   
+    let query={
+      $or:[
+        {"staff":req.user.userId},
+        {"status":{$in:["Completed","Approved"]}},
+        {"PendingApprovals.Level": {$in:[1]}}
+        
+      ]
+    }
     const Managers=["Waste Management Manager","Contracts_manager",
-    "Financial_manager","Environmental_lab_manager"]
+    "Financial_manager","Environmental_lab_manager","Facility Manager"]
     
-    const allOrders = await PurchaseOrder.find()
+    const allOrders = await PurchaseOrder.find(query)
       .populate("staff", "Department email name  role").populate("products","name quantity price")
-      .populate("PendingApprovals")
+      .populate("PendingApprovals.Reviewer")
       .sort({ createdAt: -1 });
     
 
@@ -236,7 +266,10 @@ router.get('/department', auth, async (req, res) => {
 router.get("/:id", auth,async (req, res) => {
   try {
       const { id } = req.params;
+       const { page, limit, skip } = getPagination(req);
       //const isAdmin= req.user.role==="admin"
+
+      console.log("req.params",id)
       const global=[ "procurement_officer","human_resources","internal_auditor","global_admin","admin"]
     if (!id) {
       return res.status(400).json({ error: "Email is required" });
@@ -244,11 +277,17 @@ router.get("/:id", auth,async (req, res) => {
     
 
     // Fetch user orders
-    const userRequests = await PurchaseOrder.find({ staff:id }).sort({createdAt:-1}).populate("staff", "-password -__v -role -canApprove -_id")
-    .populate("PendingApprovals")
-    .populate("products","name quantity price")
-    
-    const response=(userRequests.map((order=>{
+   const [total, userorders] = await Promise.all([
+           PurchaseOrder.countDocuments({staff:id}),
+           PurchaseOrder.find({staff:id})
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .populate("staff", "-password -__v  -canApprove -_id")
+          .populate("PendingApprovals.Reviewer")
+    ]);
+    console.log("userorders",userorders)
+    const response=(userorders.map((order=>{
       const plainOrder = order.toObject();
       /*if(!global.includes(req.user.role)){
         delete  plainOrder.Approvals
@@ -256,11 +295,14 @@ router.get("/:id", auth,async (req, res) => {
       return plainOrder
     })))
 
-    if (!userRequests.length) {
-      return res.status(404).json({ message: "No orders found for this email" });
+    if (!userorders.length) {
+      return res.status(404).json({ message: "No orders found for this user" });
     }
 
-    res.status(200).json(response);
+   res.json({
+      data: response,
+      Pagination: getPagingData(total, page, limit)
+    });
   } catch (error) {
     console.error("Error fetching user orders:", error);
     res.status(500).json({ error: "Failed to retrieve orders" });
@@ -321,7 +363,7 @@ router.post("/", auth,csrfProtection, async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
     const Department=User.Department
-
+    const managers=["waste_management_manager","PVT_manager","Environmental_lab_manager"]
     const newOrder = new PurchaseOrder({
       supplier,
       Title,
@@ -340,9 +382,11 @@ router.post("/", auth,csrfProtection, async (req, res) => {
     
     
     const new_Request=await newOrder.save();
+    //const PopulatedNewRequest=new_Request.populate("staff")
+  
     IncomingRequest(new_Request._id)
     ValidatePendingApprovals(new_Request._id)
-    const excelexport=await exporttoexcel();
+    
     const exportgoogledrive=await exportToExcelAndUpload(newOrder._id);  
     console.log(exportgoogledrive)
     res.status(200).json({success:true, newOrder });
@@ -810,11 +854,11 @@ router.put("/:id/approve", auth, async (req, res) => {
     console.log(approvingUser)
     if (order.PendingApprovals && order.PendingApprovals.length > 0) {
       order.PendingApprovals = order.PendingApprovals.filter(
-        userId => userId.toString() !== approvingUser._id.toString()
+        user => user.Reviewer.toString() !== approvingUser._id.toString()
       );
     }
     const prev_Request=await order.save();
-    if(prev_Request.Approvals.length>=3){
+    if(prev_Request.Approvals.length>3){
       ApprovedRequests(prev_Request._id)
     }
     //RequestActivity(prev_Request._id)

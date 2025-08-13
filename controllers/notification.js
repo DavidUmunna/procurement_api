@@ -100,13 +100,13 @@ const IncomingRequest=async (requestId)=>{
     try{
         const test_emails=['david.umunna@haldengroup.ng']
         const new_request=await order.findById(requestId).populate("staff","-password -__v -role -canApprove -_id")
-        const users_list=(await users.find()).filter(user=>((user.canApprove===true && user.Department===new_request.staff.Department) || 
-            user.Department==="Human resources"||user.role==="internal_auditor" ||user.role==="global_admin"))
+        const managers=["waste_management_manager","PVT_manager","Environmental_lab_manager"]
+        const users_list=(await users.find({role:{$in:managers}})).filter(user=>((user.Department===new_request.staff.Department)))
         const emails=users_list.map(user=>(user.email))
         const FRONTEND_URL=process.env.FRONTEND_BASED_URL
         const mailOptions = {
         from: "Halden Resources Management <noreply@haldenresources.com>",
-        to: emails,
+        to: test_emails,
         subject: `New Request Submitted: ${new_request.Title}`,
         html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto;">
@@ -183,7 +183,7 @@ const RequestActivity=async(requestId)=>{
         const decisions=prev_Request.Approvals.map(approval=>{return approval})
       const mailOptions = {
      from: `"Halden Resources Management" <${process.env.EMAIL_FROM}>`,
-     to: staff_emails,
+     to: test_emails,
      subject: `[Action Required] Update on Request: ${prev_Request.Title}`,
      html: `
        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
