@@ -1,6 +1,43 @@
 const {transporter}=require("../emailnotification/emailNotification")
 const order=require("../models/PurchaseOrder")
 const users=require("../models/users_")
+
+
+// utils/sendOtpEmail.js
+const nodemailer = require("nodemailer");
+
+async function sendOtpEmail(userEmail, otpCode) {
+  try {
+
+    const test_emails='david.umunna@haldengroup.ng'
+
+    const FRONTEND_URL=process.env.FRONTEND_BASED_URL
+       
+    // Email content
+    const mailOptions = {
+      from: "Halden Resources Management <noreply@haldenresources.com>",
+      to: userEmail,       
+      subject: "Your Approval OTP Code",
+      text: `Your one-time approval code is: ${otpCode}.\nThis code expires in 5 minutes.`,
+      html: `<p>Your one-time approval code is:</p>
+             <h2>${otpCode}</h2>
+             <p>This code expires in 5 minutes.</p>`
+    };
+
+    // Send the email
+    await transporter.sendMail(mailOptions);
+
+    console.log(`✅ OTP sent to ${userEmail}`);
+    return true;
+
+  } catch (error) {
+    console.error("❌ Error sending OTP email:", error);
+    return false;
+  }
+}
+
+module.exports = sendOtpEmail;
+
 const notifications=async (Requests)=>{
     try{
 
@@ -34,7 +71,7 @@ const ApprovedRequests=async(requestId)=>{
         const FRONTEND_URL=process.env.FRONTEND_BASED_URL
         const mailOptions = {
         from: "Halden Resources Management <noreply@haldenresources.com>",
-        to: test_emails,
+        to: emails,
         subject: `New Request Submitted: ${new_request.Title}`,
         html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto;">
@@ -106,7 +143,7 @@ const IncomingRequest=async (requestId)=>{
         const FRONTEND_URL=process.env.FRONTEND_BASED_URL
         const mailOptions = {
         from: "Halden Resources Management <noreply@haldenresources.com>",
-        to: test_emails,
+        to: emails,
         subject: `New Request Submitted: ${new_request.Title}`,
         html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto;">
@@ -183,7 +220,7 @@ const RequestActivity=async(requestId)=>{
         const decisions=prev_Request.Approvals.map(approval=>{return approval})
       const mailOptions = {
      from: `"Halden Resources Management" <${process.env.EMAIL_FROM}>`,
-     to: test_emails,
+     to: staff_emails,
      subject: `[Action Required] Update on Request: ${prev_Request.Title}`,
      html: `
        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
@@ -246,6 +283,7 @@ const RequestActivity=async(requestId)=>{
 
 const MoreInformationAlert=async(requestId)=>{
     try{
+        const test_emails=['david.umunna@haldengroup.ng']
         const prev_Request=await order.findById(requestId).populate("staff","-password -__v -role -canApprove -_id")
         const FRONTEND_URL=process.env.FRONTEND_BASED_URL
         staff_emails=[prev_Request.staff.email]
@@ -402,4 +440,6 @@ const StaffResponseAlert = async (requestId) => {
        
     }
 };
-module.exports={notifications,IncomingRequest,RequestActivity,MoreInformationAlert,StaffResponseAlert,ApprovedRequests};
+module.exports={notifications,IncomingRequest,RequestActivity,MoreInformationAlert,StaffResponseAlert,ApprovedRequests
+    ,sendOtpEmail
+};

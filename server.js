@@ -33,6 +33,7 @@ const inventorylogs=require("./routes/inventorylogs_route")
 const roles_departments=require("./routes/roles&departments")
 const monitoring=require("./routes/Monitoring_route")
 const Scheduling=require("./controllers/SchedulingRoutes")
+const Otp=require("./routes/OTP_route")
 // Initialize Express
 const app = express();
 
@@ -109,6 +110,7 @@ app.use("/api/inventorylogs",inventorylogs)
 app.use("/api/roles&departments",roles_departments)
 app.use("/api/monitoring",monitoring)
 app.use("/api/scheduling",Scheduling)
+app.use("/api/otp",Otp)
 
 
 app.use((req, res, next) => {
@@ -118,7 +120,8 @@ app.use((req, res, next) => {
     "/api/companydata",
     "/api/orders/memo",
     "/api/disbursement-schedules/:id/submit",
-    "/api/scheduling/disbursement-schedules/:id"
+    "/api/scheduling/disbursement-schedules/:id",
+    "/api/otp/"
     
   ];
 

@@ -30,7 +30,7 @@ router.post("/",auth,monitorLogger,async(req,res)=>{
             
         }
         if (item.DEPARTMENTAL_ACCESS){
-            rbac_object["DEPARTMENTAL_ACCESS"]=["Waste Management Manager","Waste Management Supervisor","PVT_manager","Environmental_lab_manager","PVT_manager","lab_supervisor",
+            rbac_object["DEPARTMENTAL_ACCESS"]=["Waste Management Manager","PVT_manager","Environmental_lab_manager","PVT_manager","lab_supervisor",
                 "Contracts_manager","Engineering_manager","Facility Manager"]
                 
         }if(item.ADMIN_ROLES_GENERAL){

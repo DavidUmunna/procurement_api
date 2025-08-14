@@ -24,7 +24,8 @@ const { Document, Packer, Paragraph,AlignmentType,BorderStyle,ImageRun,Table,Tab
 const MoreInformation = require("../controllers/RequestController");
 const {ValidatePendingApprovals,GetOverallMonthlyRequests,MonthlyStaffRequest}=require("../controllers/RequestController");
 const users_ = require("../models/users_");
-const poAnalyticsController=require("../controllers/RequestsAnalytics")
+const poAnalyticsController=require("../controllers/RequestsAnalytics");
+const twoFactorVerify = require("../middlewares/TwoFactorVerify");
 
 router.get("/reviewed",auth,MoreInformation.ReviewedRequests)
 router.delete("/:id/staffresponse",auth,MoreInformation.DeleteStaffResponse)
@@ -208,7 +209,7 @@ router.get('/department', auth, async (req, res) => {
     }
     const Managers=["Waste Management Manager","Contracts_manager",
     "Financial_manager","Environmental_lab_manager","Facility Manager"]
-    
+    const subordinates=["Facility Manager","Waste Management Supervisor","lab_supervisor"]
     const allOrders = await PurchaseOrder.find(query)
       .populate("staff", "Department email name  role").populate("products","name quantity price")
       .populate("PendingApprovals.Reviewer")
@@ -224,7 +225,7 @@ router.get('/department', auth, async (req, res) => {
       }
       return order.targetDepartment===Department}
     );
-    if (!Managers.includes(req.user.role)){
+    if(subordinates.includes(req.user.role)){
       const NewFilteredOrders= filteredOrders.filter(order=>
         !Managers.includes(order.staff.role)
       )
@@ -817,7 +818,7 @@ router.post("/memo",async(req,res)=>{
   }
 });
 
-router.put("/:id/approve", auth, async (req, res) => {
+router.put("/:id/approve", auth,twoFactorVerify, async (req, res) => {
   const { id: orderId } = req.params;
   const { adminName ,comment} = req.body;
   const user = req.user;
@@ -827,7 +828,7 @@ router.put("/:id/approve", auth, async (req, res) => {
   }
 
   try {
-    const order = await PurchaseOrder.findById(orderId);
+    const order = await PurchaseOrder.findById(orderId)
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
@@ -840,7 +841,11 @@ router.put("/:id/approve", auth, async (req, res) => {
     if (!approvingUser) {
       return res.status(404).json({ message: "Approving user not found" });
     }
+    const pendingApprovalsids=order.PendingApprovals.map((user)=>{return user.Reviewer.toString()})
 
+    if (!pendingApprovalsids.includes(user.userId.toString())){
+      return res.status(403).json({ message: 'You are not authorized to approve this  requests' });
+    }
     // Add new approval
     const newApproval = {
       admin: adminName,
@@ -850,13 +855,14 @@ router.put("/:id/approve", auth, async (req, res) => {
     };
     order.Approvals.push(newApproval);
 
-    console.log(order.PendingApprovals)
+    
     console.log(approvingUser)
     if (order.PendingApprovals && order.PendingApprovals.length > 0) {
       order.PendingApprovals = order.PendingApprovals.filter(
         user => user.Reviewer.toString() !== approvingUser._id.toString()
       );
     }
+
     const prev_Request=await order.save();
     if(prev_Request.Approvals.length>3){
       ApprovedRequests(prev_Request._id)
@@ -918,7 +924,7 @@ router.put("/:id/funding", auth, async (req, res) => {
   }
 });
 
-router.put("/:id/reject", auth, async (req, res) => {
+router.put("/:id/reject", auth,twoFactorVerify, async (req, res) => {
   const { id: orderId } = req.params;
   const { adminName, comment } = req.body;
   const user = req.user;
@@ -928,16 +934,14 @@ router.put("/:id/reject", auth, async (req, res) => {
   }
 
   try {
+    const SecondLevel = ["human_resources", "internal_auditor"];
+    const Managers = ["Waste Management Manager", "Contracts_manager", "Financial_manager", "Environmental_lab_manager","Facility Manager","procurement_officer"];
+    const MD_id = "6830789898ef43e5803ea02c";
     const order = await PurchaseOrder.findById(orderId);
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
-
-    // Check if this specific admin already rejected
-    
-   
-  
-   
+ 
     
     
     order.Approvals = (order.Approvals || []).filter(
@@ -948,6 +952,12 @@ router.put("/:id/reject", auth, async (req, res) => {
       return res.status(404).json({ message: "Approving user not found" });
     }
 
+    const pendingApprovalsids=order.PendingApprovals.map((user)=>{return user.Reviewer.toString()})
+
+    if (!pendingApprovalsids.includes(user.userId.toString())){
+      return res.status(403).json({ message: 'You are not authorized to Reject this  requests' });
+    }
+
     // Add new rejection (keeping any previous decisions)
     order.Approvals.push({
       admin: adminName,
@@ -955,10 +965,7 @@ router.put("/:id/reject", auth, async (req, res) => {
       comment:comment,
       timestamp: new Date()
     });
-    if(!order.PendingApprovals.includes(approvingUser._id)){
-
-      order.PendingApprovals.push(approvingUser._id)
-    }
+  
 
     const prev_Request=await order.save();
     RequestActivity(prev_Request._id)

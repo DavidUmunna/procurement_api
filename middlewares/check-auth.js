@@ -12,7 +12,7 @@ router.use(cookieParser()); // Ensure this is added in your main app.js
 router.use(async (req, res, next) => {
   try {
     const sessionId = req.cookies.sessionId
-    console.log("sessionId",sessionId)
+   
     if (!sessionId) {
       return res.status(401).json({
         authenticated: false,
@@ -30,7 +30,7 @@ router.use(async (req, res, next) => {
     }
 
     const user = JSON.parse(sessionData);
-
+    console.log("user data:",user)
     // Optional: refresh TTL on every request
     await redisClient.expire(`session:${sessionId}`, 1200); // Extend 15 min TTL
 
