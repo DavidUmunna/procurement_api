@@ -121,7 +121,7 @@ const MonthlyStaffRequest=async(req,res)=>{
 
 
 const ValidateToken=async()=>{
-    
+
 }
 const MoreInformation=async(req,res)=>{
     const {id:orderId}=req.params
@@ -131,6 +131,9 @@ const MoreInformation=async(req,res)=>{
         return res.status(403).json({message:'you are not authorized to approve requests'})
     }
     try{
+        const SecondLevel = ["human_resources", "internal_auditor"];
+        const Managers = ["Waste Management Manager", "Contracts_manager", "Financial_manager", "Environmental_lab_manager","Facility Manager","procurement_officer"];
+        const MD_id = "6830789898ef43e5803ea02c";
         const request=await PurchaseOrder.findById(orderId)
         if (!request){
             return res.status(404).json({message:"request not found"})
@@ -151,10 +154,7 @@ const MoreInformation=async(req,res)=>{
         }
 
         request.Approvals.push(newDecision)
-        if(!request.PendingApprovals.includes(approvingUser._id)){
-
-          request.PendingApprovals.push(approvingUser._id)
-        }
+       
         const prev_Request=await request.save()
         MoreInformationAlert(prev_Request._id)
         return res.status(200).json({
@@ -241,29 +241,43 @@ const ValidatePendingApprovals = async (requestId) => {
       const Managers = ["Waste Management Manager", "Contracts_manager", "Financial_manager", "Environmental_lab_manager","Facility Manager"];
     const DepartmentsWithManagers = ["waste_management_dep", "PVT", "Environmental_lab_dep"];
     const MD_id = "6830789898ef43e5803ea02c";
-
     const NewRequest = await PurchaseOrder.findById(requestId).populate("staff");
     if (!NewRequest) throw new Error("Request not found");
 
     const allUsers = await users.find().lean();
 
-    const filterApprovers = (department) => allUsers.filter(user =>
+    const filterApprovers = (department, requestOwnerRole) => {
+  return allUsers.filter(user => {
+    // --- EXCLUSION RULE ---
+    // Facility Manager cannot approve Waste Management Manager requests
+    if (
+      requestOwnerRole === "Waste Management Manager" &&
+      user.role === "Facility Manager"
+    ) {
+      return false;
+    }
+
+    // --- EXISTING FILTERS ---
+    return (
       (
         user._id.toString() !== NewRequest.staff._id.toString() || // allow only if MD
         user._id.toString() === MD_id
       ) &&
       (
         (user.canApprove && user.Department === department && user.role !== "global_admin") ||
-        (user.canApprove && !Managers.includes(user.role) && user.Department === department &&user.role !== "global_admin") ||
+        (user.canApprove && !Managers.includes(user.role) && user.Department === department && user.role !== "global_admin") ||
         SecondLevel.includes(user.role) ||
         user._id.toString() === MD_id
       )
-    );
+        );
+      });
+    };
 
 
     const requiredApprovers = NewRequest.targetDepartment
-      ? filterApprovers(NewRequest.targetDepartment)
-      : filterApprovers(NewRequest.staff.Department);
+    ? filterApprovers(NewRequest.targetDepartment, NewRequest.staff.role)
+    : filterApprovers(NewRequest.staff.Department, NewRequest.staff.role);
+
 
     NewRequest.PendingApprovals = requiredApprovers.map(user => {
       let level = 1;
