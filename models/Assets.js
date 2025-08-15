@@ -21,7 +21,7 @@ const AssetItemSchema = new Schema({
     type: String,
     required: [true, 'Condition is required'],
     enum: {
-      values: ['New', 'Used', 'Refurbished', 'Damaged'],
+      values: ['New', 'Used', 'Refurbished', 'Damaged',"OK"],
       message: 'Invalid condition'
     },
     default: 'New'
@@ -50,7 +50,7 @@ const AssetItemSchema = new Schema({
   
   location: {
     type:String,
-    default:"main_office"
+    default:"Head Office"
   },
  
   lastUpdated: {

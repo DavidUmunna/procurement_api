@@ -82,7 +82,7 @@ const MonthlyStaffRequest=async(req,res)=>{
         if (userId){
             query.staff=userId
         }
-        console.log(query)
+       
       
         const now = new Date();
         const startOfDay = new Date(Date.UTC(
@@ -90,14 +90,14 @@ const MonthlyStaffRequest=async(req,res)=>{
             now.getUTCMonth(),
             0, 0, 0, 0
         ));
-        console.log("start of query",startOfDay)
+
         const endOfDay = new Date(Date.UTC(
             now.getUTCFullYear(),
             now.getUTCMonth(),
 
             23, 59, 59, 999
         ));
-        console.log("end of query",endOfDay)
+
         query.createdAt = {
             $gte: startOfDay,
             $lte: endOfDay,
@@ -120,9 +120,6 @@ const MonthlyStaffRequest=async(req,res)=>{
 }
 
 
-const ValidateToken=async()=>{
-
-}
 const MoreInformation=async(req,res)=>{
     const {id:orderId}=req.params
     const {adminName,comment}=req.body

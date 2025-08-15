@@ -100,7 +100,7 @@ router.post('/', auth,csrfProtection,async (req, res) => {
     });
 
     await new_user.save();
-    res.status(201).json({success:true,new_user});
+    res.status(201).json({success:true,message:"User creation was successful"});
 
   } catch (error) {
     console.error(error);

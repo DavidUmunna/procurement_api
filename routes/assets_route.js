@@ -3,7 +3,7 @@ const router = express.Router();
 const AssetItem = require('../models/Assets');
 const auth = require('../middlewares/check-auth');
 const { getPagination,getPagingData } = require('../controllers/pagination');
-
+const ExcelJS=require('exceljs')
 function generateSKU(name) {
   if (name && typeof name !=="string") return
   const prefix = name.substring(0, 3).toUpperCase(); 
@@ -165,7 +165,7 @@ router.get('/stats', auth, async (req, res) => {
     const totalvalue = await AssetItem.aggregate([
       { $group: { _id: null, count: { $sum: '$value' } } }
     ]);
-    console.log(totalvalue)
+   
     res.json({
       success: true,
       data: {
@@ -178,6 +178,96 @@ router.get('/stats', auth, async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server Error' });
+  }
+});
+
+router.post("/export", async (req, res) => {
+  try {
+    const { startDate, endDate, category, filename } = req.body;
+
+    // Input validation
+    if (!startDate || !endDate || !filename) {
+      return res.status(400).json({ message: "startDate, endDate, and filename are required" });
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({ message: "Invalid date format" });
+    }
+
+    if (start > end) {
+      return res.status(400).json({ message: "startDate must be before endDate" });
+    }
+
+    const query = {
+      createdAt: {
+        $gte: start,
+        $lte: end
+      }
+    };
+
+    if (category && category !== "All") {
+      query.category = category;
+    }
+    console.log(category)
+
+    const assetItems = await AssetItem.find(query).lean();
+    
+    if (filename && typeof filename === "string") {
+      const sanitizedFileName = filename.replace(/[^a-zA-Z0-9-_]/g, '_');
+      const timestamp = Date.now();
+      
+      res.setHeader('Cache-Control', 'no-store');
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=${sanitizedFileName}-${timestamp}.xlsx`);
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Asset Items');
+    
+    // Define headers based on AssetItemSchema
+    worksheet.columns = [
+      { header: "Name", key: "name", width: 25 },
+      { header: "Category", key: "category", width: 20 },
+      { header: "Condition", key: "condition", width: 15 },
+      { header: "SKU", key: "sku", width: 20 },
+      { header: "Quantity", key: "quantity", width: 15 },
+      { header: "Value", key: "value", width: 15 },
+      { header: "Description", key: "description", width: 30 },
+      { header: "Location", key: "location", width: 20 },
+      { header: "Active", key: "active", width: 10 },
+      { header: "Last Updated", key: "lastUpdated", width: 20 },
+      { header: "Created At", key: "createdAt", width: 20 }
+    ];
+
+    // Add rows for each asset item
+    assetItems.forEach((item) => {
+      worksheet.addRow({
+        name: item.name || '',
+        category: item.category || '',
+        condition: item.condition || '',
+        sku: item.sku || '',
+        quantity: item.quantity || 0,
+        value: item.value || 0,
+        description: item.description || '',
+        location: item.location || 'Head Office',
+        active: item.active ? 'Yes' : 'No',
+        lastUpdated: item.lastUpdated instanceof Date 
+          ? item.lastUpdated.toISOString().slice(0, 10) 
+          : (item.lastUpdated?.slice(0, 10) || ''),
+        createdAt: item.createdAt instanceof Date 
+          ? item.createdAt.toISOString().slice(0, 10) 
+          : (item.createdAt?.slice(0, 10) || '')
+      });
+    });
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error("Error exporting asset items:", error);
+    res.status(500).json({ message: "Server error during export" });
   }
 });
 
