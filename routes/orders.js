@@ -69,7 +69,7 @@ router.get("/accounts", auth,async (req, res) => {
     
    const [total, orders] = await Promise.all([
            PurchaseOrder.countDocuments(query),
-           PurchaseOrder.find(query).populate("staff", "-password -__v -role -canApprove -_id").populate("PendingApprovals")
+           PurchaseOrder.find(query).populate("staff", "-password -__v -role -canApprove -_id").populate("PendingApprovals.Reviewer")
              .sort({ createdAt: -1 })
              .skip(skip)
              .limit(limit)
