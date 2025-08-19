@@ -840,7 +840,7 @@ router.post("/memo",async(req,res)=>{
   }
 });
 
-router.put("/:id/approve", auth,twoFactorVerify, async (req, res) => {
+router.put("/:id/approve", auth, async (req, res) => {
   const { id: orderId } = req.params;
   const { adminName ,comment,SignatureData} = req.body;
   const user = req.user;

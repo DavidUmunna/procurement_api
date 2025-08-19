@@ -9,7 +9,7 @@ async function createApprovalOTP(req, res) {
       userId: req.user.userId,
       code: otpCode,
       purpose: "Approval",
-      expiresAt: Date.now() + 5 * 60 * 1000 // 5 minutes from now
+      expiresAt: Date.now() + 6*24* 60 * 1000 // 5 minutes from now
     });
 
     await sendOtpEmail(req.user.email, otpCode);
