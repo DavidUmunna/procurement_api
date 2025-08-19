@@ -26,6 +26,9 @@ const {ValidatePendingApprovals,GetOverallMonthlyRequests,MonthlyStaffRequest}=r
 const users_ = require("../models/users_");
 const poAnalyticsController=require("../controllers/RequestsAnalytics");
 const twoFactorVerify = require("../middlewares/TwoFactorVerify");
+const UAParser = require("ua-parser-js");
+const { CreateSignature } = require("../controllers/Signature_Controllers");
+
 
 router.get("/reviewed",auth,MoreInformation.ReviewedRequests)
 router.delete("/:id/staffresponse",auth,MoreInformation.DeleteStaffResponse)
@@ -56,7 +59,7 @@ router.get("/accounts", auth,async (req, res) => {
       }};
 
     
-    console.log(req.user)
+  
     if (req.query.startDate && req.query.endDate) {
       query.timestamp = {
         $gte: new Date(req.query.startDate),
@@ -76,7 +79,7 @@ router.get("/accounts", auth,async (req, res) => {
              
              
          ]);
-   console.log(orders)
+   
   /*const filteredOrders = orders.filter((order) => {
   const status = order.status?.trim().toLowerCase();
   return ["approved", "completed"].includes(status);
@@ -125,9 +128,7 @@ router.get("/", auth,monitorLogger,async (req, res) => {
     const {role}=req.query
     const { page, limit, skip } = getPagination(req);
     const query = {};
-    console.log("role",role)
   
-    console.log(req.user)
    
     
     const global=["procurement_officer","human_resources","internal_auditor","global_admin"]
@@ -229,7 +230,7 @@ router.get('/department', auth, async (req, res) => {
       const NewFilteredOrders= filteredOrders.filter(order=>
         !Managers.includes(order.staff.role)
       )
-      console.log("New filtered orders",NewFilteredOrders,req.user.role)
+
       total=NewFilteredOrders.length
       paginatedOrders=NewFilteredOrders.slice(skip,skip+limit)
     }else{
@@ -287,7 +288,7 @@ router.get("/:id", auth,async (req, res) => {
           .populate("staff", "-password -__v  -canApprove -_id")
           .populate("PendingApprovals.Reviewer")
     ]);
-    console.log("userorders",userorders)
+   
     const response=(userorders.map((order=>{
       const plainOrder = order.toObject();
       /*if(!global.includes(req.user.role)){
@@ -518,6 +519,7 @@ router.post("/memo",async(req,res)=>{
 
     const request = await PurchaseOrder.findById(requestId)
       .populate("staff", "name Department email")
+      .populate("Approvals.signature")
       .lean();
 
     if (!request) return res.status(404).json({ message: 'Request not found' });
@@ -732,39 +734,59 @@ router.post("/memo",async(req,res)=>{
                 request.status === "Rejected" ? "FF0000" : "000000",
           spacing: { after: 1500 }
         }),
-        new Table({
+       new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            borders: TableBorders.ALL,
+            rows: [
+              new TableRow({
+                children: [
+                  new TableCell({
+                    children: [new Paragraph({ text: "Reviewer", bold: true })],
+                    shading: { fill: "F2F2F2" }
+                  }),
+                  new TableCell({
+                    children: [new Paragraph({ text: "Status(verified)", bold: true })],
+                    shading: { fill: "F2F2F2" }
+                  }),
+                  new TableCell({
+                    children: [new Paragraph({ text: "Signature", bold: true })],
+                    shading: { fill: "F2F2F2" }
+                  }),
+                  new TableCell({
+                    children: [new Paragraph({ text: "Time/Date", bold: true })],
+                    shading: { fill: "F2F2F2" }
+                  })
+                ]
+              }),
+              ...request.Approvals?.map(Admin => new TableRow({
+                children: [
+                  new TableCell({ children: [new Paragraph({ text: Admin?.admin })] }),
+                  new TableCell({ children: [new Paragraph({ text: Admin?.status.toString() })] }),
           
-          width: { size: 100, type: WidthType.PERCENTAGE },
-          borders: TableBorders.ALL,
-          rows: [
-            new TableRow({
-              children: [
-                new TableCell({
-                  children: [new Paragraph({ text: "Reviewer ", bold: true })],
-                  shading: { fill: "F2F2F2" }
-                }),
-                new TableCell({
-                  children: [new Paragraph({ text: "Status", bold: true })],
-                  shading: { fill: "F2F2F2" }
-                }),
-                new TableCell({
-                  children: [new Paragraph({ text: "Time/Date", bold: true })],
-                  shading: { fill: "F2F2F2" }
-                })
-              ]
-            }),
-            ...request.Approvals?.map(Admin => new TableRow({
-              children: [
-                new TableCell({ children: [new Paragraph({ text: Admin?.admin })] }),
-                new TableCell({ children: [new Paragraph({ text: Admin?.status.toString() })] }),
-                new TableCell({ children: [new Paragraph({ text: `${Admin.timestamp.toLocaleString()}` 
-                })] })
-              ]
-            }))
-          ],
-          spacing: { after: 600 }
-        }),
-        
+                  // ✅ If signature is an image
+                  new TableCell({
+                    children: Admin?.signature?.SignatureData
+                      ? [new Paragraph({
+                          children: [
+                            new ImageRun({
+                              data: Buffer.from(Admin.signature.SignatureData.split(",")[1], "base64"),
+                              transformation: { width: 80, height: 30 }
+                            })
+                          ]
+                        })]
+                      : [new Paragraph({ text: "No Signature" })]
+                  }),
+          
+                  // Time/Date
+                  new TableCell({
+                    children: [new Paragraph({ text: new Date(Admin.timestamp).toLocaleString() })]
+                  })
+                ]
+              }))
+            ],
+            spacing: { after: 600 }
+          }),
+
         
        
 
@@ -820,9 +842,12 @@ router.post("/memo",async(req,res)=>{
 
 router.put("/:id/approve", auth,twoFactorVerify, async (req, res) => {
   const { id: orderId } = req.params;
-  const { adminName ,comment} = req.body;
+  const { adminName ,comment,SignatureData} = req.body;
   const user = req.user;
-
+  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+  const parser = new UAParser(req.headers["user-agent"]);
+  const deviceInfo = parser.getResult();
+  console.log("device info",deviceInfo)
   if (!user.canApprove) {
     return res.status(403).json({ message: 'You are not authorized to approve requests' });
   }
@@ -832,6 +857,9 @@ router.put("/:id/approve", auth,twoFactorVerify, async (req, res) => {
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
+
+    const device=deviceInfo.device
+
 
     // Remove any previous decisions from this admin
     order.Approvals = (order.Approvals || []).filter(
@@ -846,6 +874,8 @@ router.put("/:id/approve", auth,twoFactorVerify, async (req, res) => {
     if (!pendingApprovalsids.includes(user.userId.toString())){
       return res.status(403).json({ message: 'You are not authorized to approve this  requests' });
     }
+    let SavedSignature
+   
     // Add new approval
     const newApproval = {
       admin: adminName,
@@ -853,21 +883,29 @@ router.put("/:id/approve", auth,twoFactorVerify, async (req, res) => {
       comment:comment,
       timestamp: new Date()
     };
+    
+    if(SignatureData){
+      
+      SavedSignature= await CreateSignature(user.userId,SignatureData,ip,device)
+      newApproval.signature=SavedSignature
+    }
     order.Approvals.push(newApproval);
 
     
-    console.log(approvingUser)
+   
     if (order.PendingApprovals && order.PendingApprovals.length > 0) {
       order.PendingApprovals = order.PendingApprovals.filter(
         user => user.Reviewer.toString() !== approvingUser._id.toString()
       );
     }
+    
 
     const prev_Request=await order.save();
     if(prev_Request.Approvals.length>3){
       ApprovedRequests(prev_Request._id)
     }
     //RequestActivity(prev_Request._id)
+    
     return res.status(200).json({ 
       message: "Approval recorded successfully", 
      
@@ -875,7 +913,7 @@ router.put("/:id/approve", auth,twoFactorVerify, async (req, res) => {
 
   } catch (error) {
     console.error("Error approving order:", error);
-    res.status(500).json({ message: "Error processing approval"});
+    return res.status(500).json({ message: "Error processing approval"});
   }
 });
 router.put("/:id/funding", auth, async (req, res) => {
@@ -920,7 +958,7 @@ router.put("/:id/funding", auth, async (req, res) => {
 
   } catch (error) {
     console.error("Error Updating order:", error);
-    res.status(500).json({ message: "Error processing approval"});
+    return res.status(500).json({ message: "Error processing approval"});
   }
 });
 

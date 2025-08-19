@@ -9,7 +9,8 @@ const PurchaseOrderSchema = new Schema({
     admin: String,     
     status: String,  
     comment:String,
-    role:String,  
+    role:String, 
+    signature:{type:Schema.Types.ObjectId, ref:"signatures"}, 
     timestamp: {        // When the action occurred
       type: Date,
       default: Date.now

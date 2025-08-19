@@ -7,7 +7,7 @@ const {  StaffResponseAlert,MoreInformationAlert } = require("./notification")
 const ReviewedRequests = async (req, res) => {
   try {
     const { orderId } = req.query
-    console.log("orderId:", req.query);
+    //console.log("orderId:", req.query);
 
     const request = await PurchaseOrder.findById(orderId);
 

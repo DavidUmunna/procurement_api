@@ -34,6 +34,7 @@ const roles_departments=require("./routes/roles&departments")
 const monitoring=require("./routes/Monitoring_route")
 const Scheduling=require("./controllers/SchedulingRoutes")
 const Otp=require("./routes/OTP_route")
+const PaymentDetails=require("./routes/PaymentRoute")
 // Initialize Express
 const app = express();
 
@@ -111,6 +112,7 @@ app.use("/api/roles&departments",roles_departments)
 app.use("/api/monitoring",monitoring)
 app.use("/api/scheduling",Scheduling)
 app.use("/api/otp",Otp)
+app.use("/api/paymentdetails",PaymentDetails)
 
 
 app.use((req, res, next) => {
@@ -137,7 +139,7 @@ app.use((req, res, next) => {
 
 app.get("/api/csrf-token", csrfProtection, (req, res) => {
   res.cookie("XSRF-TOKEN", req.csrfToken());
-  console.log(res.cookie)
+ 
   res.status(200).json({ message: "CSRF token set" });
 });
 // Health check route

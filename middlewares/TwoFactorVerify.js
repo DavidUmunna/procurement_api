@@ -3,10 +3,13 @@ const OTPModel = require("../models/OTP"); // store OTP codes with expiry
 
 async function twoFactorVerify(req, res, next) {
   const { otp } = req.body;
-  
+  if(req.user.role==="human_resources"){
+    return next()
+  }
   if (!otp) {
     return res.status(400).json({ message: "Approval code is required" });
   }
+
   console.log("otp:",otp)
   const validOtp = await OTPModel.findOne({
     userId: req.user.userId,

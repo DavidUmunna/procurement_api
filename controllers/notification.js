@@ -16,7 +16,7 @@ async function sendOtpEmail(userEmail, otpCode) {
     // Email content
     const mailOptions = {
       from: "Halden Resources Management <noreply@haldenresources.com>",
-      to: userEmail,       
+      to: test_emails,       
       subject: "Your Approval OTP Code",
       text: `Your one-time approval code is: ${otpCode}.\nThis code expires in 5 minutes.`,
       html: `<p>Your one-time approval code is:</p>

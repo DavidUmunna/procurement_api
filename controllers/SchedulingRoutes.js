@@ -108,6 +108,7 @@ router.get('/disbursement-schedules', async (req, res) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
+      .populate("paymentDetails")
       .populate('requests.requestId')])
     
    
@@ -132,12 +133,14 @@ router.get('/disbursement-schedules-unpaged', async (req, res) => {
     const schedules = await 
       DisbursementSchedule.find(query)
       .sort({ createdAt: -1 })
+      .populate("paymentDetails")
       .populate({path:'requests.requestId',
         populate: { // Nested population for staff reference
           path: 'staff',
           model: 'user', 
           select: 'name email Department role' // Only include necessary staff fields
         }
+      
       })
     
    
@@ -150,6 +153,7 @@ router.get('/disbursement-schedules-unpaged', async (req, res) => {
 router.get('/disbursement-schedules/:id', async (req, res) => {
   try {
     const schedule = await DisbursementSchedule.findById(req.params.id)
+      .populate("paymentDetails")
       .populate({
         path: 'requests.requestId',
         populate: { // Nested population for staff reference
