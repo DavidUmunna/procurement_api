@@ -164,7 +164,7 @@ router.post("/export", auth, async (req, res) => {
         entry.WasteSource,
         entry.DispatchManifestNo,
         entry.WasteTruckRegNo,
-        entry.WasteDriverName,
+        entry.WasteTruckDriverName,
         entry.DeliveryOfEmptySkips,
         entry.DemobilizationOfFilledSkips,
         entry.DateFilled,
@@ -201,8 +201,8 @@ router.post("/export", auth, async (req, res) => {
           .text(`Waste Stream: ${entry.WasteStream}`)
           .text(`Source Well: ${entry.WasteSource}`)
           .text(`Dispatch Manifest No: ${entry.DispatchManifestNo}`)
-          .text(`Dispatch Truck Reg No: ${entry.DispatchTruckRegNo}`)
-          .text(`Driver Name: ${entry.DriverName}`)
+          .text(`Waste Truck Reg No: ${entry.WasteTruckRegNo}`)
+          .text(`Waste Truck Driver Name: ${entry.WasteTruckDriverName}`)
           .text(`Delivery Of Empty Skips: ${entry.DeliveryOfEmptySkips}`)
           .text(`Demobilization Of Filled Skips: ${entry.DemobilizationOfFilledSkips}`)
           .text(`Date Filled: ${entry.DateFilled}`)
@@ -227,7 +227,7 @@ router.post("/export", auth, async (req, res) => {
 router.get('/categories', auth, async (req, res) => {
   try {
     // Return your predefined categories
-    const categories=["WBM_Affluent","OBM_Cutting","WBM_cutting","OBM_Affluent","Sludge"]
+    const categories=["WBM_Affluent","OBM_Cutting","WBM_cutting","OBM_Affluent","Sludge","Others"]
     res.json({ 
       success: true, 
       data: {categories}

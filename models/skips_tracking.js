@@ -1,6 +1,4 @@
-
 const mongoose=require("mongoose")
-const timestamp = require("timestamp")
 
 
 
@@ -15,11 +13,10 @@ const SkipsTrackingSchema=mongoose.Schema({
         value: { type: Number,  }, // e.g., 1500
         unit: {
           type: String,
-          enum: ['kg', 'tonne','liters'],
           
         }
       },
-    WasteStream:{type:String,required:true,enum:["WBM_Affluent","OBM_Cutting","WBM_cutting", "OBM_Affluent","Sludge"]},
+    WasteStream:{type:String,required:true,enum:["WBM_Affluent","OBM_Cutting","WBM_cutting", "OBM_Affluent","Sludge","Others"]},
     WasteSource:{type:String,required:true},
     DispatchManifestNo:{type:String},
     WasteTruckRegNo:{type:String},

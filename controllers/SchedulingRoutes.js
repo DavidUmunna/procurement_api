@@ -51,8 +51,12 @@ router.get('/purchase-orders', async (req, res) => {
    try {
      const orders = await PurchaseOrder.find(query)
      .sort({ createdAt: -1 }).populate("staff")
-   
-     res.json(orders);
+     const orderObject=orders.map((request)=>{
+      const plainRequest=request.toObject()
+      return plainRequest
+     })
+     console.log("orders from schedule",orderObject,orderObject.length)
+     res.json(orderObject);
   } catch (error) {
     console.error("an error occurred in get schedule",error)
     res.status(500).json({ message:"an error occured"});
