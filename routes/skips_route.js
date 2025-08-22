@@ -237,6 +237,14 @@ router.get('/categories', auth, async (req, res) => {
   }
 });
 
+const normalizeDate = (dateString) => {
+  if (!dateString) return null;
+  // Always interpret as UTC date (ignore local offset)
+  const d = new Date(dateString);
+  d.setDate(d.getDate() + 1);
+  return d;
+};
+
 router.post("/create",auth,async(req,res)=>{
     try{
 
@@ -251,22 +259,29 @@ router.post("/create",auth,async(req,res)=>{
             WasteTruckRegNo,
             DemobilizationOfFilledSkips,WasteDriverName,
             DateFilled}=req.body
+            //console.log("dateMobilized",DateMobilized)
             if (!skip_id){
                 res.status(403).json({message:"missing values in query"})
             }
-            new_skipItem=new skipsTracking({
+            const NormalizedDateMobilized=normalizeDate(DateMobilized)
+            const NormalizedDateRecievedOnLocation=normalizeDate(DateReceivedOnLocation)
+            const NormalizedDemob=normalizeDate(DemobilizationOfFilledSkips)
+            const NormailizedFilled=normalizeDate(DateFilled)
+            const new_skipItem=new skipsTracking({
                 skip_id,
                 DeliveryWaybillNo,
-                DateMobilized,
-                DateReceivedOnLocation,
+                DateMobilized:NormalizedDateMobilized,
+                DateReceivedOnLocation:NormalizedDateRecievedOnLocation,
                 SkipsTruckRegNo,
-                SkipsTruckDriver,
+                SkipsTruckDriver, 
                 Quantity,WasteStream,
                 WasteSource,DispatchManifestNo,
                 WasteTruckRegNo,
-                DemobilizationOfFilledSkips,
-                DateFilled,WasteDriverName
+                DemobilizationOfFilledSkips:NormalizedDemob,
+                DateFilled:NormailizedFilled
+                ,WasteDriverName
             })
+            //console.log("new skip item",new_skipItem)
             
             await new_skipItem.save()
             res.status(200).json({success:true,message:"new skip item created successfully "})
