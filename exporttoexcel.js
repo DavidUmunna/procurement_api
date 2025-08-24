@@ -27,7 +27,7 @@ const exporttoExcel = async () => {
     const newOrders = orders.filter(order => !existingOrderNumbers.has(order.orderNumber));
 
     if (newOrders.length === 0) {
-      console.log("No new orders to export.");
+     
       return;
     }
 
@@ -50,7 +50,7 @@ const exporttoExcel = async () => {
         price: item.price || "N/A"
       }))
     );
-    console.log("product data:",productData)
+    
 
     // Append new data to existing data
     const updatedOrdersData = existingOrdersData.concat(formattedData);
@@ -76,7 +76,7 @@ const exporttoExcel = async () => {
     // Write the updated workbook to file
     XLSX.writeFile(wb, "../orders.xlsx");
 
-    console.log("New orders exported to Excel successfully.");
+   
   } catch (err) {
     console.error("Error Exporting Data", err);
   }

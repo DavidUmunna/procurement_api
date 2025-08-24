@@ -9,7 +9,7 @@ const mongoURI = "mongodb://127.0.0.1:27017/procurement";
 // Connect to MongoDB
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(async () => {
-    console.log("Connected to MongoDB");
+    
 
     try {
       // One-time migration script
@@ -37,7 +37,7 @@ mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
          const new_doc=await Activity.deleteMany()
 
          await new_doc.save()
-      console.log("All items deleted  successfully");
+     
     } catch (error) {
       console.error("Error migrating all orders", error);
     }

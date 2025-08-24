@@ -55,7 +55,7 @@ router.get('/purchase-orders', async (req, res) => {
       const plainRequest=request.toObject()
       return plainRequest
      })
-     console.log("orders from schedule",orderObject,orderObject.length)
+    
      res.json(orderObject);
   } catch (error) {
     console.error("an error occurred in get schedule",error)

@@ -6,7 +6,12 @@ const admin_middle=require('./admin_test')
 const {v4:uuidv4}=require("uuid")
 const { rateLimit } = require('express-rate-limit');
 const redis = require('redis');
-const redisClient = redis.createClient();
+const redisClient = redis.createClient({
+  socket: {
+    host: "127.0.0.1", // or "localhost"
+    port: 6379
+  }
+});
 
 redisClient.connect().catch(console.error); 
 var loginRateLimiter = rateLimit({

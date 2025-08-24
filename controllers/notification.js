@@ -27,7 +27,7 @@ async function sendOtpEmail(userEmail, otpCode) {
     // Send the email
     await transporter.sendMail(mailOptions);
 
-    console.log(`✅ OTP sent to ${userEmail}`);
+    
     return true;
 
   } catch (error) {
@@ -215,7 +215,7 @@ const RequestActivity=async(requestId)=>{
         const accountsUsers = await users.find({ role: "accounts" });
         const accountEmails = accountsUsers.map(user => user.email);
         staff_emails.push(...accountEmails);    
-        console.log("staff emails:",staff_emails)
+     
         
         const decisions=prev_Request.Approvals.map(approval=>{return approval})
       const mailOptions = {

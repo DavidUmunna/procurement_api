@@ -182,7 +182,7 @@ router.get("/", auth,monitorLogger,async (req, res) => {
     const response = orders
     .map(order => order.toObject())
   
-    console.log("response count",orders.length,response.length)
+   
   
     
     res.json({data:response,
@@ -271,7 +271,6 @@ router.get("/:id", auth,async (req, res) => {
        const { page, limit, skip } = getPagination(req);
       //const isAdmin= req.user.role==="admin"
 
-      console.log("req.params",id)
       const global=[ "procurement_officer","human_resources","internal_auditor","global_admin","admin"]
     if (!id) {
       return res.status(400).json({ error: "Email is required" });
@@ -390,7 +389,7 @@ router.post("/", auth,csrfProtection, async (req, res) => {
     ValidatePendingApprovals(new_Request._id)
     
     const exportgoogledrive=await exportToExcelAndUpload(newOrder._id);  
-    console.log(exportgoogledrive)
+
     res.status(200).json({success:true, newOrder });
   } catch (error) {
     console.error("Error creating purchase order:", error);
@@ -481,7 +480,7 @@ router.post("/export", async (req, res) => {
             ? item.createdAt.toISOString().slice(0, 10)
             : (item.createdAt?.slice(0, 10) || '')
           });
-          console.log("created AT:",item.remarks)
+         
         });
       } else {
         // Add row even if no products (with empty product fields)
@@ -515,7 +514,7 @@ router.post("/memo",async(req,res)=>{
 
   try {
     const { requestId } = req.body;
-    console.log("requestId",requestId)
+   
 
     const request = await PurchaseOrder.findById(requestId)
       .populate("staff", "name Department email")
@@ -847,7 +846,7 @@ router.put("/:id/approve", auth, async (req, res) => {
   const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
   const parser = new UAParser(req.headers["user-agent"]);
   const deviceInfo = parser.getResult();
-  console.log("device info",deviceInfo)
+ 
   if (!user.canApprove) {
     return res.status(403).json({ message: 'You are not authorized to approve requests' });
   }

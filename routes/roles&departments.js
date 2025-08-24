@@ -38,7 +38,7 @@ router.post("/",auth,monitorLogger,async(req,res)=>{
                     "Financial_manager","Waste Management Manager","accounts","Waste Management Supervisor","Environmental_lab_manager","PVT_manager","Logistics Manager",
                     "QHSE Coordinator","Contracts_manager","Engineering_manager","admin","Facility Manager"];
         if (item.PROTECTED_USERS){
-            console.log("was hit")
+         
             rbac_object["PROTECTED_USERS"]=[
                 "6830789898ef43e5803ea02c","68306b205302544582c59f35"
             ]

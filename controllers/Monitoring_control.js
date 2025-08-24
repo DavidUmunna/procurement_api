@@ -6,7 +6,7 @@ const Monitoring = require('../models/Monitoring');
 exports.createMonitoringLog = async (req, res) => {
   try {
     const logData = req.body;
-    console.log(logData)
+   
 
     const newLog = await Monitoring.create(logData);
     return res.status(201).json({ message: 'Log created', data: newLog });
