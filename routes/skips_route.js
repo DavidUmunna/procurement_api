@@ -242,7 +242,7 @@ const normalizeDate = (dateString) => {
   // Always interpret as UTC date (ignore local offset)
   const d = new Date(dateString);
   d.setDate(d.getDate() + 1);
-  return d;
+  return d;//plus one day
 };
 
 router.post("/create",auth,async(req,res)=>{

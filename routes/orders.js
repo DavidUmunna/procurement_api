@@ -365,7 +365,7 @@ router.post("/", auth,csrfProtection, async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
     const Department=User.Department
-    const managers=["waste_management_manager","PVT_manager","Environmental_lab_manager"]
+
     const newOrder = new PurchaseOrder({
       supplier,
       Title,

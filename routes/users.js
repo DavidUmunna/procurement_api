@@ -87,7 +87,9 @@ router.post('/', auth,csrfProtection,async (req, res) => {
     const can_approve_roles = ["procurement_officer", "human_resources", "internal_auditor", "global_admin","waste_mnagement_manager","waste_management_supervisor",
       "PVT_manager","Environmental_lab_manager","Financial_manager","accounts","Director","Contracts_manager"];
     const { name, email, password, Department, role } = req.body;
-
+    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}$/.test(email)){
+      return res.status(403).json({message:"email does not match format"})
+    }
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const new_user = new User({
