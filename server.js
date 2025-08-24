@@ -131,7 +131,7 @@ app.use((req, res, next) => {
   const isExcludedPath = csrfExcludedPaths.includes(req.path);
 
   if (isUnsafeMethod && !isExcludedPath) {
-    console.log("this csrf middle was hit before :",req.originalUrl)
+    
     return csrfProtection(req, res, next);
   }
   next();

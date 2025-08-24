@@ -17,74 +17,12 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-/*const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-
-        
-        cb(null, "../uploads/");
-      
-      // Save files in "uploads" folder
-    },
-    filename: (req, file, cb) => {
-      console.log('File received:', file); // Debugging line
-      if (!file || !file.originalname) {
-          return cb(new Error('Invalid file: originalname is missing'));
-      }
-        const uniqueName = `${file.originalname}`;
-
-        cb(null, uniqueName); // Unique filename
-    },
-  });
-
-  //const upload = multer({ storage:storage });
-  const saveFileInfo = async (req, res, next) => {
-    if (!req.file) return next();
-
-    const newFile = new File({
-        
-        filename: req.file.filename,
-        url: req.file.path, // Store the file path
-        staff:userId,
-        filename: req.file.originalname,
-        driveFileId: driveFile.id,
-        viewLink: driveFile.webViewLink,
-        downloadLink: driveFile.webContentLink
-    });}*/
-
-
-    /*router.post("/", upload.array("files", 5), saveFileInfo, async (req, res) => {
-      try {
-        const {email}=req.body
-        console.log(email)
-        if (!req.files || req.files.length === 0) {
-          return res.status(400).json({ error: "No files uploaded" });
-        }
-    
-        // Create file info array once
-        const files = req.files.map((file) => ({
-          email,
-          filename: file.filename,
-          url: `/uploads/${file.filename}`,
-        }));
-        //const {filename,url}=files
-        
-        // Assuming file_ is a model for multiple files
-        const newFile = new file_({ files });
-         // Pass as an object, not array
-        await newFile.save();
-    
-        res.json({ message: "Files uploaded successfully", files });
-      } catch (error) {
-        console.error("Error uploading files:", error);
-        res.status(500).json({ error: "Internal server error" });
-      }
-    });*/
 
   router.post("/create",csrfProtection
     , upload.array("files", 5), async (req, res) => {
   try {
     const { userId } = req.body;
-    console.log("This id just uploaded a file:", userId);
+    
     const allowedTypes = [
   "image/jpeg",
   "image/jpg",
@@ -106,7 +44,7 @@ if (!fs.existsSync(uploadDir)) {
             }
 
         const driveFile = await uploadFileToDrive(file.path, sanitize(file.originalname), file.mimetype);
-        console.log("fiel path",file.path)
+       
         // Optional: remove temp file
         fs.unlinkSync(file.path);
 
@@ -132,7 +70,7 @@ if (!fs.existsSync(uploadDir)) {
 
     const newFile = new file_({ files: uploadedFiles });
     await newFile.save();
-    console.log("newfile",newFile)
+
 
     res.status(200).json({
       success: true,
@@ -140,7 +78,7 @@ if (!fs.existsSync(uploadDir)) {
       files: newFile
     });
   } catch (err) {
-    console.error("Upload error:", err);
+ 
     res.status(500).json({
       success: false,
       error: "Upload to Google Drive failed",
@@ -152,7 +90,7 @@ if (!fs.existsSync(uploadDir)) {
   try {
     const fileId= req.params.fileId;
     const filename=req.params.filename;
-    console.log("checking for type error in fiileuploads:",fileId)
+   
     // Find the document that contains this file
     const fileDoc = await file_.findById(fileId);
 
@@ -160,12 +98,11 @@ if (!fs.existsSync(uploadDir)) {
     if (!fileDoc) {
       return res.status(404).json({ error: "File not found in database" });
     }
-    console.log("filedocs",fileDoc)
-    console.log("filename",filename)
+   
 
     // Extract the specific file object from the array
     const targetFile = fileDoc.files.find(f => f.filename===filename);
-    console.log(targetFile)
+
     //console.log(targetFile.driveFileId)
     if (!targetFile || !targetFile.driveFileId) {
       return res.status(404).json({ error: "Drive file ID missing" });
@@ -186,23 +123,21 @@ if (!fs.existsSync(uploadDir)) {
     router.get("/:id", async (req, res) => {
       try {
         const { id } = req.params;
-        console.log("Requested email:", id);
+       
     
         // Find the document that contains the file
         const fileDoc = await file_.findOne({ staff: id });
         if (!fileDoc) return res.status(404).json({ error: "File not found in DB" });
-        console.log("filedoc", fileDoc);
+ 
     
         // Extract the specific file object from the files array
         const userFiles = fileDoc.files.filter(file => file.staff === id);
         if (!userFiles || userFiles.length === 0) return res.status(404).json({ error: "File not found in document" });
     
-        console.log("Extracted File Object:", userFiles);
-    
         // Construct the correct file path using storedName
         userFiles.forEach(file => {
           const filePath = path.join(uploadDir, file.filename);
-          console.log("File Path:", filePath);
+          
     
           // Check if the file exists before sending
           if (fs.existsSync(filePath)) {

@@ -211,7 +211,7 @@ router.post("/export", async (req, res) => {
     if (category && category !== "All") {
       query.category = category;
     }
-    console.log(category)
+    
 
     const assetItems = await AssetItem.find(query).lean();
     

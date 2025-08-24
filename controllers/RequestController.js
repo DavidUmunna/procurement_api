@@ -38,14 +38,14 @@ const GetOverallMonthlyRequests = async (req, res) => {
         
             1, 0, 0, 0
         ));
-        console.log("start of query",startOfDay)
+     
         
         const endOfDay = new Date(Date.UTC(
             now.getUTCFullYear(),
             now.getUTCMonth()+1,
             0,23, 59, 59, 999
         ));
-        console.log("end of query",endOfDay)
+       
         query.createdAt = {
             $gte: startOfDay,
             $lte: endOfDay,
@@ -61,7 +61,7 @@ const GetOverallMonthlyRequests = async (req, res) => {
         
         )
         const totalDailyRequests=filteredRequests.length
-        console.log("totalDaily",totalDailyRequests)
+ 
 
         res.status(200).json({
             message: "Total requests for today",
@@ -104,7 +104,7 @@ const MonthlyStaffRequest=async(req,res)=>{
         };
         const Requests = await PurchaseOrder.find(query)
 
-        console.log("Monthly:",Requests)
+     
 
         res.status(200).json({
             message: "Total requests for today",
@@ -173,7 +173,7 @@ const StaffResponse = async (req, res) => {
     const { message, admin } = req.body;
 
     // Input validation
-    console.log("order Id",id)
+  
     if (!message || !admin) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
     }
