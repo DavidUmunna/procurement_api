@@ -269,12 +269,14 @@ router.patch('/disbursement-schedules/:id/review', async (req, res) => {
 router.get("/accounts/export-schedule/:id", async (req, res) => {
   try {
     const schedule = await DisbursementSchedule.findById(req.params.id)
+    .populate('paymentDetails')
       .populate({path: 'requests.requestId',
         populate: { // Nested population for staff reference
           path: 'staff',
           model: 'user', 
           select: 'name email Department role' // Only include necessary staff fields
-        },}).lean();
+        },})
+        .lean();
 
     if (!schedule) {
       return res.status(404).json({ message: "Schedule not found" });
@@ -292,15 +294,15 @@ router.get("/accounts/export-schedule/:id", async (req, res) => {
 
     // Basic info
     worksheet.addRow([]);
-    worksheet.addRow(["Name", schedule.name]);
-    worksheet.addRow(["Created By", schedule.createdBy]);
-    worksheet.addRow(["Total Amount", schedule.totalAmount]);
-    worksheet.addRow(["Status", schedule.status]);
-    worksheet.addRow(["Created At", schedule.createdAt.toDateString()]);
+    worksheet.addRow(["Name", schedule.name]).alignment={horizontal:"center"}
+    worksheet.addRow(["Created By", schedule.createdBy]).alignment={horizontal:"center"}
+    worksheet.addRow(["Total Amount", `₦${schedule.totalAmount}`],).alignment={horizontal:"center"}
+    worksheet.addRow(["Status", schedule.status]).alignment={horizontal:"center"}
+    worksheet.addRow(["Created At", schedule.createdAt.toDateString()]).alignment={horizontal:"center"}
     worksheet.addRow([]);
 
     // Requests table header
-    worksheet.addRow(["#", "Order Number", "Title", "Requested By","Department", "Total Price"]).font = { bold: true };
+    worksheet.addRow(["Sn","Order Number","Title","Requested By","Department","Total Price"]).font = { bold: true };
 
     // Requests table data
     schedule.requests.filter((reqItem, index) => (reqItem.included===true &&(
@@ -316,9 +318,20 @@ router.get("/accounts/export-schedule/:id", async (req, res) => {
             sum+(product.price*product.quantity)
           ),0
         )
-      ])
+      ]).alignment={horizontal:"center"}
     )
     ));
+
+    worksheet.addRow(["Beneficiary Name",'Account Number',"Bank"]).font={bold:true}
+    schedule.paymentDetails.map((detail)=>(
+      worksheet.addRow([
+        
+        detail.Beneficiary,
+        detail.AccountNumber,
+        detail.Bank
+      ]).alignment={horizontal:"center"}
+    ))
+
 
     // Auto-fit columns
     worksheet.columns.forEach(column => {
