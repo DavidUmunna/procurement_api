@@ -28,7 +28,7 @@ router.get("/",auth,async(req,res)=>{
             const start = new Date(startDate);
             const end = new Date(endDate);
             end.setHours(23, 59, 59, 999); // include full end day
-            console.log("date still hit for some reason")
+           
             filter.DateMobilized = {
                 $gte: start,
                 $lte: end
@@ -76,10 +76,9 @@ router.post("/export", auth, async (req, res) => {
     if (WasteSource && WasteSource !=="All" ){
       query.WasteSource=WasteSource
     }
-    console.log("stream and wastesource",stream,WasteSource)
-    console.log("query",query)
+   
     const skipData = await skipsTracking.find(query).lean();
-    console.log(skipData)
+
     const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9-_]/g, '_');
     const timestamp = Date.now();
     const validFormats = ['xlsx', 'csv', 'pdf'];
@@ -104,8 +103,8 @@ router.post("/export", auth, async (req, res) => {
         { header: 'Waste Stream', key: 'WasteStream', width: 20 },
         { header: 'Waste Source', key: 'WasteSource', width: 20 },
         { header: 'Dispatch Manifest No', key: 'DispatchManifestNo', width: 25 },
-        { header: 'Dispatch Truck Reg No', key: 'DispatchTruckRegNo', width: 25 },
-        { header: 'Driver Name', key: 'DriverName', width: 20 },
+        { header: 'Waste Truck Reg No', key: 'WasteTruckRegNo', width: 25 },
+        { header: 'Waste Truck Driver Name', key: 'WasteTruckDriverName', width: 20 },
         { header: 'Demobilization Of Filled Skips', key: 'DemobilizationOfFilledSkips', width: 30 },
         { header: 'Date Filled', key: 'DateFilled', width: 20 },
         { header: 'Last Updated', key: 'lastUpdated', width: 25 },
@@ -117,23 +116,22 @@ router.post("/export", auth, async (req, res) => {
         worksheet.addRow({
           skip_id: entry.skip_id,
           DeliveryWaybillNo: entry.DeliveryWaybillNo,
-          DateMobilized:entry.DateMobilized,
-          DateReceivedOnLocation:entry.DateReceivedOnLocation,
-          SkipsTruckReqNo:entry.SkipsTruckRegNo,
+          DateMobilized:entry.DateMobilized?.toISOString().split("T")[0],
+          DateReceivedOnLocation:entry.DateReceivedOnLocation?.toISOString().split("T")[0],
+          SkipsTruckRegNo:entry.SkipsTruckRegNo,
           SkipsTruckDriver:entry.SkipsTruckDriver,
           Quantity_value: entry.Quantity?.value,
           Quantity_unit: entry.Quantity?.unit,
           WasteStream: entry.WasteStream,
           WasteSource: entry.WasteSource,
           DispatchManifestNo: entry.DispatchManifestNo,
-          WasteTruckRegNo: entry.DispatchTruckRegNo,
-          WasteTruckDriverName: entry.DriverName,
-          DeliveryOfEmptySkips: entry.DeliveryOfEmptySkips,
-          DemobilizationOfFilledSkips: entry.DemobilizationOfFilledSkips,
-          DateFilled: entry.DateFilled,
-          lastUpdated: entry.lastUpdated,
-          createdAt: entry.createdAt,
-          updatedAt: entry.updatedAt
+          WasteTruckRegNo: entry.WasteTruckRegNo,
+          WasteTruckDriverName: entry.WasteTruckDriverName,
+          DemobilizationOfFilledSkips: entry.DemobilizationOfFilledSkips?.toISOString().split("T")[0],
+          DateFilled: entry.DateFilled?.toISOString().split("T")[0],
+          lastUpdated: entry.lastUpdated?.toISOString().split("T")[0],
+          createdAt: entry.createdAt?.toISOString().split("T")[0],
+          updatedAt: entry.updatedAt?.toISOString().split("T")[0]
         });
       });
 
@@ -301,6 +299,7 @@ router.put("/:id",auth, async (req, res) => {
       DeliveryWaybillNo,
       DateMobilized,
       DateReceivedOnLocation,
+      SkipsTruckRegNo,
       SkipsTruckDriver,
       Quantity,
       DispatchManifestNo,
@@ -309,12 +308,13 @@ router.put("/:id",auth, async (req, res) => {
       DemobilizationOfFilledSkips,
       DateFilled
     } = req.body;
-    console.log("request body",req.body)
+    
     
     // Build the update payload
     const payload = {
       DeliveryWaybillNo,
       SkipsTruckDriver,
+      SkipsTruckRegNo,
       DateReceivedOnLocation,
       DateMobilized, 
       Quantity,
@@ -331,8 +331,7 @@ router.put("/:id",auth, async (req, res) => {
         delete payload[key];
       }
     });
-    console.log(payload)
-
+   
     if (!id) {
       return res.status(400).json({ message: "Id not provided in URL" });
     }
@@ -396,7 +395,7 @@ router.get('/stats', auth, async (req, res) => {
 
     // Debug: Check how many documents match the filter
     const matchingDocsCount = await skipsTracking.countDocuments(dateFilter);
-    console.log(`Found ${matchingDocsCount} documents in date range`);
+   
 
     // Get total items (without date filter)
     const totalItems = await skipsTracking.countDocuments();
@@ -443,7 +442,7 @@ router.get('/stats', auth, async (req, res) => {
     ]);
 
     const totalTonnes = aggregationResult[0]?.totalTonnes || 0;
-    console.log("Aggregation result:", aggregationResult);
+  
 
     const categories = await skipsTracking.distinct("WasteStream", dateFilter);
 

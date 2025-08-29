@@ -1,6 +1,5 @@
 const { Router } = require('express');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const AdminUser = require('../models/users_');
 const admin_middle=require('./admin_test')
 const {v4:uuidv4}=require("uuid")
@@ -31,6 +30,10 @@ const router = Router();
 router.post('/login', loginRateLimiter, async (req, res) => {
   try {
     const { username, password } = req.body;
+    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}$/.test(username)){
+      return res.status(400).json({message:"the username entered is Not Valid"})
+      
+    }
     const user_data = await AdminUser.findOne({ email: username }).lean();
 
     if (!user_data || !(await bcrypt.compare(password, user_data.password))) {
@@ -84,9 +87,25 @@ router.post('/logout', async (req, res) => {
   try {
     const { userId } = req.body;
 
+    if (!/^[0-9A-Fa-f]{24}$/.test(userId)){        //userId verification
+           return res.status(400).json({message:"userId is not valid "})
+
+    }
+    const adminuser=await AdminUser.findById(userId)
+
+    if(!adminuser){
+      return res.status(404).json({success:false,message:"user Id not found"})
+    }
+
     // Delete the Redis session
-    await redisClient.del(`session:${userId}`);
+    const ExistingSession=await redisClient.del(`session:${userId}`);
+
+    if (!ExistingSession){
+      return res.status(404).json({message:"No session with matching ID"})
+    }
     console.log("User logged out:", userId);
+    
+
 
     // Clear the sessionId cookie
     res.clearCookie("sessionId", {
