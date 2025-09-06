@@ -144,30 +144,29 @@ router.post("/export", auth, async (req, res) => {
       const headers = [
         'Skip ID', 'Delivery Waybill No','Date Mobilized','Date Recieved','Skips Truck Reg No','Skips Truck Driver', 'Quantity Value', 'Quantity Unit',
         'Waste Stream', 'Source Well', 'Dispatch Manifest No', 'Waste Truck Reg No',
-        'Waste Driver Name', 'Delivery Of Empty Skips', 'Demobilization Of Filled Skips',
+        'Waste Driver Name', 'Demobilization Of Filled Skips',
         'Date Filled', 'Last Updated', 'Created At', 'Updated At'
       ];
 
       const rows = skipData.map(entry => ([
-        entry.skip_id,
-        entry.DeliveryWaybillNo,
-        entry.DateMobilized,
-        entry.DateReceivedOnLocation,
-        entry.SkipsTruckRegNo,
-        entry.SkipsTruckDriver,
-        entry.Quantity?.value ?? '',
-        entry.Quantity?.unit ?? '',
-        entry.WasteStream,
-        entry.WasteSource,
-        entry.DispatchManifestNo,
-        entry.WasteTruckRegNo,
-        entry.WasteTruckDriverName,
-        entry.DeliveryOfEmptySkips,
-        entry.DemobilizationOfFilledSkips,
-        entry.DateFilled,
-        entry.lastUpdated,
-        entry.createdAt,
-        entry.updatedAt
+          entry.skip_id,
+          entry.DeliveryWaybillNo,
+          entry.DateMobilized?.toISOString().split("T")[0],
+          entry.DateReceivedOnLocation?.toISOString().split("T")[0],
+          entry.SkipsTruckRegNo,
+          entry.SkipsTruckDriver,
+          entry.Quantity?.value,
+          entry.Quantity?.unit,
+          entry.WasteStream,
+          entry.WasteSource,
+          entry.DispatchManifestNo,
+          entry.WasteTruckRegNo,
+          entry.WasteTruckDriverName,
+          entry.DemobilizationOfFilledSkips?.toISOString().split("T")[0],
+         entry.DateFilled?.toISOString().split("T")[0],
+         entry.lastUpdated?.toISOString().split("T")[0],
+         entry.createdAt?.toISOString().split("T")[0],
+         entry.updatedAt?.toISOString().split("T")[0]
       ]));
 
       const csvContent = [
@@ -200,7 +199,6 @@ router.post("/export", auth, async (req, res) => {
           .text(`Dispatch Manifest No: ${entry.DispatchManifestNo}`)
           .text(`Waste Truck Reg No: ${entry.WasteTruckRegNo}`)
           .text(`Waste Truck Driver Name: ${entry.WasteTruckDriverName}`)
-          .text(`Delivery Of Empty Skips: ${entry.DeliveryOfEmptySkips}`)
           .text(`Demobilization Of Filled Skips: ${entry.DemobilizationOfFilledSkips}`)
           .text(`Date Filled: ${entry.DateFilled}`)
           .text(`Last Updated: ${entry.lastUpdated}`)

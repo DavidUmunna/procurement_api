@@ -14,7 +14,7 @@ router.get('/purchase-orders', async (req, res) => {
     {
       // Approved > 2
       $expr: {
-        $gt: [
+        $gte: [
           {
             $size: {
               $filter: {
