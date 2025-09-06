@@ -36,7 +36,10 @@ const PurchaseOrderSchema = new Schema({
     ref:"File"
 
   },
- 
+  EditedBy:{
+    type:Schema.Types.ObjectId,
+    ref:"user"
+  },
   filenames:{type:[String],default:[]},
   supplier: { type: String,  required: false },
   role:{type:String},
@@ -50,8 +53,7 @@ const PurchaseOrderSchema = new Schema({
         type:Date,
         default:Date.now
       }
-     }
-    ]
+     }]
   ,
   targetDepartment:{type:String},
   remarks:{type:String,required:true}

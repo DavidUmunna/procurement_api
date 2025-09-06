@@ -12,7 +12,7 @@ router.use(cookieParser()); // Ensure this is added in your main app.js
 router.use(async (req, res, next) => {
   try {
     const sessionId = req.cookies.sessionId
-   
+    
     if (!sessionId) {
       return res.status(401).json({
         authenticated: false,

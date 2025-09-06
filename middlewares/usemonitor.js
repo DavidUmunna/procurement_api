@@ -1,5 +1,5 @@
 const express=require('express')
-const notifications=require('../controllers/notification')
+const notifications=require('../controllers/v1.controllers/notification')
 
 
 const router = express.Router();

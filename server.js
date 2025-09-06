@@ -11,49 +11,32 @@ const helmet=require("helmet")
 const connectDB = require("./db");
 
 // Route imports
-const uploadRoutes = require("./routes/fileupload");
-const skiptrackRoutes=require("./routes/skips_route")
-const departmentRoutes = require("./routes/Department_route");
-const companyDataRoutes = require("./routes/CompanyDataRoute");
-const supplierRoutes = require("./routes/suppliers");
-const productRoutes = require("./routes/products");
-const orderRoutes = require("./routes/orders");
-const userRoutes = require("./routes/users");
-const signinRoutes = require("./routes/signin");
-const authCheckRoutes = require("./middlewares/check-auth");
-const adminUserRoutes = require("./routes/admin_user");
-const accessRoutes = require("./routes/access");
-const adminTestRoutes = require("./routes/admin_test");
-const taskRoutes = require("./routes/task");
-const assetsRoutes = require("./routes/assets_route");
-const InventoryRoute=require("./routes/Inventoy_route")
-const activityroute=require("./routes/activityroute")
-const testDBRoute = require("./routes/test-db");
-const inventorylogs=require("./routes/inventorylogs_route")
-const roles_departments=require("./routes/roles&departments")
-const monitoring=require("./routes/Monitoring_route")
-const Scheduling=require("./controllers/SchedulingRoutes")
-const Otp=require("./routes/OTP_route")
-const PaymentDetails=require("./routes/PaymentRoute")
+const uploadRoutes = require("./routes/v1/fileupload");
+const skiptrackRoutes=require("./routes/v1/skips_route")
+const departmentRoutes = require("./routes/v1/Department_route");
+const companyDataRoutes = require("./routes/v1/CompanyDataRoute");
+const supplierRoutes = require("./routes/v1/suppliers");
+const productRoutes = require("./routes/v1/products");
+const orderRoutes = require("./routes/v1/orders");
+const userRoutes = require("./routes/v1/users");
+const signinRoutes = require("./routes/v1/signin");
+const adminUserRoutes = require("./routes/v1/admin_user");
+const accessRoutes = require("./routes/v1/access");
+const adminTestRoutes = require("./routes/v1/admin_test");
+const taskRoutes = require("./routes/v1/task");
+const assetsRoutes = require("./routes/v1/assets_route");
+const InventoryRoute=require("./routes/v1/Inventoy_route")
+const activityroute=require("./routes/v1/activityroute")
+const testDBRoute = require("./routes/v1/test-db");
+const inventorylogs=require("./routes/v1/inventorylogs_route")
+const roles_departments=require("./routes/v1/roles&departments")
+const monitoring=require("./routes/v1/Monitoring_route")
+const Scheduling=require("./routes/v1/SchedulingRoutes")
+const Otp=require("./routes/v1/OTP_route")
+const PaymentDetails=require("./routes/v1/PaymentRoute")
 // Initialize Express
 const app = express();
 
-// Allowed origins for CORS
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://127.0.0.1:5000",
-  "http://localhost:3001",
-  "http://127.0.0.1:3000",
-  "http://192.168.0.185:3000",
-  "http://192.168.56.1:3000",
-  "http://localhost:3001",
-  "https://8a13-102-90-79-163.ngrok-free.app",
-  "https://reqmanusers.netlify.app/",
-  "https://resourceman.netlify.app",
-  "http://194.163.137.35:5000",
-  "http://194.163.137.35",
-  "https://erp.haldengroup.ng"
-];
 
 // Middleware
 app.use(express.json());
@@ -95,7 +78,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/signin", signinRoutes);
-app.use("/api/check-auth", authCheckRoutes);
+
 app.use("/api/fileupload", uploadRoutes);
 app.use("/api/admin-user", adminUserRoutes);
 app.use("/api/access", accessRoutes);
@@ -129,6 +112,7 @@ app.use((req, res, next) => {
 
   const isUnsafeMethod = ["POST", "PUT", "DELETE"].includes(req.method);
   const isExcludedPath = csrfExcludedPaths.includes(req.path);
+
 
   if (isUnsafeMethod && !isExcludedPath) {
     
