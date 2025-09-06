@@ -137,8 +137,10 @@ const UpdateExistingRequest = async (req, res) => {
     const updatedRequest = await PurchaseOrder.findByIdAndUpdate(
       id,
       updateform,
-      { new: true }
-    ).populate("EditedBy");
+      { new: true })
+      .populate("staff", "-password -__v  -canApprove -_id")
+      .populate("PendingApprovals")
+      .populate("EditedBy");
 
     if (!updatedRequest) {
       return res.status(404).json({ success: false, message: "Request not found" });
