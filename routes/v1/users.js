@@ -82,7 +82,7 @@ router.get("/roles&departments",async(req,res)=>{
   }
 })
 //create the user
-router.post('/', auth,csrfProtection,async (req, res) => {
+router.post('/', auth,async (req, res) => {
   try {
     const can_approve_roles = ["procurement_officer", "human_resources", "internal_auditor", "global_admin","waste_mnagement_manager","waste_management_supervisor",
       "PVT_manager","Environmental_lab_manager","Financial_manager","Accountant","Director","Contracts_manager"];
