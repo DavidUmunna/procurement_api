@@ -15,13 +15,13 @@ router.post("/",auth,monitorLogger,async(req,res)=>{
         }
         if(item.ADMIN_ROLES_DASHBOARD){
             rbac_object["ADMIN_ROLES_DASHBOARD"]=["procurement_officer", "human_resources", "internal_auditor", "global_admin","lab_supervisor",
-           "Financial_manager","Waste Management Manager","accounts","Waste Management Supervisor","Environmental_lab_manager","PVT_manager","Logistics Manager",
+           "Financial_manager","Waste Management Manager","Accountant","Waste Management Supervisor","Environmental_lab_manager","PVT_manager","Logistics Manager",
            "QHSE Coordinator","Contracts_manager","Engineering_manager"];
     
         }
         if(item.GENERAL_ACCESS){
         rbac_object["GENERAL_ACCESS"]=["procurement_officer", "human_resources", "internal_auditor", "global_admin",
-            "Financial_manager","accounts","Director",];
+            "Financial_manager","Accountant","Director",];
             
         }
         if (item.GENERAL_ACCESS_ORDERS){
@@ -35,7 +35,7 @@ router.post("/",auth,monitorLogger,async(req,res)=>{
                 
         }if(item.ADMIN_ROLES_GENERAL){
                 rbac_object["ADMIN_ROLES_GENERAL"]=["procurement_officer", "human_resources", "internal_auditor", "global_admin","admin","lab_supervisor",
-                    "Financial_manager","Waste Management Manager","accounts","Waste Management Supervisor","Environmental_lab_manager","PVT_manager","Logistics Manager",
+                    "Financial_manager","Waste Management Manager","Accountant","Waste Management Supervisor","Environmental_lab_manager","PVT_manager","Logistics Manager",
                     "QHSE Coordinator","Contracts_manager","Engineering_manager","admin","Facility Manager"];
         if (item.PROTECTED_USERS){
          
@@ -54,9 +54,10 @@ router.post("/",auth,monitorLogger,async(req,res)=>{
         }
         if (item.ALLROLES){
             rbac_object["ALL_ROLES"]=["procurement_officer", "human_resources", "internal_auditor", "global_admin","admin",
-         "Financial_manager","Waste Management Manager","Waste Management Supervisor","lab_supervisor","Director","Environmental_lab_manager","PVT_manager","staff",
+         "Financial_manager","Waste Management Manager","Waste Management Supervisor","Accountant","lab_supervisor","Director","Environmental_lab_manager","PVT_manager","staff",
          "Contracts_manager","Documentation_officer","Engineering_manager","QHSE Coordinator", "Logistics Manager", "Facility Manager"]
         }
+       
         
         res.status(200).json({message:"items Delivered",data:rbac_object})
     }catch(error){

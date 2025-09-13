@@ -291,6 +291,7 @@ const ValidatePendingApprovals = async (requestId) => {
 
     // --- EXISTING FILTERS ---
     return (
+      (user.WorkStatus!=="On-Leave")&&
       (
         user._id.toString() !== NewRequest.staff._id.toString() || // allow only if MD
         user._id.toString() === MD_id

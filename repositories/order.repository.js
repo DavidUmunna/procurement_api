@@ -3,7 +3,7 @@ const PurchaseOrder=require("../models/PurchaseOrder")
 exports.createOrder=async(data)=>{
     const order=new PurchaseOrder(data)
     savedOrder= await order.save()
-    return savedOrder
+    return {data:savedOrder}
 }
 
 exports.findOrderbyid=async(Id)=>{
@@ -44,9 +44,23 @@ exports.getOrders=async(query)=>{
 }
 
 exports.getDepartmentDisplayORders=async(user)=>{
-     const orders = await PurchaseOrder.find().populate("staff", "Department").populate("PendingApprovals")
+     const orders = await PurchaseOrder.find()
+     .populate("staff", "Department")
+     .populate("PendingApprovals")
           .sort({ createdAt: -1 })
       return {data:orders}
                 
 }
 
+exports.getStaffDisplayOrders=async(user)=>{
+  const [total,orders]=await Promise.all(
+    PurchaseOrder.countDocuments({staff:user.userId}),
+    PurchaseOrder.find({staff:user.userId})
+    .populate("staff", "Department")
+    .populate("PendingApprovals")
+    .sort({ createdAt: -1 })
+  )
+
+  return {data:orders,total:total}
+
+}

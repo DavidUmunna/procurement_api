@@ -1,4 +1,6 @@
-const orderRepository=require("../repositories/order.repository")
+const { ValidatePendingApprovals } = require("../controllers/v1.controllers/RequestController");
+const orderRepository=require("../repositories/order.repository");
+const exportToExcelAndUpload = require("../Uploadexceltodrive");
 
 exports.getAllOrders=async(user)=>{
     query={}
@@ -17,7 +19,7 @@ exports.getAllOrders=async(user)=>{
         
       ]
     };
-    }if(req.user.role==='accounts' || req.user.role==="Financial_manager"){
+    }if(req.user.role==='Accountant' || req.user.role==="Financial_manager"){
        queryWithApprovals = { 
         ...query,
         $expr: {
@@ -118,7 +120,7 @@ exports.getStaffOrders=async(user)=>{
   return await orderRepository.getPaginatedOrders(query)
 }
 
-exports.getDisplayOrders=async(user)=>{
+exports.getDepartmentDisplayOrders=async(user)=>{
  const UserDepartment=user.Department
  const repositoryResponse=await orderRepository.getDepartmentDisplayORders()
  const filteredOrders = repositoryResponse.data.filter(order => 
@@ -131,3 +133,28 @@ exports.getDisplayOrders=async(user)=>{
   return {data:filteredOrders}
 
   }
+
+exports.getStaffDisplayOrders=async(user)=>{
+    
+    const response=await orderRepository.getStaffDisplayOrders(user)
+    const filteredOrders=response.data.map((order)=>{
+      const plainOrder=order.toObject();
+      return plainOrder
+    })
+
+    return {data:filteredOrders,total:response.total}
+}
+
+exports.createOrder=async(payload,user,res)=>{
+   const {email}=user
+
+   const User=await user.findOne({email})
+   if (!User) {
+         return res.status(404).json({ error: "User not found" });
+   }   
+   const repositoryResponse=await orderRepository.createOrder(payload)
+   ValidatePendingApprovals(repositoryResponse.data._id)
+   await exportToExcelAndUpload(repositoryResponse.data._id)
+   return {data:repositoryResponse.data}
+}
+

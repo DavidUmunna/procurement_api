@@ -163,7 +163,7 @@ router.get("/", auth,monitorLogger,async (req, res) => {
         ...query,
         $or:[
           {"staff":req.user.userId},
-          {"status":{$in:["Completed","Approved"]}},
+          {"status":{$in:["Completed","Approved",'Rejected']}},
           {
             PendingApprovals: { 
               $not: { $elemMatch: { Level: 1 } }
@@ -209,7 +209,7 @@ router.get('/department', auth, async (req, res) => {
     let query={
       $or:[
         {"staff":req.user.userId},
-        {"status":{$in:["Completed","Approved"]}},
+        {"status":{$in:["Completed","Approved","Rejected"]}},
         {"PendingApprovals.Level": {$in:[1]}}
         
       ]
@@ -371,7 +371,7 @@ router.post("/", auth, async (req, res) => {
 
    
     const User=await user.findOne({email})
-    if (!user) {
+    if (!User) {
       return res.status(404).json({ error: "User not found" });
     }
     const Department=User.Department

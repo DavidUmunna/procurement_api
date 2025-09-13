@@ -64,7 +64,7 @@ const ApprovedRequests=async(requestId)=>{
         const test_emails=['david.umunna@haldengroup.ng']
         const new_request=await order.findById(requestId).populate("staff","-password -__v -role -canApprove -_id")
         const users_list=(await users.find()).filter(user=>(
-            (user.role==="accounts"|| user.role==="Financial_manager")
+            (user.role==="Accountant"|| user.role==="Financial_manager")
         ))
         const emails=users_list.map(user=>(user.email))
     
@@ -212,7 +212,7 @@ const RequestActivity=async(requestId)=>{
         const prev_Request=await order.findById(requestId).populate("staff","-password -__v -role -canApprove -_id")
         const FRONTEND_URL=process.env.FRONTEND_BASED_URL
         staff_emails=[prev_Request.staff.email]
-        const accountsUsers = await users.find({ role: "accounts" });
+        const accountsUsers = await users.find({ role: "Accountant" });
         const accountEmails = accountsUsers.map(user => user.email);
         staff_emails.push(...accountEmails);    
      

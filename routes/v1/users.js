@@ -69,7 +69,7 @@ router.get("/:email", async (req, res) => {
 router.get("/roles&departments",async(req,res)=>{
   try{
     const general_access= ["procurement_officer", "human_resources", "internal_auditor", "global_admin","admin",
-      "Financial_manager","accounts","Director",];
+      "Financial_manager","Accountant","Director",];
 
     const departmental_access=["waste_management_manager","waste_management_supervisor","PVT_manager","Environmental_lab_manager","PVT_manager","lab_supervisor"]
 
@@ -85,7 +85,7 @@ router.get("/roles&departments",async(req,res)=>{
 router.post('/', auth,csrfProtection,async (req, res) => {
   try {
     const can_approve_roles = ["procurement_officer", "human_resources", "internal_auditor", "global_admin","waste_mnagement_manager","waste_management_supervisor",
-      "PVT_manager","Environmental_lab_manager","Financial_manager","accounts","Director","Contracts_manager"];
+      "PVT_manager","Environmental_lab_manager","Financial_manager","Accountant","Director","Contracts_manager"];
     const { name, email, password, Department, role } = req.body;
     if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}$/.test(email)){
       return res.status(403).json({message:"email does not match format"})
@@ -178,18 +178,15 @@ router.put("/reset-password", async (req, res) => {
   }
 });
 
-router.put("/:id/updateuser",csrfProtection,async(req,res)=>{
+router.put("/:id/updateuser",auth,async(req,res)=>{
   try{
-    const {Department,canApprove,name,email,password,role}=req.body
+    const {Department,canApprove,name,email,password,role,WorkStatus}=req.body
     const {id}=req.params
     const user_update=await User.findById(id)
     if (!user_update) {
       return res.status(404).json({ message: "User not found" });
     }
-    
-    
-    console.log("these are some values",canApprove,role)
-    
+        
     if (Department){
       user_update.Department=Department
     }
@@ -202,6 +199,9 @@ router.put("/:id/updateuser",csrfProtection,async(req,res)=>{
     }
     if (name){
       user_update.name=name
+    }
+    if(WorkStatus){
+      user_update.WorkStatus=WorkStatus
     }
     if(role){
       user_update.role=role

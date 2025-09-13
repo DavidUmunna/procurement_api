@@ -25,6 +25,7 @@ const PurchaseOrderSchema = new Schema({
   products: [{name: { type: String }, 
   quantity:{ type:Number },
   price: { type: Number },
+
   }],
   staff: {
     type: Schema.Types.ObjectId,
