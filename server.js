@@ -3,13 +3,14 @@
 const path = require("path");
 const csrf=require("csurf")
 // Third-party packages
+const fs=require("fs")
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const helmet=require("helmet")
 // Custom modules
 const connectDB = require("./db");
-
+const cspmiddleware=require("./middlewares/csp")
 // Route imports
 const uploadRoutes = require("./routes/v1/fileupload");
 const skiptrackRoutes=require("./routes/v1/skips_route")
@@ -63,7 +64,7 @@ app.use(
   })
 );
 app.use(testDBRoute);
-
+app.use(cspmiddleware)
 
 
 // Static file serving
@@ -136,6 +137,20 @@ app.get("/", (req, res) => {
     res.status(500).send("Server error");
   }
 });
+
+app.post('/csp-report',async(req,res)=>{
+  try{
+    const report=JSON.stringify(req.body,null,2);
+    const logfile=path.join(__dirname,"cspreports.txt")
+
+    fs.appendFile(logfile,report,'\n\n',(err)=>{
+      if(err) console.error('error writing csp-report',err)
+    })
+  res.status(204).end()
+  }catch(error){
+    console.log("csp error",error)
+  }
+})
 
 // Start server
 const PORT = process.env.PORT || 5000;

@@ -34,7 +34,7 @@ router.get('/', auth, async (req, res) => {
       const tasks = await Task.find({assignedTo:id})
         .populate('assignedTo',"name" )
         .populate('department',"name" );
-      console.log("user gettiing task",tasks)
+     
       res.json({ success: true, data: tasks });
     } catch (err) {
       console.error(err)

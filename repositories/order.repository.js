@@ -64,3 +64,11 @@ exports.getStaffDisplayOrders=async(user)=>{
   return {data:orders,total:total}
 
 }
+
+exports.exportOrder=async(query)=>{
+  const dbresponse=await PurchaseOrder.find(query)
+  .populate("staff", "name Department email")
+  .lean();
+
+  return {data:dbresponse}
+}

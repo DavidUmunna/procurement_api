@@ -120,3 +120,33 @@ exports.createOrder=async(req,res)=>{
 
     }
 }
+
+exports.exportOrder=async(req,res)=>{
+    try{
+        const {startDate,endDate,status,filename}=req.body;
+
+        if (!startDate || !endDate || !filename) {
+      return res.status(400).json({ message: "startDate, endDate, and filename are required" });
+      }
+
+
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({ message: "Invalid date format" });
+    }
+
+    if (start > end) {
+      return res.status(400).json({ message: "startDate must be before endDate" });
+    }
+    const payload={start,end,status,filename}
+
+    await orderservice.exportOrder(payload,res)
+
+
+
+    }catch(error){
+    console.error("Error exporting orders:", error);
+    res.status(500).json({ message: "Server error during export" });
+    }
+}
