@@ -2,6 +2,30 @@ const { ValidatePendingApprovals } = require("../controllers/v1.controllers/Requ
 const orderRepository=require("../repositories/order.repository");
 const exportToExcelAndUpload = require("../Uploadexceltodrive");
 const ExcelJS=require("exceljs")
+const fs = require("fs");
+const path = require("path");
+const {
+  Document,
+  Packer,
+  Paragraph,
+  Table,
+  TableRow,
+  TableCell,
+  ImageRun,
+  AlignmentType,
+  HeadingLevel,
+  BorderStyle,
+  WidthType,
+  TableBorders
+} = require("docx");
+const { UAParser } = require("ua-parser-js");
+const { findOrderById, saveOrder, findUserByName } = require("../repositories/orders.repositories");
+const { CreateSignature } = require("../utils/signature");
+const { ApprovedRequests } = require("../utils/workflows");
+
+const {RequestActivity}= require("../controllers/v1.controllers/notification");
+
+
 exports.getAllOrders=async(user)=>{
     query={}
    let queryWithApprovals
@@ -243,4 +267,187 @@ exports.exportOrder=async(payload,res)=>{
   await workbook.xlsx.write(res)
   res.end();
 }
+exports.generateMemo=async(requestId)=>{
+  const request = await orderRepository.findPurchaseOrderById(requestId);
+
+  if (!request) {
+    throw new Error("Request not found");
+  }
+
+  const imagePath = path.join(__dirname, "../assets/haldenlogo_1.png");
+
+  // Build the Word document (moved from controller to here)
+  const doc = new Document({
+    sections: [
+      {
+        properties: {
+          page: {
+            margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 }
+          }
+        },
+        children: [
+          new Paragraph({
+            children: [
+              new ImageRun({
+                data: fs.readFileSync(imagePath),
+                transformation: { width: 50, height: 50 },
+              }),
+            ],
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 200 },
+          }),
+          new Paragraph({
+            text: "INTERNAL MEMORANDUM",
+            heading: HeadingLevel.TITLE,
+            alignment: AlignmentType.CENTER,
+            border: {
+              bottom: { color: "000000", space: 20, style: BorderStyle.SINGLE, size: 8 }
+            },
+            spacing: { after: 600 }
+          }),
+          // ⚡ memo metadata table, products, approvals etc...
+          // (keep your existing docx building code here)
+        ]
+      }
+    ]
+  });
+
+  const buffer = await Packer.toBuffer(doc);
+  const filename = `memo-${request.orderNumber}.docx`;
+
+  return { buffer:buffer, filename:filename };
+}
+
+exports.approveOrder=async(orderId, adminName, comment, SignatureData, user, headers)=>{
+  if (!user.canApprove) {
+    throw { status: 403, message: "You are not authorized to approve requests" };
+  }
+
+  const order = await findOrderById(orderId);
+  if (!order) {
+    throw { status: 404, message: "Order not found" };
+  }
+
+  const ip = headers["x-forwarded-for"] || headers["socket-remoteAddress"];
+  const parser = new UAParser(headers["user-agent"]);
+  const deviceInfo = parser.getResult();
+  const device = deviceInfo.device;
+
+  // Remove any previous decisions from this admin
+  order.Approvals = (order.Approvals || []).filter(a => a.admin !== adminName);
+
+  const approvingUser = await findUserByName(adminName);
+  if (!approvingUser) {
+    throw { status: 404, message: "Approving user not found" };
+  }
+
+  const pendingApprovalsIds = order.PendingApprovals.map(u => u.Reviewer.toString());
+  if (!pendingApprovalsIds.includes(user.userId.toString())) {
+    throw { status: 403, message: "You are not authorized to approve this request" };
+  }
+
+  let SavedSignature;
+  const newApproval = {
+    admin: adminName,
+    status: "Approved",
+    comment,
+    timestamp: new Date(),
+  };
+
+  if (SignatureData) {
+    SavedSignature = await CreateSignature(user.userId, SignatureData, ip, device);
+    newApproval.signature = SavedSignature;
+  }
+
+  order.Approvals.push(newApproval);
+
+  if (order.PendingApprovals && order.PendingApprovals.length > 0) {
+    order.PendingApprovals = order.PendingApprovals.filter(
+      u => u.Reviewer.toString() !== approvingUser._id.toString()
+    );
+  }
+
+  const updatedOrder = await saveOrder(order);
+
+  if (updatedOrder.Approvals.length > 3) {
+    ApprovedRequests(updatedOrder._id);
+  }
+
+  return {data:updatedOrder}
+}
+
+
+exports.completeOrder = async (orderId, user) => {
+  if (!user.canApprove) {
+    const error = new Error("You are not authorized");
+    error.status = 403;
+    throw error;
+  }
+
+  const order = await orderRepository.findOrderById(orderId);
+  if (!order) {
+    const error = new Error("Order not found");
+    error.status = 404;
+    throw error;
+  }
+
+  const savedOrder = await orderRepository.markOrderCompleted(order);
+
+  // Trigger activity log
+  RequestActivity(savedOrder._id);
+
+  return savedOrder;
+};
+
+const validStatuses = [
+  "Pending",
+  "Completed",
+  "Rejected",
+  "Approved",
+  "More Information",
+  "Awaiting Funding",
+];
+
+exports.updateStatus = async (orderId, status) => {
+  if (!validStatuses.includes(status)) {
+    const error = new Error("Invalid status value");
+    error.status = 400;
+    throw error;
+  }
+
+  const updatedOrder = await orderRepository.updateOrderStatus(orderId, status);
+  if (!updatedOrder) {
+    const error = new Error("Order not found");
+    error.status = 404;
+    throw error;
+  }
+
+  return updatedOrder;
+};
+
+exports.deleteOrder = async (orderId) => {
+  const deletedOrder = await orderRepository.deleteOrderById(orderId);
+  if (!deletedOrder) {
+    const error = new Error("Order not found");
+    error.status = 404;
+    throw error;
+  }
+
+  return deletedOrder;
+};
+
+exports.deleteAll = async () => {
+  await orderRepository.deleteAllOrders();
+};
+
+exports.ReviewedRequests=async(orderId)=>{
+
+  const repositoryResponse=await orderRepository.findOrderById(orderId)
+  const Approvals = repositoryResponse.Approvals?.filter(
+    (admin) => admin.status === "More Information"
+  ) || [];
+  const Approval_names=Approvals.map(a=>(a.admin))
+  return {data:Approval_names}
+}
+
 

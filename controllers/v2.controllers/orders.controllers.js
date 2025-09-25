@@ -150,3 +150,107 @@ exports.exportOrder=async(req,res)=>{
     res.status(500).json({ message: "Server error during export" });
     }
 }
+
+exports.createMemo=async(req, res)=>{
+  try {
+    const { requestId } = req.body;
+    const { buffer, filename } = await orderservice.generateMemo(requestId);
+
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    res.send(buffer);
+  } catch (error) {
+    console.error("Memo generation error:", error);
+    if (error.message === "Request not found") {
+      return res.status(404).json({ message: error.message });
+    }
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+exports.approveOrderController=async(req, res)=>{
+  const { id: orderId } = req.params;
+  const { adminName, comment, SignatureData } = req.body;
+  const user = req.user;
+
+  try {
+    await orderservice.approveOrder(orderId, adminName, comment, SignatureData, user, req.headers);
+    return res.status(200).json({ message: "Approval recorded successfully" });
+  } catch (error) {
+    console.error("Error approving order:", error);
+
+    if (error.status) {
+      return res.status(error.status).json({ message: error.message });
+    }
+
+    return res.status(500).json({ message: "Error processing approval" });
+  }
+}
+
+exports.completeOrder = async (req, res) => {
+  try {
+    const { id: orderId } = req.params;
+    const user = req.user;
+
+    await orderservice.completeOrder(orderId, user);
+
+    res.status(200).json({ message: "Request completed" });
+  } catch (error) {
+    console.error("Error completing order:", error);
+    res.status(error.status || 500).json({ message: error.message, error });
+  }
+};
+
+exports.updateStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const { id: orderId } = req.params;
+
+    const updatedOrder = await orderservice.updateStatus(orderId, status);
+
+    res.json(updatedOrder);
+  } catch (error) {
+    res.status(error.status || 500).json({ message: error.message, error });
+  }
+};
+
+exports.deleteOrder = async (req, res) => {
+  try {
+    const { id: orderId } = req.params;
+    await orderservice.deleteOrder(orderId);
+    res.json({ message: "Order deleted successfully" });
+  } catch (error) {
+    res.status(error.status || 500).json({ message: error.message, error });
+  }
+};
+
+exports.deleteAllOrders = async (req, res) => {
+  try {
+    await orderservice.deleteAll();
+    res.json({ message: "All orders deleted successfully" });
+  } catch (error) {
+    res.status(error.status || 500).json({ message: error.message, error });
+  }
+};
+
+exports.ReviewedRequests=async(req,res)=>{
+    try{
+        const {orderId}=req.query
+
+        if (!orderId){
+             return res.status(400).json({success:false, message:"missing OrderId"})
+        }
+        const serviceResponse=await orderservice.ReviewedRequests(orderId)
+        
+        if(!serviceResponse){
+            return res.status(404).json({success:false,message:"Order not found"})
+        }
+
+        res.status(200).json({success:true,data:serviceResponse.data})
+
+    }catch(error){
+           console.error("Error in operation", error);
+    res.status(500).json({ success: false, message: "Error in processing" });
+
+    }
+}

@@ -1,5 +1,5 @@
 const PurchaseOrder=require("../models/PurchaseOrder")
-
+const users_ = require("../models/users_");
 exports.createOrder=async(data)=>{
     const order=new PurchaseOrder(data)
     savedOrder= await order.save()
@@ -72,3 +72,58 @@ exports.exportOrder=async(query)=>{
 
   return {data:dbresponse}
 }
+exports.findPurchaseOrderById=async(id)=>{
+  const dbresponse=await PurchaseOrder.findById(id)
+    .populate("staff", "name Department email")
+    .populate("Approvals.signature")
+    .lean();
+  
+  return {data:dbresponse}
+}
+
+async function findOrderById(orderId) {
+  return PurchaseOrder.findById(orderId);
+}
+
+async function saveOrder(order) {
+  return order.save();
+}
+
+async function findUserByName(name) {
+  return users_.findOne({ name });
+}
+
+
+
+const markOrderCompleted = async (order) => {
+  order.status = "Completed";
+  return await order.save();
+};
+
+
+const updateOrderStatus = async (orderId, status) => {
+  return await PurchaseOrder.findByIdAndUpdate(
+    orderId,
+    { status },
+    { new: true }
+  );
+};
+
+const deleteOrderById = async (orderId) => {
+  return await PurchaseOrder.findByIdAndDelete(orderId);
+};
+
+const deleteAllOrders = async () => {
+  return await PurchaseOrder.deleteMany({});
+};
+
+
+module.exports = {
+  findOrderById,
+  saveOrder,
+  findUserByName,
+  markOrderCompleted,
+  updateOrderStatus,
+  deleteOrderById,
+  deleteAllOrders,
+};

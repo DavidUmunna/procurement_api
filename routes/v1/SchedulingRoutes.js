@@ -134,8 +134,7 @@ router.get('/disbursement-schedules-unpaged', async (req, res) => {
   }
   
   try {
-    const schedules = await 
-      DisbursementSchedule.find(query)
+    const schedules = await DisbursementSchedule.find(query)
       .sort({ createdAt: -1 })
       .populate("paymentDetails")
       .populate({path:'requests.requestId',
@@ -148,7 +147,7 @@ router.get('/disbursement-schedules-unpaged', async (req, res) => {
       })
     
    
-    res.json(schedules);
+    res.status(200).json(schedules);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

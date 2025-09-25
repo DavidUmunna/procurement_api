@@ -163,9 +163,7 @@ const MoreInformation=async(req,res)=>{
         return res.status(403).json({message:'you are not authorized to approve requests'})
     }
     try{
-        const SecondLevel = ["human_resources", "internal_auditor"];
-        const Managers = ["Waste Management Manager", "Contracts_manager", "Financial_manager", "Environmental_lab_manager","Facility Manager","procurement_officer"];
-        const MD_id = "6830789898ef43e5803ea02c";
+  
         const request=await PurchaseOrder.findById(orderId)
         if (!request){
             return res.status(404).json({message:"request not found"})
