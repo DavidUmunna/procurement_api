@@ -45,12 +45,15 @@ router.post("/",auth,monitorLogger,async(req,res)=>{
         }
         }if (item.ADMIN_ROLES_DEPARTMENT){
                 rbac_object["ADMIN_ROLES_DEPARTMENT"]=["admin","global_admin","human_resources"]
+        }if(item.DELETIONROLES){
+            rbac_object["DELETIONROLES"]=["global_admin","human_resources"]
         }
+
         if (item.APPROVALS_LIST){
             rbac_object["APPROVALS_LIST"]=["accounts_dep"]
         }
         if(item.EDITING_ROLES){
-            rbac_object["EDITING_ROLES"]=["procurement_officer","global_admin"]
+            rbac_object["EDITING_ROLES"]=["procurement_officer","global_admin","human_resources"]
         }
         if (item.ALLROLES){
             rbac_object["ALL_ROLES"]=["procurement_officer", "human_resources", "internal_auditor", "global_admin","admin",
